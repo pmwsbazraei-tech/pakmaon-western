@@ -18,6 +18,9 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/database/*.sqlite
+/database/*.sqlite-*
+/storage/app/public/receipts
 /vendor
 Homestead.json
 Homestead.yaml

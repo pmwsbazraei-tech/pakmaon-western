@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOutlet;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'outlet' => \App\Http\Middleware\EnsureOutlet::class,
+            'outlet' => EnsureOutlet::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
