@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pak Maon Western — Sistem Outlet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root{
+    --bg:#c4c6c1; --panel:#e5e6e1; --panel2:#d4d6d0; --line:#b0b2ac;
+    --txt:#20232a; --muted:#5b5f66; --accent:#e9d21e; --accent2:#c9b40f; --ink:#1b1d20;
+    --green:#2f9e57; --red:#cf3f4a; --blue:#3f7fd6; --yellow:#b8901f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;display:flex;min-height:100vh;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.16), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,.06), transparent 45%),
+      radial-gradient(circle at 60% 15%, rgba(0,0,0,.04), transparent 35%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    background-attachment:fixed;
+  }
+  a{color:inherit;text-decoration:none}
+  /* Sidebar */
+  .sidebar{width:230px;background:var(--panel);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+  .brand .logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  .brand b{font-size:15px}.brand span{font-size:11px;color:var(--muted)}
+  .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;color:var(--muted);font-weight:500;margin-bottom:2px;cursor:pointer}
+  .nav a:hover{background:var(--panel2);color:var(--txt)}
+  .nav a.active{background:var(--accent);color:var(--ink);font-weight:700}
+  .nav .ico{width:18px;text-align:center}
+  /* Main */
+  .main{flex:1;padding:22px 26px;max-width:1200px}
+  .pagehead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .pagehead h1{font-size:20px}.pagehead p{color:var(--muted);font-size:13px;margin-top:3px}
+  .monthsel{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 10px;border-radius:8px}
+  /* Cards */
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}.sidebar{width:64px}.brand b,.brand span,.nav a span.lbl{display:none}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
+  .kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .val{font-size:24px;font-weight:800;margin-top:6px}
+  .kpi .sub{font-size:12px;margin-top:4px;color:var(--muted)}
+  .pos{color:var(--green)}.neg{color:var(--red)}
+  h2.sec{font-size:15px;margin:22px 0 10px}
+  /* Forms */
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:9px 11px;border-radius:8px;font-size:14px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  .btn{background:var(--accent);color:var(--ink);border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px}
+  .btn:hover{opacity:.9}.btn.sec{background:var(--panel2);border:1px solid var(--line)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .row>div{flex:1;min-width:120px}
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;background:var(--panel2);border:1px solid var(--line)}
+  .del{color:var(--red);cursor:pointer;font-weight:700}
+  .empty{color:var(--muted);text-align:center;padding:22px;font-size:13px}
+  .catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:700px){.catgrid{grid-template-columns:1fr 1fr}}
+  .catbtn{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:16px 10px;text-align:center;cursor:pointer;transition:.15s}
+  .catbtn:hover{border-color:var(--accent)}
+  .catbtn.on{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+  .catbtn .ic{font-size:22px}.catbtn .nm{font-size:12px;margin-top:6px;font-weight:600}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--muted);cursor:pointer}
+  .drop:hover{border-color:var(--accent)}
+  .bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-top:8px}
+  .bar>span{display:block;height:100%;background:var(--accent)}
+  .prog{font-size:12px;color:var(--muted);margin-top:6px}
+  .hidden{display:none}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--line);padding:12px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;transform:translateY(10px);transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .split{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  @media(max-width:900px){.split{grid-template-columns:1fr}}
+  .miniedit{width:90px;text-align:right;padding:5px 7px}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  canvas{max-height:260px}
+  .badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:700}
+  .badge.ok{background:rgba(46,204,113,.15);color:var(--green)}
+  .badge.warn{background:rgba(244,196,48,.15);color:var(--yellow)}
+  .badge.bad{background:rgba(255,90,95,.15);color:var(--red)}
+  @media print{.sidebar,.pagehead .monthsel,.noprint{display:none!important}.main{max-width:none}}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="brand"><div class="logo">PM</div><div><b>Pak Maon</b><br><span>Western Outlet</span></div></div>
+  <nav class="nav" id="nav">
+    <a data-t="dashboard" class="active"><span class="ico">▦</span><span class="lbl">Dashboard</span></a>
+    <a data-t="scan"><span class="ico">▤</span><span class="lbl">Scan Resit</span></a>
+    <a data-t="staff"><span class="ico">☺</span><span class="lbl">Staff</span></a>
+    <a data-t="kos"><span class="ico">▧</span><span class="lbl">Kos Tetap</span></a>
+    <a data-t="sales"><span class="ico">▨</span><span class="lbl">Sales</span></a>
+    <a data-t="cash"><span class="ico">$</span><span class="lbl">Petty Cash</span></a>
+    <a data-t="menu"><span class="ico">☰</span><span class="lbl">Menu Food Cost</span></a>
+    <a data-t="peralatan"><span class="ico">▬</span><span class="lbl">Peralatan</span></a>
+    <a data-t="bajet"><span class="ico">▩</span><span class="lbl">Bajet Buka</span></a>
+    <a data-t="roi"><span class="ico">◆</span><span class="lbl">ROI & Target</span></a>
+    <a data-t="laporan"><span class="ico">▣</span><span class="lbl">Laporan Penuh</span></a>
+    <a data-t="tetapan"><span class="ico">⚙</span><span class="lbl">Tetapan</span></a>
+  </nav>
+</div>
+<div class="main" id="main"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DATA ============ */
+const CATS = [
+  {id:'bahan',   nm:'Bahan Mentah', ic:'🥩', cogs:true},
+  {id:'hardware',nm:'Hardware',      ic:'🔧'},
+  {id:'utiliti', nm:'Utiliti',       ic:'💡'},
+  {id:'packaging',nm:'Packaging',    ic:'📦', cogs:true},
+  {id:'marketing',nm:'Marketing',    ic:'📣'},
+  {id:'maintenance',nm:'Maintenance',ic:'🛠️'},
+  {id:'gas',     nm:'Gas / Bahan Api',ic:'🔥'},
+  {id:'lain',    nm:'Lain-lain',     ic:'📁'},
+];
+const DEFAULT = {
+  settings:{outlet:'Pak Maon Western', targetSales:30000, targetMargin:20, targetRoiMonths:12, epf:13, socso:1.75},
+  staff:[
+    {id:'s1', nm:'Head Cook', pos:'Head Cook', gaji:3000, jenis:'Sepenuh Masa', kwsp:true},
+    {id:'s2', nm:'Cook', pos:'Cook', gaji:2200, jenis:'Sepenuh Masa', kwsp:true},
+    {id:'s3', nm:'Helper', pos:'Helper', gaji:1700, jenis:'Separuh Masa', kwsp:false},
+    {id:'s4', nm:'Cashier', pos:'Cashier', gaji:1800, jenis:'Sepenuh Masa', kwsp:true},
+  ],
+  equipment:[
+    {id:'e1', nm:'Gas grill / hotplate', qty:1, price:4500, status:'perlu', grp:'Dapur'},
+    {id:'e2', nm:'Deep fryer', qty:2, price:1200, status:'perlu', grp:'Dapur'},
+    {id:'e3', nm:'Chiller / peti sejuk', qty:1, price:3500, status:'perlu', grp:'Dapur'},
+    {id:'e4', nm:'Freezer', qty:1, price:2000, status:'perlu', grp:'Dapur'},
+    {id:'e5', nm:'Meja penyediaan stainless steel', qty:2, price:800, status:'perlu', grp:'Dapur'},
+    {id:'e6', nm:'Exhaust hood', qty:1, price:2500, status:'perlu', grp:'Dapur'},
+    {id:'e7', nm:'Meja pelanggan', qty:8, price:180, status:'perlu', grp:'Ruang Makan'},
+    {id:'e8', nm:'Kerusi pelanggan', qty:32, price:45, status:'perlu', grp:'Ruang Makan'},
+    {id:'e9', nm:'Sistem POS + printer', qty:1, price:2500, status:'perlu', grp:'Operasi'},
+    {id:'e10', nm:'Signboard', qty:1, price:3500, status:'perlu', grp:'Operasi'},
+    {id:'e11', nm:'Peralatan masak (kuali, senduk, pisau)', qty:1, price:1500, status:'perlu', grp:'Dapur'},
+    {id:'e12', nm:'Pinggan mangkuk & cutlery', qty:1, price:1200, status:'perlu', grp:'Ruang Makan'},
+  ],
+  capex:[
+    {nm:'Renovasi & kelengkapan kedai', amt:25000},
+    {nm:'Peralatan dapur (grill, fryer, chiller)', amt:18000},
+    {nm:'Meja, kerusi & perabot', amt:6000},
+    {nm:'Signboard & branding', amt:3500},
+    {nm:'Deposit sewa (2 bulan)', amt:7000},
+    {nm:'Stok awal bahan mentah', amt:5000},
+    {nm:'Lesen, permit & POS sistem', amt:2500},
+  ],
+  fixed:[
+    {nm:'Sewa kedai', amt:3500, grp:'Sewa'},
+    {nm:'WiFi / Internet', amt:150, grp:'Utiliti'},
+    {nm:'Langganan POS', amt:120, grp:'Langganan'},
+  ],
+  receipts:[], // {id,date,cat,amt,items:[{nm,amt}],note}
+  sales:[],    // {id,date,amt}
+  menu:[       // {id,nm,price,ing:[{nm,cost}]}
+    {id:'m1', nm:'Chicken Chop', price:15.90, ing:[{nm:' Isi ayam',cost:3.50},{nm:'Kentang & sayur',cost:1.20},{nm:'Sos black pepper',cost:0.80},{nm:'Minyak & rempah',cost:0.50}]},
+    {id:'m2', nm:'Beef Burger Special', price:12.90, ing:[{nm:'Patty daging',cost:2.80},{nm:'Roti bun',cost:0.70},{nm:'Keju & sayur',cost:1.10},{nm:'Sos',cost:0.40}]},
+    {id:'m3', nm:'Grilled Fish & Chips', price:16.90, ing:[{nm:'Ikan dory',cost:3.20},{nm:'Kentang',cost:1.00},{nm:'Tartar sauce',cost:0.60}]},
+    {id:'m4', nm:'Spaghetti Bolognese', price:11.90, ing:[{nm:'Pasta',cost:0.90},{nm:'Daging kisar',cost:2.20},{nm:'Sos tomato',cost:0.80}]},
+  ],
+  cash:[],     // {id,date,floatAwal,jualanTunai,bayaranTunai,kiraSebenar}
+};
+function load(){ let d; try{d=JSON.parse(localStorage.getItem('pmwestern'))||structuredClone(DEFAULT)}catch(e){d=structuredClone(DEFAULT)}
+  // migrasi field baharu supaya data lama tak rosak
+  if(!d.staff)d.staff=structuredClone(DEFAULT.staff);
+  d.staff.forEach(st=>{ if(!st.jenis)st.jenis='Sepenuh Masa'; });
+  if(!d.equipment)d.equipment=structuredClone(DEFAULT.equipment);
+  if(!d.menu)d.menu=structuredClone(DEFAULT.menu);
+  if(!d.cash)d.cash=[];
+  if(d.settings.epf===undefined)d.settings.epf=13;
+  if(d.settings.socso===undefined)d.settings.socso=1.75;
+  return d; }
+function save(){ localStorage.setItem('pmwestern', JSON.stringify(DB)); }
+let DB = load();
+let curMonth = new Date().toISOString().slice(0,7); // YYYY-MM
+
+/* ============ HELPERS ============ */
+const RM = n => 'RM'+(Math.round((+n||0)*100)/100).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid = () => Date.now()+''+Math.floor(Math.random()*1000);
+const inMonth = (d,m=curMonth) => (d||'').slice(0,7)===m;
+const catOf = id => CATS.find(c=>c.id===id)||{nm:id,ic:'📁'};
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ---- computed figures for a given month ---- */
+function calc(m=curMonth){
+  const rec = DB.receipts.filter(r=>inMonth(r.date,m));
+  const varByCat = {};
+  CATS.forEach(c=>varByCat[c.id]=0);
+  let varTotal=0, cogs=0;
+  rec.forEach(r=>{ varByCat[r.cat]=(varByCat[r.cat]||0)+(+r.amt||0); varTotal+=(+r.amt||0); if(catOf(r.cat).cogs) cogs+=(+r.amt||0); });
+  const otherFixed = DB.fixed.reduce((s,f)=>s+(+f.amt||0),0);
+  const staffCost = DB.staff.reduce((s,st)=>s+staffTotal(st),0);
+  const fixedTotal = otherFixed + staffCost;
+  const sales = DB.sales.filter(s=>inMonth(s.date,m)).reduce((s,x)=>s+(+x.amt||0),0);
+  const expenses = varTotal + fixedTotal;
+  const net = sales - expenses;
+  const capex = DB.capex.reduce((s,c)=>s+(+c.amt||0),0);
+  const foodCostPct = sales>0 ? (cogs/sales*100) : 0;
+  const marginPct = sales>0 ? (net/sales*100) : 0;
+  // break-even: fixed / (1 - variableRatio). variableRatio approx = varTotal/sales
+  const varRatio = sales>0 ? varTotal/sales : 0;
+  const beSales = (1-varRatio)>0 ? fixedTotal/(1-varRatio) : 0;
+  const roiMonths = net>0 ? capex/net : Infinity;
+  return {rec,varByCat,varTotal,cogs,fixedTotal,otherFixed,staffCost,sales,expenses,net,capex,foodCostPct,marginPct,beSales,roiMonths};
+}
+/* kos majikan sebenar bagi seorang staff = gaji + EPF + SOCSO */
+function staffTotal(st){ const g=+st.gaji||0; if(!st.kwsp)return g;
+  return g + g*(DB.settings.epf/100) + g*(DB.settings.socso/100); }
+
+/* ============ ROUTER ============ */
+const nav = document.getElementById('nav');
+nav.addEventListener('click', e=>{ const a=e.target.closest('a'); if(!a)return;
+  [...nav.children].forEach(x=>x.classList.remove('active')); a.classList.add('active'); route(a.dataset.t); });
+function route(t){ ({dashboard:vDash,scan:vScan,staff:vStaff,kos:vKos,sales:vSales,cash:vCash,menu:vMenu,peralatan:vPeralatan,bajet:vBajet,roi:vRoi,laporan:vLap,tetapan:vSet}[t]||vDash)(); }
+
+function head(title,sub,withMonth=true){
+  return `<div class="pagehead"><div><h1>${title}</h1><p>${sub}</p></div>
+    ${withMonth?`<div><label>Bulan laporan</label><input type="month" class="monthsel" id="mo" value="${curMonth}"></div>`:''}</div>`;
+}
+function bindMonth(){ const m=document.getElementById('mo'); if(m) m.onchange=e=>{curMonth=e.target.value; route(curActive());}; }
+function curActive(){ return nav.querySelector('a.active').dataset.t; }
+
+/* ============ DASHBOARD ============ */
+function vDash(){
+  const c = calc();
+  const M = document.getElementById('main');
+  const netCls = c.net>=0?'pos':'neg';
+  const fcBadge = c.foodCostPct===0?'':(c.foodCostPct<=35?'<span class="badge ok">Sihat</span>':c.foodCostPct<=45?'<span class="badge warn">Tinggi</span>':'<span class="badge bad">Bahaya</span>');
+  M.innerHTML = head('Dashboard', DB.settings.outlet+' — ringkasan prestasi bulanan') + `
+  <div class="grid g4">
+    <div class="card kpi"><div class="lbl">Jualan Bulan Ini</div><div class="val">${RM(c.sales)}</div><div class="sub">Target ${RM(DB.settings.targetSales)}</div></div>
+    <div class="card kpi"><div class="lbl">Jumlah Kos</div><div class="val">${RM(c.expenses)}</div><div class="sub">Tetap ${RM(c.fixedTotal)} + Berubah ${RM(c.varTotal)}</div></div>
+    <div class="card kpi"><div class="lbl">Untung Bersih</div><div class="val ${netCls}">${RM(c.net)}</div><div class="sub">Margin ${c.marginPct.toFixed(1)}%</div></div>
+    <div class="card kpi"><div class="lbl">Food Cost %</div><div class="val">${c.foodCostPct.toFixed(1)}% ${fcBadge}</div><div class="sub">COGS ${RM(c.cogs)}</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card kpi"><div class="lbl">Break-even (jualan)</div><div class="val">${RM(c.beSales)}</div><div class="sub">≈ ${RM(c.beSales/30)}/hari perlu tak rugi</div></div>
+    <div class="card kpi"><div class="lbl">Modal Buka (Capex)</div><div class="val">${RM(c.capex)}</div><div class="sub">Balik modal: ${c.roiMonths===Infinity?'—':c.roiMonths.toFixed(1)+' bulan'}</div></div>
+    <div class="card kpi"><div class="lbl">Pencapaian Target Sales</div><div class="val">${DB.settings.targetSales>0?(c.sales/DB.settings.targetSales*100).toFixed(0):0}%</div>
+      <div class="bar"><span style="width:${Math.min(100,DB.settings.targetSales>0?c.sales/DB.settings.targetSales*100:0)}%"></span></div></div>
+  </div>
+  <div class="split" style="margin-top:16px">
+    <div class="card"><h2 class="sec" style="margin-top:0">Pecahan Kos Mengikut Kategori</h2><canvas id="cPie"></canvas></div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Jualan vs Kos vs Untung (6 bulan)</h2><canvas id="cBar"></canvas></div>
+  </div>`;
+  bindMonth();
+  // pie
+  const labels=[], data=[], colors=['#e63946','#f4a261','#4aa3ff','#2ecc71','#f4c430','#9b5de5','#00bbf9','#8d99ae'];
+  const merged = {...c.varByCat}; merged['gaji_sewa']=c.fixedTotal;
+  CATS.forEach(cc=>{ if(c.varByCat[cc.id]>0){labels.push(cc.nm);data.push(c.varByCat[cc.id]);} });
+  labels.push('Kos Tetap (gaji/sewa)'); data.push(c.fixedTotal);
+  new Chart(document.getElementById('cPie'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors}]},
+    options:{plugins:{legend:{position:'right',labels:{color:'#4a4e56',font:{size:11}}}}}});
+  // bar 6 months
+  const months=[]; for(let i=5;i>=0;i--){const d=new Date(curMonth+'-01');d.setMonth(d.getMonth()-i);months.push(d.toISOString().slice(0,7));}
+  const s=months.map(m=>calc(m)), lab=months.map(m=>m.slice(5)+'/'+m.slice(2,4));
+  new Chart(document.getElementById('cBar'),{type:'bar',data:{labels:lab,datasets:[
+    {label:'Jualan',data:s.map(x=>x.sales),backgroundColor:'#4aa3ff'},
+    {label:'Kos',data:s.map(x=>x.expenses),backgroundColor:'#e63946'},
+    {label:'Untung',data:s.map(x=>x.net),backgroundColor:'#2ecc71'}]},
+    options:{scales:{x:{ticks:{color:'#4a4e56'}},y:{ticks:{color:'#4a4e56'}}},plugins:{legend:{labels:{color:'#4a4e56'}}}}});
+}
+
+/* ============ SCAN RESIT ============ */
+let scanState={cat:null,items:[],amt:0,imgData:null};
+function vScan(){
+  const M=document.getElementById('main');
+  M.innerHTML = head('Scan Resit','Pilih kategori → snap/upload resit → sistem baca jumlah automatik',false) + `
+  <div class="card">
+    <label>1. Pilih kategori kos</label>
+    <div class="catgrid" id="catg">${CATS.map(c=>`<div class="catbtn" data-c="${c.id}"><div class="ic">${c.ic}</div><div class="nm">${c.nm}</div></div>`).join('')}</div>
+  </div>
+  <div class="split" style="margin-top:14px">
+    <div class="card">
+      <label>2. Upload / snap gambar resit</label>
+      <div class="drop" id="drop">📷 Klik untuk pilih gambar resit<br><span style="font-size:12px">(atau guna kamera telefon)</span></div>
+      <input type="file" id="file" accept="image/*" capture="environment" class="hidden">
+      <div id="prog" class="prog hidden"></div>
+      <img id="preview" class="hidden" style="width:100%;border-radius:10px;margin-top:10px;max-height:280px;object-fit:contain">
+    </div>
+    <div class="card">
+      <label>3. Semak & simpan</label>
+      <div class="row"><div><label>Tarikh</label><input type="date" id="rdate" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div><label>Jumlah (RM)</label><input type="number" id="ramt" step="0.01" placeholder="0.00"></div></div>
+      <div style="margin-top:10px"><label>Item dikesan (boleh edit)</label>
+        <div id="items" class="hint">Belum ada. Scan resit atau tambah manual.</div>
+        <button class="btn sec sm" id="additem" style="margin-top:8px">+ Tambah item</button>
+      </div>
+      <input id="rnote" placeholder="Nota (opsyenal)" style="margin-top:10px">
+      <button class="btn" id="saverec" style="margin-top:12px;width:100%">💾 Rekod Kos</button>
+    </div>
+  </div>
+  <h2 class="sec">Resit bulan ${curMonth} <input type="month" class="monthsel" id="mo" value="${curMonth}" style="margin-left:10px"></h2>
+  <div class="card" id="reclist"></div>`;
+  bindMonth();
+  // category select
+  document.getElementById('catg').onclick=e=>{const b=e.target.closest('.catbtn');if(!b)return;
+    document.querySelectorAll('.catbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');scanState.cat=b.dataset.c;};
+  // file
+  const file=document.getElementById('file');
+  document.getElementById('drop').onclick=()=>file.click();
+  file.onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{
+    const img=document.getElementById('preview');img.src=ev.target.result;img.classList.remove('hidden');scanState.imgData=ev.target.result;runOCR(ev.target.result);};rd.readAsDataURL(f);};
+  document.getElementById('additem').onclick=()=>{addItemRow('',''); };
+  document.getElementById('saverec').onclick=saveReceipt;
+  renderRecList();
+}
+function addItemRow(nm,amt){
+  const box=document.getElementById('items');
+  if(box.classList.contains('hint')){box.classList.remove('hint');box.innerHTML='';}
+  const row=document.createElement('div');row.className='row';row.style.marginBottom='6px';
+  row.innerHTML=`<div style="flex:2"><input placeholder="Nama item" value="${nm||''}"></div>
+    <div><input type="number" step="0.01" class="miniedit" placeholder="0.00" value="${amt||''}" style="width:100%"></div>
+    <div style="flex:0"><button class="btn sec sm">✕</button></div>`;
+  row.querySelector('button').onclick=()=>{row.remove();sumItems();};
+  row.querySelectorAll('input')[1].oninput=sumItems;
+  box.appendChild(row);
+}
+function sumItems(){
+  const rows=[...document.querySelectorAll('#items .row')];let t=0;rows.forEach(r=>{const v=+r.querySelectorAll('input')[1].value||0;t+=v;});
+  if(rows.length){document.getElementById('ramt').value=t.toFixed(2);}
+}
+async function runOCR(dataUrl){
+  const prog=document.getElementById('prog');prog.classList.remove('hidden');prog.textContent='Membaca resit… 0%';
+  try{
+    const {data}=await Tesseract.recognize(dataUrl,'eng',{logger:m=>{if(m.status==='recognizing text')prog.textContent='Membaca resit… '+Math.round(m.progress*100)+'%';}});
+    const text=data.text;
+    // find amounts like 12.50
+    const lines=text.split('\n');
+    const box=document.getElementById('items');box.classList.remove('hint');box.innerHTML='';
+    let found=[];
+    lines.forEach(ln=>{const m=ln.match(/(.+?)\s+(?:RM)?\s*(\d{1,4}[.,]\d{2})\s*$/i);
+      if(m){const nm=m[1].replace(/[^A-Za-z0-9 &]/g,'').trim();const amt=parseFloat(m[2].replace(',','.'));
+        if(nm.length>=2 && amt>0 && !/total|jumlah|cash|tunai|change|baki|round|gst|sst|subtotal/i.test(nm)) found.push({nm,amt});}});
+    // total detection
+    let total=0; const tm=text.match(/(?:total|jumlah)[^\d]*(\d{1,5}[.,]\d{2})/i); if(tm)total=parseFloat(tm[1].replace(',','.'));
+    found.forEach(f=>addItemRow(f.nm,f.amt));
+    if(!found.length)box.innerHTML='<span class="hint">Tak jumpa item automatik — sila taip jumlah manual di atas.</span>';
+    if(total>0){document.getElementById('ramt').value=total.toFixed(2);}else sumItems();
+    prog.textContent='Siap dibaca ✓ — sila semak jumlah.';
+    setTimeout(()=>prog.classList.add('hidden'),2500);
+  }catch(err){prog.textContent='Gagal baca resit — sila isi manual.';}
+}
+function saveReceipt(){
+  if(!scanState.cat){toast('Sila pilih kategori dulu');return;}
+  const amt=+document.getElementById('ramt').value||0;
+  if(amt<=0){toast('Sila isi jumlah');return;}
+  const items=[...document.querySelectorAll('#items .row')].map(r=>({nm:r.querySelectorAll('input')[0].value,amt:+r.querySelectorAll('input')[1].value||0})).filter(i=>i.nm);
+  DB.receipts.push({id:uid(),date:document.getElementById('rdate').value,cat:scanState.cat,amt,items,note:document.getElementById('rnote').value});
+  save();toast('Kos '+catOf(scanState.cat).nm+' '+RM(amt)+' direkod');
+  scanState={cat:null,items:[],amt:0,imgData:null};vScan();
+}
+function renderRecList(){
+  const box=document.getElementById('reclist');const rec=DB.receipts.filter(r=>inMonth(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!rec.length){box.innerHTML='<div class="empty">Belum ada resit untuk bulan ini.</div>';return;}
+  box.innerHTML=`<table><thead><tr><th>Tarikh</th><th>Kategori</th><th>Item</th><th class="num">Jumlah</th><th></th></tr></thead><tbody>
+    ${rec.map(r=>`<tr><td>${r.date}</td><td><span class="chip">${catOf(r.cat).ic} ${catOf(r.cat).nm}</span></td>
+    <td style="color:var(--muted);font-size:12px">${r.items&&r.items.length?r.items.map(i=>i.nm).slice(0,3).join(', ')+(r.items.length>3?'…':''):(r.note||'—')}</td>
+    <td class="num">${RM(r.amt)}</td><td><span class="del" data-id="${r.id}">✕</span></td></tr>`).join('')}</tbody></table>`;
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.receipts=DB.receipts.filter(x=>x.id!==d.dataset.id);save();renderRecList();});
+}
+
+/* ============ STAFF ============ */
+function vStaff(){
+  const M=document.getElementById('main');const s=DB.settings;
+  const totalGaji=DB.staff.reduce((a,x)=>a+(+x.gaji||0),0);
+  const totalKos=DB.staff.reduce((a,x)=>a+staffTotal(x),0);
+  const nFT=DB.staff.filter(x=>x.jenis==='Sepenuh Masa').length;
+  const nPT=DB.staff.filter(x=>x.jenis==='Separuh Masa').length;
+  M.innerHTML=head('Staff','Urus pekerja & kos gaji — klik terus untuk edit nama, posisi & gaji',false)+`
+  <div class="grid g4">
+    <div class="card kpi"><div class="lbl">Bilangan Staff</div><div class="val">${DB.staff.length}</div><div class="sub">${nFT} sepenuh masa · ${nPT} separuh masa</div></div>
+    <div class="card kpi"><div class="lbl">Jumlah Gaji Pokok</div><div class="val">${RM(totalGaji)}</div></div>
+    <div class="card kpi"><div class="lbl">Jumlah Kos Majikan/Bulan</div><div class="val">${RM(totalKos)}</div><div class="sub">+EPF ${s.epf}% +SOCSO ${s.socso}%</div></div>
+    <div class="card kpi"><div class="lbl">Purata Kos / Staff</div><div class="val">${RM(DB.staff.length?totalKos/DB.staff.length:0)}</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div style="flex:2"><label>Nama</label><input id="snm" placeholder="cth: Ali"></div>
+    <div><label>Posisi</label><input id="spos" placeholder="cth: Cook"></div>
+    <div style="flex:0"><label>Jenis</label><select id="sjenis"><option>Sepenuh Masa</option><option>Separuh Masa</option></select></div>
+    <div><label>Gaji Pokok (RM)</label><input id="sgaji" type="number" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><label>EPF/SOCSO</label><select id="skwsp"><option value="1">Ya</option><option value="0">Tidak</option></select></div>
+    <div style="flex:0"><button class="btn" id="addst">+ Tambah</button></div></div>
+    <div class="hint">Kos majikan = gaji + EPF ${s.epf}% + SOCSO ${s.socso}% (jika diaktifkan). Jumlah ini masuk automatik ke Kos Tetap & PnL. Untuk staff separuh masa, letak gaji bulanan anggaran & pilih EPF/SOCSO = Tidak jika tidak berkaitan.</div>
+  </div>
+  <div class="card" style="margin-top:14px" id="stafflist"></div>`;
+  document.getElementById('addst').onclick=()=>{const nm=document.getElementById('snm').value.trim();const pos=document.getElementById('spos').value.trim();const gaji=+document.getElementById('sgaji').value||0;
+    if(!nm||gaji<=0){toast('Isi nama & gaji');return;}
+    DB.staff.push({id:uid(),nm,pos,gaji,jenis:document.getElementById('sjenis').value,kwsp:document.getElementById('skwsp').value==='1'});save();vStaff();};
+  const box=document.getElementById('stafflist');
+  if(!DB.staff.length){box.innerHTML='<div class="empty">Belum ada staff.</div>';return;}
+  box.innerHTML=`<table><thead><tr><th>Nama</th><th>Posisi</th><th>Jenis</th><th class="num">Gaji Pokok</th><th>EPF/SOCSO</th><th class="num">Kos Majikan</th><th></th></tr></thead><tbody>
+    ${DB.staff.map(st=>`<tr>
+    <td><input class="edn" data-id="${st.id}" data-f="nm" value="${(st.nm||'').replace(/"/g,'&quot;')}" style="min-width:110px"></td>
+    <td><input class="edn" data-id="${st.id}" data-f="pos" value="${(st.pos||'').replace(/"/g,'&quot;')}" style="min-width:100px"></td>
+    <td><select class="edn" data-id="${st.id}" data-f="jenis" style="min-width:130px"><option ${st.jenis==='Sepenuh Masa'?'selected':''}>Sepenuh Masa</option><option ${st.jenis==='Separuh Masa'?'selected':''}>Separuh Masa</option></select></td>
+    <td class="num"><input type="number" step="0.01" class="edn miniedit" data-id="${st.id}" data-f="gaji" value="${st.gaji}"></td>
+    <td><select class="edn" data-id="${st.id}" data-f="kwsp"><option value="1" ${st.kwsp?'selected':''}>Ya</option><option value="0" ${!st.kwsp?'selected':''}>Tidak</option></select></td>
+    <td class="num" style="font-weight:600">${RM(staffTotal(st))}</td>
+    <td><span class="del" data-id="${st.id}">✕</span></td></tr>`).join('')}
+    <tr style="border-top:2px solid var(--line)"><td colspan="5" style="font-weight:700">JUMLAH KOS STAFF / BULAN</td><td class="num" style="font-weight:800">${RM(totalKos)}</td><td></td></tr></tbody></table>`;
+  box.querySelectorAll('.edn').forEach(inp=>{const ev=inp.tagName==='SELECT'?'onchange':'onchange';inp[ev]=()=>{
+    const st=DB.staff.find(x=>x.id===inp.dataset.id);const f=inp.dataset.f;
+    if(f==='gaji')st.gaji=+inp.value||0; else if(f==='kwsp')st.kwsp=inp.value==='1'; else st[f]=inp.value;
+    save();vStaff();};});
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.staff=DB.staff.filter(x=>x.id!==d.dataset.id);save();vStaff();});
+}
+
+/* ============ MENU FOOD COST ============ */
+let openMenu=null;
+function menuCost(m){ return (m.ing||[]).reduce((a,i)=>a+(+i.cost||0),0); }
+function vMenu(){
+  const M=document.getElementById('main');
+  const list=DB.menu;
+  const avgGP = list.length? list.reduce((a,m)=>{const c=menuCost(m);return a+(m.price>0?(m.price-c)/m.price*100:0);},0)/list.length : 0;
+  const badge=(fc)=> fc===0?'':(fc<=35?'<span class="badge ok">Baik</span>':fc<=45?'<span class="badge warn">Tinggi</span>':'<span class="badge bad">Rugi</span>');
+  M.innerHTML=head('Menu Food Cost','Kos bahan setiap menu vs harga jual — tengok menu mana untung',false)+`
+  <div class="grid g3">
+    <div class="card kpi"><div class="lbl">Bilangan Menu</div><div class="val">${list.length}</div></div>
+    <div class="card kpi"><div class="lbl">Purata Margin Kasar (GP)</div><div class="val">${avgGP.toFixed(1)}%</div></div>
+    <div class="card kpi"><div class="lbl">Sasaran Food Cost</div><div class="val">≤ 35%</div><div class="sub">standard industri F&B</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div style="flex:2"><label>Nama Menu</label><input id="mnm" placeholder="cth: Lamb Chop"></div>
+    <div><label>Harga Jual (RM)</label><input id="mprice" type="number" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="addm">+ Tambah Menu</button></div></div>
+    <div class="hint">Klik "Resepi" pada mana-mana menu untuk masuk kos bahan satu-satu.</div>
+  </div>
+  <div class="card" style="margin-top:14px" id="menulist"></div>`;
+  document.getElementById('addm').onclick=()=>{const nm=document.getElementById('mnm').value.trim();const price=+document.getElementById('mprice').value||0;
+    if(!nm||price<=0){toast('Isi nama & harga');return;}DB.menu.push({id:uid(),nm,price,ing:[]});save();vMenu();};
+  const box=document.getElementById('menulist');
+  if(!list.length){box.innerHTML='<div class="empty">Belum ada menu.</div>';return;}
+  let html='<table><thead><tr><th>Menu</th><th class="num">Harga Jual</th><th class="num">Kos Bahan</th><th class="num">Food Cost %</th><th class="num">Untung/Unit</th><th class="num">GP %</th><th></th><th></th></tr></thead><tbody>';
+  list.forEach(m=>{const c=menuCost(m);const gp=m.price-c;const fcPct=m.price>0?c/m.price*100:0;const gpPct=m.price>0?gp/m.price*100:0;
+    html+=`<tr>
+      <td><input class="med" data-id="${m.id}" data-f="nm" value="${(m.nm||'').replace(/"/g,'&quot;')}" style="min-width:130px"></td>
+      <td class="num"><input type="number" step="0.01" class="med miniedit" data-id="${m.id}" data-f="price" value="${m.price}"></td>
+      <td class="num">${RM(c)}</td>
+      <td class="num">${fcPct.toFixed(1)}% ${badge(fcPct)}</td>
+      <td class="num ${gp>=0?'pos':'neg'}">${RM(gp)}</td>
+      <td class="num" style="font-weight:600">${gpPct.toFixed(1)}%</td>
+      <td><button class="btn sec sm mres" data-id="${m.id}">Resepi</button></td>
+      <td><span class="del" data-id="${m.id}">✕</span></td></tr>`;
+    if(openMenu===m.id){
+      html+=`<tr><td colspan="8" style="background:var(--panel2);border-radius:0 0 10px 10px">
+        <div style="padding:6px 4px"><b style="font-size:12px">Resepi ${m.nm} — kos bahan setiap hidangan</b>
+        <table style="margin-top:6px">${(m.ing||[]).map((ig,ix)=>`<tr>
+          <td><input class="ied" data-id="${m.id}" data-ix="${ix}" data-f="nm" value="${(ig.nm||'').replace(/"/g,'&quot;')}" style="min-width:140px"></td>
+          <td class="num"><input type="number" step="0.01" class="ied miniedit" data-id="${m.id}" data-ix="${ix}" data-f="cost" value="${ig.cost}"></td>
+          <td style="width:30px"><span class="del idel" data-id="${m.id}" data-ix="${ix}">✕</span></td></tr>`).join('')}
+          <tr><td><input class="ingnm" data-id="${m.id}" placeholder="+ bahan baharu"></td>
+          <td class="num"><input type="number" step="0.01" class="ingcost miniedit" data-id="${m.id}" placeholder="0.00"></td>
+          <td><button class="btn sm ingadd" data-id="${m.id}">+</button></td></tr>
+          <tr style="border-top:1px solid var(--line)"><td style="font-weight:700">Jumlah Kos Bahan</td><td class="num" style="font-weight:700">${RM(c)}</td><td></td></tr>
+        </table></div></td></tr>`;
+    }
+  });
+  html+='</tbody></table>';box.innerHTML=html;
+  box.querySelectorAll('.med').forEach(inp=>inp.onchange=()=>{const m=DB.menu.find(x=>x.id===inp.dataset.id);if(inp.dataset.f==='price')m.price=+inp.value||0;else m.nm=inp.value;save();vMenu();});
+  box.querySelectorAll('.mres').forEach(b=>b.onclick=()=>{openMenu=openMenu===b.dataset.id?null:b.dataset.id;vMenu();});
+  box.querySelectorAll('.del:not(.idel)').forEach(d=>{if(!d.classList.contains('idel'))d.onclick=()=>{DB.menu=DB.menu.filter(x=>x.id!==d.dataset.id);save();vMenu();};});
+  box.querySelectorAll('.ied').forEach(inp=>inp.onchange=()=>{const m=DB.menu.find(x=>x.id===inp.dataset.id);const ig=m.ing[+inp.dataset.ix];if(inp.dataset.f==='cost')ig.cost=+inp.value||0;else ig.nm=inp.value;save();vMenu();});
+  box.querySelectorAll('.idel').forEach(d=>d.onclick=()=>{const m=DB.menu.find(x=>x.id===d.dataset.id);m.ing.splice(+d.dataset.ix,1);save();vMenu();});
+  box.querySelectorAll('.ingadd').forEach(b=>b.onclick=()=>{const m=DB.menu.find(x=>x.id===b.dataset.id);
+    const nm=box.querySelector('.ingnm[data-id="'+b.dataset.id+'"]').value.trim();const cost=+box.querySelector('.ingcost[data-id="'+b.dataset.id+'"]').value||0;
+    if(!nm){toast('Isi nama bahan');return;}m.ing.push({nm,cost});save();vMenu();});
+}
+
+/* ============ PETTY CASH / TUTUP HARIAN ============ */
+function cashExpected(r){ return (+r.floatAwal||0)+(+r.jualanTunai||0)-(+r.bayaranTunai||0); }
+function cashDiff(r){ return (+r.kiraSebenar||0)-cashExpected(r); }
+function vCash(){
+  const M=document.getElementById('main');
+  const rows=DB.cash.filter(r=>inMonth(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+  const totIn=rows.reduce((a,r)=>a+(+r.jualanTunai||0),0);
+  const totDiff=rows.reduce((a,r)=>a+cashDiff(r),0);
+  M.innerHTML=head('Petty Cash / Tutup Harian','Kira duit laci hujung hari — kesan lebih/kurang (kebocoran)')+`
+  <div class="grid g3">
+    <div class="card kpi"><div class="lbl">Jualan Tunai Bulan Ini</div><div class="val">${RM(totIn)}</div></div>
+    <div class="card kpi"><div class="lbl">Hari Direkod</div><div class="val">${rows.length}</div></div>
+    <div class="card kpi"><div class="lbl">Jumlah Beza (Variance)</div><div class="val ${totDiff<0?'neg':'pos'}">${RM(totDiff)}</div><div class="sub">${totDiff<0?'kurang — periksa kebocoran':'lebih/seimbang'}</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div><label>Tarikh</label><input type="date" id="cdate" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div><label>Float Awal (RM)</label><input type="number" id="cfloat" step="0.01" placeholder="0.00" value="100"></div>
+    <div><label>Jualan Tunai (RM)</label><input type="number" id="cjual" step="0.01" placeholder="0.00"></div>
+    <div><label>Bayaran Tunai (RM)</label><input type="number" id="cbayar" step="0.01" placeholder="0.00" value="0"></div>
+    <div><label>Kiraan Sebenar Laci (RM)</label><input type="number" id="ckira" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="addc2">+ Rekod</button></div></div>
+    <div class="hint">Sepatutnya = Float + Jualan Tunai − Bayaran Tunai. Beza negatif bermakna duit laci kurang dari sepatutnya.</div>
+  </div>
+  <div class="card" style="margin-top:14px" id="cashlist"></div>`;
+  bindMonth();
+  document.getElementById('addc2').onclick=()=>{const date=document.getElementById('cdate').value;const jualanTunai=+document.getElementById('cjual').value||0;
+    if(!date){toast('Isi tarikh');return;}
+    DB.cash.push({id:uid(),date,floatAwal:+document.getElementById('cfloat').value||0,jualanTunai,bayaranTunai:+document.getElementById('cbayar').value||0,kiraSebenar:+document.getElementById('ckira').value||0});save();vCash();};
+  const box=document.getElementById('cashlist');
+  if(!rows.length){box.innerHTML='<div class="empty">Belum ada rekod tutup harian bulan ini.</div>';return;}
+  box.innerHTML=`<table><thead><tr><th>Tarikh</th><th class="num">Float</th><th class="num">Jualan Tunai</th><th class="num">Bayaran Tunai</th><th class="num">Sepatutnya</th><th class="num">Sebenar</th><th class="num">Beza</th><th></th></tr></thead><tbody>
+    ${rows.map(r=>{const d=cashDiff(r);return `<tr><td>${r.date}</td>
+    <td class="num">${RM(r.floatAwal)}</td><td class="num">${RM(r.jualanTunai)}</td><td class="num">${RM(r.bayaranTunai)}</td>
+    <td class="num">${RM(cashExpected(r))}</td><td class="num">${RM(r.kiraSebenar)}</td>
+    <td class="num ${d<0?'neg':(d>0?'pos':'')}" style="font-weight:600">${RM(d)}</td>
+    <td><span class="del" data-id="${r.id}">✕</span></td></tr>`;}).join('')}</tbody></table>`;
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.cash=DB.cash.filter(x=>x.id!==d.dataset.id);save();vCash();});
+}
+
+/* ============ PERALATAN ============ */
+function vPeralatan(){
+  const M=document.getElementById('main');
+  const tot=DB.equipment.reduce((a,e)=>a+(+e.qty||0)*(+e.price||0),0);
+  const beli=DB.equipment.filter(e=>e.status==='beli').reduce((a,e)=>a+(+e.qty||0)*(+e.price||0),0);
+  const perlu=tot-beli;
+  const pct=tot>0?beli/tot*100:0;
+  M.innerHTML=head('Peralatan Buka Outlet','Checklist procurement — apa dah beli, apa belum',false)+`
+  <div class="grid g3">
+    <div class="card kpi"><div class="lbl">Jumlah Kos Peralatan</div><div class="val">${RM(tot)}</div></div>
+    <div class="card kpi"><div class="lbl">Sudah Dibeli</div><div class="val pos">${RM(beli)}</div></div>
+    <div class="card kpi"><div class="lbl">Perlu Dibeli Lagi</div><div class="val neg">${RM(perlu)}</div>
+      <div class="bar"><span style="width:${pct}%;background:var(--green)"></span></div><div class="prog">${pct.toFixed(0)}% siap</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div style="flex:2"><label>Peralatan</label><input id="enm" placeholder="cth: Blender"></div>
+    <div style="flex:0"><label>Kumpulan</label><select id="egrp"><option>Dapur</option><option>Ruang Makan</option><option>Operasi</option><option>Lain-lain</option></select></div>
+    <div style="flex:0"><label>Kuantiti</label><input id="eqty" type="number" value="1" style="width:80px"></div>
+    <div><label>Harga Unit (RM)</label><input id="eprice" type="number" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="adde">+ Tambah</button></div></div>
+  </div>
+  <div class="card" style="margin-top:14px" id="eqlist"></div>`;
+  document.getElementById('adde').onclick=()=>{const nm=document.getElementById('enm').value.trim();const price=+document.getElementById('eprice').value||0;
+    if(!nm||price<=0){toast('Isi peralatan & harga');return;}
+    DB.equipment.push({id:uid(),nm,grp:document.getElementById('egrp').value,qty:+document.getElementById('eqty').value||1,price,status:'perlu'});save();vPeralatan();};
+  const box=document.getElementById('eqlist');
+  const grps={};DB.equipment.forEach(e=>{(grps[e.grp]=grps[e.grp]||[]).push(e);});
+  let html='<table><thead><tr><th>Status</th><th>Peralatan</th><th>Kumpulan</th><th class="num">Qty</th><th class="num">Harga Unit</th><th class="num">Jumlah</th><th></th></tr></thead><tbody>';
+  Object.keys(grps).forEach(g=>{grps[g].forEach(e=>{const sub=(+e.qty||0)*(+e.price||0);const on=e.status==='beli';
+    html+=`<tr><td><input type="checkbox" data-id="${e.id}" ${on?'checked':''} style="width:auto"></td>
+    <td style="${on?'text-decoration:line-through;color:var(--muted)':''}">${e.nm}</td><td><span class="chip">${e.grp}</span></td>
+    <td class="num">${e.qty}</td><td class="num">${RM(e.price)}</td><td class="num">${RM(sub)}</td>
+    <td><span class="del" data-id="${e.id}">✕</span></td></tr>`;});});
+  html+=`<tr style="border-top:2px solid var(--line)"><td colspan="5" style="font-weight:700">JUMLAH SEMUA PERALATAN</td><td class="num" style="font-weight:800">${RM(tot)}</td><td></td></tr></tbody></table>`;
+  box.innerHTML=html;
+  box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.onchange=()=>{const e=DB.equipment.find(x=>x.id===cb.dataset.id);e.status=cb.checked?'beli':'perlu';save();vPeralatan();});
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.equipment=DB.equipment.filter(x=>x.id!==d.dataset.id);save();vPeralatan();});
+}
+
+/* ============ KOS TETAP ============ */
+function vKos(){
+  const M=document.getElementById('main');const c=calc();
+  const total=DB.fixed.reduce((s,f)=>s+(+f.amt||0),0);
+  M.innerHTML=head('Kos Tetap Bulanan','Sewa, WiFi, langganan & liabiliti tetap (gaji diurus di modul Staff)',false)+`
+  <div class="grid g3">
+    <div class="card kpi"><div class="lbl">Kos Tetap Bukan Gaji</div><div class="val">${RM(total)}</div></div>
+    <div class="card kpi"><div class="lbl">Kos Staff (auto)</div><div class="val">${RM(c.staffCost)}</div><div class="sub">dari modul Staff</div></div>
+    <div class="card kpi"><div class="lbl">Jumlah Kos Tetap / Bulan</div><div class="val">${RM(c.fixedTotal)}</div></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div style="flex:2"><label>Perkara</label><input id="fnm" placeholder="cth: Gaji Cook"></div>
+    <div><label>Kumpulan</label><select id="fgrp"><option>Gaji</option><option>Sewa</option><option>Utiliti</option><option>Langganan</option><option>Insurans</option><option>Ansuran</option><option>Lain-lain</option></select></div>
+    <div><label>Amaun (RM)</label><input id="famt" type="number" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="addfix">+ Tambah</button></div></div>
+  </div>
+  <div class="card" style="margin-top:14px" id="fixlist"></div>`;
+  document.getElementById('addfix').onclick=()=>{const nm=document.getElementById('fnm').value.trim();const amt=+document.getElementById('famt').value||0;
+    if(!nm||amt<=0){toast('Isi perkara & amaun');return;}DB.fixed.push({nm,grp:document.getElementById('fgrp').value,amt});save();vKos();};
+  renderFix();
+}
+function renderFix(){
+  const box=document.getElementById('fixlist');
+  if(!DB.fixed.length){box.innerHTML='<div class="empty">Belum ada kos tetap.</div>';return;}
+  const total=DB.fixed.reduce((s,f)=>s+(+f.amt||0),0);
+  const GRP=['Sewa','Utiliti','Langganan','Insurans','Ansuran','Lain-lain'];
+  let html='<table><thead><tr><th>Perkara</th><th>Kumpulan</th><th class="num">Amaun</th><th></th></tr></thead><tbody>';
+  DB.fixed.forEach((f,i)=>{html+=`<tr>
+    <td><input class="fed" data-i="${i}" data-f="nm" value="${(f.nm||'').replace(/"/g,'&quot;')}" style="min-width:150px"></td>
+    <td><select class="fed" data-i="${i}" data-f="grp" style="min-width:120px">${GRP.map(g=>`<option ${f.grp===g?'selected':''}>${g}</option>`).join('')}</select></td>
+    <td class="num"><input type="number" step="0.01" class="fed miniedit" data-i="${i}" data-f="amt" value="${f.amt}"></td>
+    <td><span class="del" data-i="${i}">✕</span></td></tr>`;});
+  html+=`<tr style="border-top:2px solid var(--line)"><td colspan="2" style="font-weight:700">JUMLAH (BUKAN GAJI)</td><td class="num" style="font-weight:800">${RM(total)}</td><td></td></tr></tbody></table>`;
+  box.innerHTML=html;
+  box.querySelectorAll('.fed').forEach(inp=>inp.onchange=()=>{const f=DB.fixed[+inp.dataset.i];const k=inp.dataset.f;
+    if(k==='amt')f.amt=+inp.value||0; else f[k]=inp.value; save();renderFix();});
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.fixed.splice(+d.dataset.i,1);save();renderFix();});
+}
+
+/* ============ SALES ============ */
+function vSales(){
+  const M=document.getElementById('main');const c=calc();
+  const days=DB.sales.filter(s=>inMonth(s.date)).sort((a,b)=>b.date.localeCompare(a.date));
+  const avg=days.length?c.sales/days.length:0;
+  M.innerHTML=head('Jualan (Sales)','Masukkan jualan harian — auto jumlah bulanan')+`
+  <div class="grid g3">
+    <div class="card kpi"><div class="lbl">Jualan Bulan Ini</div><div class="val">${RM(c.sales)}</div></div>
+    <div class="card kpi"><div class="lbl">Purata Harian</div><div class="val">${RM(avg)}</div></div>
+    <div class="card kpi"><div class="lbl">Hari Direkod</div><div class="val">${days.length}</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div><label>Tarikh</label><input type="date" id="sdate" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div><label>Jualan (RM)</label><input type="number" id="samt" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="adds">+ Rekod Jualan</button></div></div>
+    <div class="hint">Tip: masuk jualan setiap hari tutup kedai untuk PnL tepat.</div>
+  </div>
+  <div class="split" style="margin-top:14px">
+    <div class="card" id="slist"></div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Trend Jualan Harian</h2><canvas id="sChart"></canvas></div>
+  </div>`;
+  bindMonth();
+  document.getElementById('adds').onclick=()=>{const amt=+document.getElementById('samt').value||0;const date=document.getElementById('sdate').value;
+    if(amt<=0||!date){toast('Isi tarikh & jualan');return;}DB.sales.push({id:uid(),date,amt});save();vSales();};
+  const box=document.getElementById('slist');
+  if(!days.length)box.innerHTML='<div class="empty">Belum ada jualan direkod.</div>';
+  else{box.innerHTML=`<table><thead><tr><th>Tarikh</th><th class="num">Jualan</th><th></th></tr></thead><tbody>
+    ${days.map(s=>`<tr><td>${s.date}</td><td class="num">${RM(s.amt)}</td><td><span class="del" data-id="${s.id}">✕</span></td></tr>`).join('')}</tbody></table>`;
+    box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.sales=DB.sales.filter(x=>x.id!==d.dataset.id);save();vSales();});}
+  const sorted=[...days].reverse();
+  new Chart(document.getElementById('sChart'),{type:'line',data:{labels:sorted.map(s=>s.date.slice(8)),datasets:[{label:'Jualan',data:sorted.map(s=>s.amt),borderColor:'#e63946',backgroundColor:'rgba(230,57,70,.15)',fill:true,tension:.3}]},
+    options:{scales:{x:{ticks:{color:'#4a4e56'}},y:{ticks:{color:'#4a4e56'}}},plugins:{legend:{display:false}}}});
+}
+
+/* ============ BAJET BUKA (CAPEX) ============ */
+function vBajet(){
+  const M=document.getElementById('main');const total=DB.capex.reduce((s,c)=>s+(+c.amt||0),0);
+  M.innerHTML=head('Bajet Buka Outlet','Modal permulaan (Capex) untuk buka outlet',false)+`
+  <div class="card kpi" style="max-width:340px"><div class="lbl">Jumlah Modal Buka Diperlukan</div><div class="val">${RM(total)}</div></div>
+  <div class="card" style="margin-top:14px">
+    <div class="row"><div style="flex:2"><label>Perkara</label><input id="cnm" placeholder="cth: Peralatan dapur"></div>
+    <div><label>Kos (RM)</label><input id="camt" type="number" step="0.01" placeholder="0.00"></div>
+    <div style="flex:0"><button class="btn" id="addc">+ Tambah</button></div></div>
+  </div>
+  <div class="card" style="margin-top:14px" id="clist"></div>`;
+  document.getElementById('addc').onclick=()=>{const nm=document.getElementById('cnm').value.trim();const amt=+document.getElementById('camt').value||0;
+    if(!nm||amt<=0){toast('Isi perkara & kos');return;}DB.capex.push({nm,amt});save();vBajet();};
+  const box=document.getElementById('clist');
+  box.innerHTML=`<table><thead><tr><th>Perkara</th><th class="num">Kos</th><th></th></tr></thead><tbody>
+    ${DB.capex.map((c,i)=>`<tr><td>${c.nm}</td><td class="num"><input type="number" step="0.01" class="miniedit" value="${c.amt}" data-i="${i}"></td><td><span class="del" data-i="${i}">✕</span></td></tr>`).join('')}
+    <tr><td style="font-weight:700">JUMLAH MODAL</td><td class="num" style="font-weight:800">${RM(total)}</td><td></td></tr></tbody></table>`;
+  box.querySelectorAll('input.miniedit').forEach(inp=>inp.onchange=()=>{DB.capex[+inp.dataset.i].amt=+inp.value||0;save();vBajet();});
+  box.querySelectorAll('.del').forEach(d=>d.onclick=()=>{DB.capex.splice(+d.dataset.i,1);save();vBajet();});
+}
+
+/* ============ ROI & TARGET ============ */
+function vRoi(){
+  const M=document.getElementById('main');const c=calc();const s=DB.settings;
+  // target net based on target sales & target margin
+  const targetNet = s.targetSales*(s.targetMargin/100);
+  const targetRoi = targetNet>0 ? c.capex/targetNet : Infinity;
+  M.innerHTML=head('ROI & Target','Kira pulangan modal & tetapkan sasaran')+`
+  <div class="grid g4">
+    <div class="card kpi"><div class="lbl">Modal Buka</div><div class="val">${RM(c.capex)}</div></div>
+    <div class="card kpi"><div class="lbl">Untung Bersih (sebenar)</div><div class="val ${c.net>=0?'pos':'neg'}">${RM(c.net)}</div></div>
+    <div class="card kpi"><div class="lbl">ROI Sebenar</div><div class="val">${c.roiMonths===Infinity?'—':c.roiMonths.toFixed(1)}<span style="font-size:13px"> bulan</span></div><div class="sub">masa balik modal</div></div>
+    <div class="card kpi"><div class="lbl">ROI Sasaran</div><div class="val">${targetRoi===Infinity?'—':targetRoi.toFixed(1)}<span style="font-size:13px"> bulan</span></div><div class="sub">jika capai target</div></div>
+  </div>
+  <div class="split" style="margin-top:16px">
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Tetapkan Sasaran</h2>
+      <label>Target Jualan Bulanan (RM)</label><input type="number" id="tS" value="${s.targetSales}">
+      <label style="margin-top:10px">Target Margin Untung (%)</label><input type="number" id="tM" value="${s.targetMargin}">
+      <label style="margin-top:10px">Target Balik Modal (bulan)</label><input type="number" id="tR" value="${s.targetRoiMonths}">
+      <button class="btn" id="saveT" style="margin-top:14px;width:100%">Simpan Sasaran</button>
+      <div class="hint" id="need"></div>
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Unjuran Balik Modal (kumulatif)</h2><canvas id="roiChart"></canvas></div>
+  </div>`;
+  bindMonth();
+  // needed net to hit target ROI months
+  const neededNet = s.targetRoiMonths>0 ? c.capex/s.targetRoiMonths : 0;
+  const neededSales = s.targetMargin>0 ? neededNet/(s.targetMargin/100) : 0;
+  document.getElementById('need').innerHTML=`Untuk balik modal dalam <b>${s.targetRoiMonths} bulan</b>, perlu untung bersih <b>${RM(neededNet)}</b>/bulan (≈ jualan <b>${RM(neededSales)}</b>/bulan pada margin ${s.targetMargin}%).`;
+  document.getElementById('saveT').onclick=()=>{s.targetSales=+document.getElementById('tS').value||0;s.targetMargin=+document.getElementById('tM').value||0;s.targetRoiMonths=+document.getElementById('tR').value||0;save();toast('Sasaran disimpan');vRoi();};
+  // chart: cumulative recoup over 24 months at target net vs actual net
+  const mths=Array.from({length:24},(_,i)=>i+1);
+  const cumTarget=mths.map(m=>Math.min(c.capex,targetNet*m));
+  const cumActual=mths.map(m=>Math.min(c.capex,Math.max(0,c.net)*m));
+  new Chart(document.getElementById('roiChart'),{type:'line',data:{labels:mths,datasets:[
+    {label:'Sasaran',data:cumTarget,borderColor:'#2ecc71',fill:false,tension:.2},
+    {label:'Semasa',data:cumActual,borderColor:'#4aa3ff',fill:false,tension:.2},
+    {label:'Modal',data:mths.map(()=>c.capex),borderColor:'#e63946',borderDash:[6,6],fill:false,pointRadius:0}]},
+    options:{scales:{x:{title:{display:true,text:'Bulan',color:'#4a4e56'},ticks:{color:'#4a4e56'}},y:{ticks:{color:'#4a4e56'}}},plugins:{legend:{labels:{color:'#4a4e56'}}}}});
+}
+
+/* ============ LAPORAN PENUH ============ */
+function vLap(){
+  const M=document.getElementById('main');const c=calc();const s=DB.settings;
+  const targetNet=s.targetSales*(s.targetMargin/100);
+  const line=(l,v,cls='')=>`<tr><td>${l}</td><td class="num ${cls}">${RM(v)}</td></tr>`;
+  const varRows=CATS.filter(cc=>c.varByCat[cc.id]>0).map(cc=>line('&nbsp;&nbsp;'+cc.ic+' '+cc.nm,c.varByCat[cc.id])).join('');
+  M.innerHTML=head('Laporan Penuh','PnL, Bajet, ROI & sasaran — sedia untuk cetak/simpan')+`
+  <div class="noprint" style="margin-bottom:12px"><button class="btn sec sm" onclick="window.print()">🖨️ Cetak / Simpan PDF</button></div>
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Penyata Untung Rugi (PnL) — ${curMonth}</h2>
+    <table>
+      <tr><td style="font-weight:700">JUALAN</td><td class="num" style="font-weight:700">${RM(c.sales)}</td></tr>
+      <tr><td style="font-weight:600;padding-top:12px">Kos Bahan (COGS)</td><td class="num">${RM(c.cogs)}</td></tr>
+      <tr><td>Untung Kasar</td><td class="num pos">${RM(c.sales-c.cogs)}</td></tr>
+      <tr><td style="font-weight:600;padding-top:12px">KOS BERUBAH</td><td></td></tr>
+      ${varRows||'<tr><td style="color:var(--muted)">&nbsp;&nbsp;Tiada</td><td class="num">RM0.00</td></tr>'}
+      <tr><td>Jumlah Kos Berubah</td><td class="num">${RM(c.varTotal)}</td></tr>
+      <tr><td style="font-weight:600;padding-top:12px">KOS TETAP</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;☺ Kos Staff (gaji+EPF+SOCSO)</td><td class="num">${RM(c.staffCost)}</td></tr>
+      <tr><td>&nbsp;&nbsp;🏠 Sewa & lain-lain tetap</td><td class="num">${RM(c.otherFixed)}</td></tr>
+      <tr><td>Jumlah Kos Tetap</td><td class="num">${RM(c.fixedTotal)}</td></tr>
+      <tr><td>Jumlah Perbelanjaan</td><td class="num">${RM(c.expenses)}</td></tr>
+      <tr style="border-top:2px solid var(--line)"><td style="font-weight:800;font-size:15px">UNTUNG BERSIH</td><td class="num ${c.net>=0?'pos':'neg'}" style="font-weight:800;font-size:15px">${RM(c.net)}</td></tr>
+      <tr><td style="color:var(--muted)">Margin Untung</td><td class="num">${c.marginPct.toFixed(1)}%</td></tr>
+    </table>
+  </div>
+  <div class="split" style="margin-top:14px">
+    <div class="card"><h2 class="sec" style="margin-top:0">Metrik Prestasi</h2>
+      <table>
+        <tr><td>Food Cost %</td><td class="num">${c.foodCostPct.toFixed(1)}%</td></tr>
+        <tr><td>Break-even (jualan/bulan)</td><td class="num">${RM(c.beSales)}</td></tr>
+        <tr><td>Break-even (jualan/hari)</td><td class="num">${RM(c.beSales/30)}</td></tr>
+        <tr><td>Purata jualan harian</td><td class="num">${RM(c.sales/30)}</td></tr>
+      </table>
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Bajet & ROI</h2>
+      <table>
+        <tr><td>Modal Buka (Capex)</td><td class="num">${RM(c.capex)}</td></tr>
+        <tr><td>ROI sebenar</td><td class="num">${c.roiMonths===Infinity?'—':c.roiMonths.toFixed(1)+' bulan'}</td></tr>
+        <tr><td>Target jualan bulanan</td><td class="num">${RM(s.targetSales)}</td></tr>
+        <tr><td>Target untung bersih</td><td class="num">${RM(targetNet)}</td></tr>
+        <tr><td>Target balik modal</td><td class="num">${s.targetRoiMonths} bulan</td></tr>
+        <tr><td>Pencapaian sales vs target</td><td class="num">${s.targetSales>0?(c.sales/s.targetSales*100).toFixed(0):0}%</td></tr>
+      </table>
+    </div>
+  </div>`;
+  bindMonth();
+}
+
+/* ============ TETAPAN ============ */
+function vSet(){
+  const M=document.getElementById('main');const s=DB.settings;
+  M.innerHTML=head('Tetapan','Nama outlet & pengurusan data',false)+`
+  <div class="card" style="max-width:520px">
+    <label>Nama Outlet</label><input id="onm" value="${s.outlet}">
+    <div class="row" style="margin-top:12px"><div><label>Caruman EPF majikan (%)</label><input id="oepf" type="number" step="0.01" value="${s.epf}"></div>
+    <div><label>Caruman SOCSO majikan (%)</label><input id="osocso" type="number" step="0.01" value="${s.socso}"></div></div>
+    <button class="btn" id="savO" style="margin-top:12px">Simpan</button>
+  </div>
+  <div class="card" style="margin-top:14px;max-width:520px">
+    <h2 class="sec" style="margin-top:0">Data</h2>
+    <div class="row">
+      <button class="btn sec sm" id="exp">⬇ Export data (JSON)</button>
+      <button class="btn sec sm" id="impBtn">⬆ Import data</button>
+      <button class="btn sec sm" id="rst" style="color:var(--red)">↺ Reset semua</button>
+    </div>
+    <input type="file" id="imp" accept=".json" class="hidden">
+    <div class="hint">Data disimpan dalam browser ini (localStorage). Export untuk backup atau pindah peranti.</div>
+  </div>`;
+  document.getElementById('savO').onclick=()=>{s.outlet=document.getElementById('onm').value;s.epf=+document.getElementById('oepf').value||0;s.socso=+document.getElementById('osocso').value||0;save();toast('Disimpan');};
+  document.getElementById('exp').onclick=()=>{const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pakmaon-data-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+  document.getElementById('impBtn').onclick=()=>document.getElementById('imp').click();
+  document.getElementById('imp').onchange=e=>{const f=e.target.files[0];const rd=new FileReader();rd.onload=ev=>{try{DB=JSON.parse(ev.target.result);save();toast('Import berjaya');vSet();}catch(x){toast('Fail tidak sah');}};rd.readAsText(f);};
+  document.getElementById('rst').onclick=()=>{if(confirm('Padam semua data dan mula semula?')){DB=structuredClone(DEFAULT);save();toast('Data direset');vSet();}};
+}
+
+/* ============ INIT ============ */
+route('dashboard');
+</script>
+</body>
+</html>

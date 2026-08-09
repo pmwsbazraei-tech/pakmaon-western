@@ -1,59 +1,117 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Pak Maon Western — Sistem Pengurusan Outlet
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web untuk merancang & mengurus outlet makanan Western (F&B) dari A–Z:
+kos permulaan (Capex), peralatan, staff, kos operasi, jualan, tutup kira harian,
+food cost setiap menu, dan penyata PnL/ROI — semua pengiraan automatik mengikut
+bulan dipilih.
 
-## About Laravel
+> Migrasi 1:1 daripada prototaip `pakmaon-outlet.html` (single-file HTML/JS +
+> localStorage) ke aplikasi Laravel + Livewire + pangkalan data, mesra mobile penuh.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Lapisan | Teknologi |
+|---|---|
+| Framework | Laravel 12 · PHP 8.4 |
+| UI dinamik | Livewire 3 + Alpine.js (dibundle) |
+| Auth | Laravel Breeze (Livewire/Volt) |
+| Pangkalan data | MySQL 8.4 (production) · SQLite (local dev) |
+| Carta | Chart.js 4.4.1 |
+| OCR resit | Tesseract.js 5 (jalan di pelayar) |
+| Build asset | Vite |
+| Deploy | GitHub → Laravel Forge |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Modul (12)
 
-## Learning Laravel
+Dashboard · Scan Resit (OCR) · Staff · Kos Tetap · Sales · Petty Cash ·
+Menu Food Cost · Peralatan · Bajet Buka · ROI & Target · Laporan Penuh · Tetapan.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Semua data terikat pada **outlet** milik user (multi-tenant, dilindungi `OutletPolicy`).
+Pengiraan kewangan berpusat dalam `App\Services\OutletMetrics`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Keperluan
 
-## Laravel Sponsors
+- PHP **8.4**
+- Composer 2
+- Node.js 20+ & npm
+- MySQL **8.4** (production) — SQLite memadai untuk local dev
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Setup Local (SQLite)
 
-### Premium Partners
+```bash
+git clone <repo-url> pakmaon-western
+cd pakmaon-western
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+composer install
+cp .env.example .env
+php artisan key:generate
 
-## Contributing
+# Guna SQLite untuk dev (DB_CONNECTION=sqlite dalam .env)
+touch database/database.sqlite
+php artisan migrate --seed          # cipta jadual + user demo & data contoh
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+npm install
+npm run build                       # atau: npm run dev
 
-## Code of Conduct
+php artisan storage:link            # supaya imej resit boleh dipapar
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Log masuk demo: **demo@pakmaon.test** / **password**
+(User baharu yang mendaftar akan diberi data DEFAULT secara automatik.)
 
-## Security Vulnerabilities
+### Guna MySQL secara local
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Set dalam `.env`:
 
-## License
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pakmaon_western
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+kemudian `php artisan migrate --seed`.
+
+## Ujian & Format
+
+```bash
+php artisan test        # unit OutletMetrics + smoke semua modul
+vendor/bin/pint         # format kod (PSR-12)
+```
+
+## Zon waktu & bahasa
+
+- `APP_TIMEZONE=Asia/Kuala_Lumpur`
+- `APP_LOCALE=ms` — semua label UI dalam Bahasa Melayu
+- Format wang `RM1,234.56` (`en-MY`) — helper `rm()` / directive `@rm`
+
+## Deploy ke Laravel Forge
+
+1. Cipta repo GitHub (private), `git push`.
+2. Di Forge: sambung repo, pilih **PHP 8.4** & **MySQL 8.4**, tetapkan domain.
+3. Isi `.env` production: `APP_ENV=production`, `APP_DEBUG=false`,
+   `APP_TIMEZONE=Asia/Kuala_Lumpur`, kredensial `DB_*` MySQL.
+4. `php artisan key:generate` (sekali sahaja) & pastikan `APP_KEY` ada.
+5. Salin `deploy.sh` ke **Deploy Script** Forge (ringkasan):
+
+   ```bash
+   cd $FORGE_SITE_PATH
+   git pull origin $FORGE_SITE_BRANCH
+   composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+   php artisan migrate --force
+   npm ci && npm run build
+   php artisan storage:link
+   php artisan optimize
+   ```
+
+6. Deploy. (Queue/scheduler tidak diperlukan buat masa ini.)
+
+## Nota
+
+- **Imej resit** disimpan ke `storage/app/public/receipts` (perlukan `storage:link`).
+- **Export/Import JSON** dalam modul Tetapan serasi dua hala dengan prototaip asal.
+- Data DEFAULT (staff, peralatan, capex, kos tetap, menu) diurus dalam
+  `App\Support\DefaultOutletData` dan digunakan oleh seeder & pendaftaran user.
