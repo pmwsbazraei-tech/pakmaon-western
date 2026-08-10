@@ -13,9 +13,12 @@ class OutletJson
     /** @return array<string,mixed> */
     public static function export(Outlet $outlet): array
     {
-        $outlet->load(['staff', 'equipment', 'capexItems', 'fixedCosts', 'receipts.items', 'sales', 'menus.ingredients', 'cashRecords']);
+        $outlet->load(['staff', 'equipment', 'capexItems', 'fixedCosts', 'receipts.items', 'sales', 'menus.ingredients', 'cashRecords', 'categories']);
 
         return [
+            'categories' => $outlet->categories->map(fn ($c) => [
+                'key' => $c->key, 'name' => $c->name, 'icon' => $c->icon, 'is_cogs' => (bool) $c->is_cogs,
+            ])->all(),
             'settings' => [
                 'outlet' => $outlet->name,
                 'targetSales' => (float) $outlet->target_sales,
@@ -69,6 +72,7 @@ class OutletJson
         $outlet->fixedCosts()->delete();
         $outlet->sales()->delete();
         $outlet->cashRecords()->delete();
+        $outlet->categories()->delete();
     }
 
     /**
@@ -90,6 +94,15 @@ class OutletJson
             'socso_pct' => $s['socso'] ?? $outlet->socso_pct,
         ]);
 
+        foreach ($data['categories'] ?? [] as $x) {
+            if (empty($x['key'])) {
+                continue;
+            }
+            $outlet->categories()->create([
+                'key' => $x['key'], 'name' => $x['name'] ?? $x['key'],
+                'icon' => $x['icon'] ?? '📁', 'is_cogs' => (bool) ($x['is_cogs'] ?? false),
+            ]);
+        }
         foreach ($data['staff'] ?? [] as $x) {
             $outlet->staff()->create([
                 'name' => $x['nm'] ?? '', 'position' => $x['pos'] ?? null,

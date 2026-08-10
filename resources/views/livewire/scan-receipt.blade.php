@@ -5,13 +5,53 @@
         <label>1. Pilih kategori kos</label>
         <div class="catgrid">
             @foreach ($categories as $id => $cat)
-                <div class="catbtn @if ($category === $id) on @endif" wire:click="selectCategory('{{ $id }}')">
+                <div class="catbtn @if ($category === $id) on @endif" wire:click="selectCategory('{{ $id }}')" wire:key="cat-{{ $id }}">
                     <div class="ic">{{ $cat['ic'] }}</div>
                     <div class="nm">{{ $cat['nm'] }}</div>
                 </div>
             @endforeach
+            {{-- Butang tambah kategori (menggantikan "Lain-lain") --}}
+            <div class="catbtn" wire:click="startAddCategory" wire:key="cat-add"
+                 style="border-style:dashed">
+                <div class="ic">➕</div>
+                <div class="nm">Tambah Kategori</div>
+            </div>
         </div>
         @error('category') <div class="auth-error">{{ $message }}</div> @enderror
+
+        {{-- Panel tambah / urus kategori custom --}}
+        @if ($addingCategory)
+            <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
+                <div class="row">
+                    <div style="flex:2"><label>Nama kategori baharu</label><input wire:model="newCategoryName" placeholder="cth: Minuman"></div>
+                    <div style="flex:0"><label>Ikon</label><input wire:model="newCategoryIcon" style="width:70px;text-align:center" maxlength="4"></div>
+                    <div style="flex:0"><button class="btn sm" wire:click="addCategory">Simpan</button></div>
+                    <div style="flex:0"><button class="btn sec sm" wire:click="cancelAddCategory">Batal</button></div>
+                </div>
+                <label class="checkbox-row" style="margin-top:8px">
+                    <input type="checkbox" wire:model="newCategoryCogs"> Kira dalam COGS / food cost (cth bahan mentah)
+                </label>
+                @error('newCategoryName') <div class="auth-error">{{ $message }}</div> @enderror
+
+                @if ($customCategories->isNotEmpty())
+                    <div class="hint" style="margin-top:10px">Kategori custom sedia ada (boleh edit nama / padam):</div>
+                    <div class="table-wrap">
+                        <table>
+                            <tbody>
+                                @foreach ($customCategories as $cc)
+                                    <tr wire:key="editcat-{{ $cc->id }}">
+                                        <td style="width:40px">{{ $cc->icon }}</td>
+                                        <td><input wire:model.blur="editCat.{{ $cc->id }}"></td>
+                                        <td style="width:60px">@if ($cc->is_cogs)<span class="badge ok">COGS</span>@endif</td>
+                                        <td style="width:30px"><span class="del" wire:click="deleteCategory({{ $cc->id }})">✕</span></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="split" style="margin-top:14px"
@@ -80,7 +120,7 @@
                     <thead><tr><th>Tarikh</th><th>No Invois</th><th>Kategori</th><th>Item</th><th class="num">Jumlah</th><th></th></tr></thead>
                     <tbody>
                         @foreach ($receipts as $r)
-                            @php $cat = config('outlet.categories.'.$r->category, ['nm' => $r->category, 'ic' => '📁']); @endphp
+                            @php $cat = \App\Support\Categories::find($outlet, $r->category); @endphp
                             <tr wire:key="rec-{{ $r->id }}">
                                 <td>{{ $r->date->format('Y-m-d') }}</td>
                                 <td style="font-size:12px">{{ $r->invoice_no ?: '—' }}</td>

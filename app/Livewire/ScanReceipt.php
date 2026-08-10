@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithOutlet;
 use App\Livewire\Concerns\WithMonthFilter;
+use App\Support\Categories;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -30,16 +31,74 @@ class ScanReceipt extends Component
 
     public string $note = '';
 
+    // Pengurusan kategori custom
+    public bool $addingCategory = false;
+
+    public string $newCategoryName = '';
+
+    public string $newCategoryIcon = '📁';
+
+    public bool $newCategoryCogs = false;
+
+    public array $editCat = [];   // [id => name]  edit nama kategori custom
+
     public function mount(): void
     {
         $this->date = now()->format('Y-m-d');
+        $this->syncEditCat();
+    }
+
+    public function syncEditCat(): void
+    {
+        $this->editCat = [];
+        foreach ($this->outlet()->categories()->orderBy('id')->get() as $c) {
+            $this->editCat[$c->id] = $c->name;
+        }
     }
 
     public function selectCategory(string $id): void
     {
-        if (array_key_exists($id, config('outlet.categories'))) {
+        if (array_key_exists($id, Categories::all($this->outlet()))) {
             $this->category = $id;
         }
+    }
+
+    public function startAddCategory(): void
+    {
+        $this->addingCategory = true;
+    }
+
+    public function cancelAddCategory(): void
+    {
+        $this->reset('addingCategory', 'newCategoryName', 'newCategoryIcon', 'newCategoryCogs');
+    }
+
+    public function addCategory(): void
+    {
+        $data = $this->validate([
+            'newCategoryName' => ['required', 'string', 'max:60'],
+            'newCategoryIcon' => ['nullable', 'string', 'max:8'],
+        ], attributes: ['newCategoryName' => 'nama kategori']);
+
+        $outlet = $this->outlet();
+        $category = $outlet->categories()->create([
+            'key' => Categories::uniqueKey($outlet, $data['newCategoryName']),
+            'name' => $data['newCategoryName'],
+            'icon' => $data['newCategoryIcon'] ?: '📁',
+            'is_cogs' => $this->newCategoryCogs,
+        ]);
+
+        $this->category = $category->key;   // terus pilih kategori baharu
+        $this->reset('addingCategory', 'newCategoryName', 'newCategoryIcon', 'newCategoryCogs');
+        $this->syncEditCat();
+        $this->dispatch('toast', message: 'Kategori ditambah');
+    }
+
+    public function deleteCategory(int $id): void
+    {
+        $this->outlet()->categories()->whereKey($id)->delete();
+        $this->syncEditCat();
+        $this->dispatch('toast', message: 'Kategori dipadam');
     }
 
     public function addItem(): void
@@ -64,16 +123,21 @@ class ScanReceipt extends Component
         $this->amount = number_format($total, 2, '.', '');
     }
 
-    public function updated(string $name): void
+    public function updated(string $name, $value): void
     {
         if (preg_match('/^items\.\d+\.amount$/', $name)) {
             $this->sumItems();
+        } elseif (preg_match('/^editCat\.(\d+)$/', $name, $m)) {
+            $category = $this->outlet()->categories()->find($m[1]);
+            if ($category && trim((string) $value) !== '') {
+                $category->update(['name' => trim($value)]);
+            }
         }
     }
 
     public function save(): void
     {
-        $categories = array_keys(config('outlet.categories'));
+        $categories = Categories::keys($this->outlet());
         $this->validate([
             'category' => ['required', 'in:'.implode(',', $categories)],
             'date' => ['required', 'date'],
@@ -104,7 +168,7 @@ class ScanReceipt extends Component
             $receipt->items()->create(['name' => $name, 'amount' => (float) ($item['amount'] ?? 0)]);
         }
 
-        $catName = config("outlet.categories.{$this->category}.nm");
+        $catName = Categories::find($this->outlet(), $this->category)['nm'];
         $this->dispatch('toast', message: "Kos {$catName} ".rm($this->amount).' direkod');
 
         $this->reset('category', 'image', 'invoiceNo', 'amount', 'items', 'note');
@@ -134,8 +198,12 @@ class ScanReceipt extends Component
             ->orderByDesc('date')
             ->get();
 
+        $outlet = $this->outlet();
+
         return view('livewire.scan-receipt', [
-            'categories' => config('outlet.categories'),
+            'outlet' => $outlet,
+            'categories' => Categories::selectable($outlet),
+            'customCategories' => $outlet->categories()->orderBy('id')->get(),
             'receipts' => $receipts,
         ]);
     }

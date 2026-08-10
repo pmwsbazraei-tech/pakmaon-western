@@ -6,6 +6,7 @@ use App\Models\CashRecord;
 use App\Models\Menu;
 use App\Models\Outlet;
 use App\Models\Staff;
+use App\Support\Categories;
 
 /**
  * Semua pengiraan kewangan outlet untuk satu bulan (YYYY-MM).
@@ -36,7 +37,7 @@ class OutletMetrics
     /** @return array<string,mixed> */
     public function toArray(): array
     {
-        $cats = config('outlet.categories');
+        $cats = Categories::all($this->outlet);
         [$year, $mon] = array_pad(explode('-', $this->month), 2, null);
 
         // ---- Resit (kos berubah) untuk bulan ini ----

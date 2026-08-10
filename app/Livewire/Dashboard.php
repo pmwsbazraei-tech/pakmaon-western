@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Livewire\Concerns\InteractsWithOutlet;
 use App\Livewire\Concerns\WithMonthFilter;
 use App\Services\OutletMetrics;
+use App\Support\Categories;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -19,7 +20,7 @@ class Dashboard extends Component
     {
         $outlet = $this->outlet();
         $c = OutletMetrics::for($outlet, $this->month);
-        $cats = config('outlet.categories');
+        $cats = Categories::all($outlet);
 
         // ---- Carta doughnut: pecahan kos ikut kategori + kos tetap ----
         $colors = ['#e63946', '#f4a261', '#4aa3ff', '#2ecc71', '#f4c430', '#9b5de5', '#00bbf9', '#8d99ae'];

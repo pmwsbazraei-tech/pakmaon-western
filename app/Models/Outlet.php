@@ -65,4 +65,9 @@ class Outlet extends Model
     {
         return $this->hasMany(CashRecord::class);
     }
+
+    public function categories(): HasMany
+    {
+        return $this->hasMany(OutletCategory::class);
+    }
 }

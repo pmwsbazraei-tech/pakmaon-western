@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Livewire\Concerns\InteractsWithOutlet;
 use App\Livewire\Concerns\WithMonthFilter;
 use App\Services\OutletMetrics;
+use App\Support\Categories;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -20,7 +21,7 @@ class FullReport extends Component
         $c = OutletMetrics::for($outlet, $this->month);
 
         // Baris kos berubah ikut kategori (yang > 0)
-        $cats = config('outlet.categories');
+        $cats = Categories::all($outlet);
         $varRows = [];
         foreach ($cats as $id => $cat) {
             if (($c['varByCat'][$id] ?? 0) > 0) {
