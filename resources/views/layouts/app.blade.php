@@ -41,6 +41,11 @@
             <div class="logo">PM</div>
             <div><b>Pak Maon</b><br><span>Western Outlet</span></div>
         </div>
+
+        @auth
+            @livewire('outlet-switcher')
+        @endauth
+
         <nav class="nav">
             @foreach ($navItems as [$route, $ico, $label])
                 <a href="{{ route($route) }}" wire:navigate

@@ -19,6 +19,16 @@
             </div>
         </div>
         <button class="btn" wire:click="save" style="margin-top:12px">Simpan</button>
+
+        @if (count($outlets ?? []) > 1)
+            <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+                <button class="btn sec sm" style="color:var(--red)" wire:click="deleteOutlet"
+                        wire:confirm="Padam outlet '{{ $outlet->name }}' dan SEMUA datanya? Tindakan ini tak boleh dibatalkan.">
+                    🗑 Padam outlet ini
+                </button>
+                <div class="hint">Padam outlet ini sepenuhnya (staff, menu, resit, dll). Anda ada {{ count($outlets) }} outlet.</div>
+            </div>
+        @endif
     </div>
 
     <div class="card" style="margin-top:14px;max-width:520px">

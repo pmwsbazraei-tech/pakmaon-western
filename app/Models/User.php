@@ -19,9 +19,18 @@ class User extends Authenticatable
         return $this->hasMany(Outlet::class);
     }
 
-    /** Outlet aktif user ini (buat masa ini: outlet pertama). */
+    /** Outlet aktif user ini — ikut pilihan dalam session, jika tidak outlet pertama. */
     public function currentOutlet(): ?Outlet
     {
+        $id = session('active_outlet_id');
+
+        if ($id) {
+            $outlet = $this->outlets()->whereKey($id)->first();
+            if ($outlet) {
+                return $outlet;
+            }
+        }
+
         return $this->outlets()->orderBy('id')->first();
     }
 

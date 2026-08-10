@@ -20,13 +20,16 @@ class EnsureOutlet
         $user = $request->user();
 
         if ($user) {
-            $outlet = $user->currentOutlet();
-
-            if (! $outlet) {
-                $outlet = DefaultOutletData::provision($user);
+            // User baharu diberi outlet pertama dengan data DEFAULT
+            if (! $user->outlets()->exists()) {
+                DefaultOutletData::provision($user);
             }
 
+            $outlet = $user->currentOutlet();
+            session(['active_outlet_id' => $outlet->id]);
+
             View::share('outlet', $outlet);
+            View::share('outlets', $user->outlets()->orderBy('id')->get());
         }
 
         return $next($request);

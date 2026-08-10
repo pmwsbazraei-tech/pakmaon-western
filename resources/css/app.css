@@ -37,7 +37,9 @@ a{color:inherit;text-decoration:none}
 /* Cards */
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}.sidebar{width:64px}.brand b,.brand span,.nav a span.lbl{display:none}}
+@media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}.sidebar{width:64px}.brand b,.brand span,.nav a span.lbl,.outlet-switcher{display:none}}
+/* Pemilih outlet (multi-outlet) */
+.outlet-switcher{padding:2px 4px 12px;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
 .kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
 .kpi .val{font-size:24px;font-weight:800;margin-top:6px}
@@ -113,6 +115,7 @@ canvas{max-height:260px}
   .sidebar.open{transform:translateX(0)}
   /* Pulihkan label penuh dalam off-canvas walaupun <900px */
   .sidebar .brand b,.sidebar .brand span,.sidebar .nav a span.lbl{display:inline}
+  .sidebar .outlet-switcher{display:block}
   .topbar{display:flex}
   .main{padding:16px 14px;max-width:none;width:100%}
   .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50}

@@ -49,6 +49,23 @@ class Settings extends Component
         $this->dispatch('toast', message: 'Disimpan');
     }
 
+    /** Padam outlet ini sepenuhnya (tak boleh jika ini satu-satunya outlet). */
+    public function deleteOutlet()
+    {
+        $user = auth()->user();
+
+        if ($user->outlets()->count() <= 1) {
+            $this->dispatch('toast', message: 'Tak boleh padam — ini satu-satunya outlet anda');
+
+            return;
+        }
+
+        session()->forget('active_outlet_id');
+        $this->outlet()->delete();   // cascade padam semua data outlet
+
+        return $this->redirectRoute('dashboard', navigate: true);
+    }
+
     public function export()
     {
         $json = json_encode(OutletJson::export($this->outlet()), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
