@@ -74,6 +74,12 @@ document.addEventListener('alpine:init', () => {
         const tm = text.match(/(?:total|jumlah)[^\d]*(\d{1,5}[.,]\d{2})/i);
         if (tm) total = parseFloat(tm[1].replace(',', '.'));
 
+        // Kesan no invois / no resit
+        const inv = text.match(/(?:invoice|inv|resit|receipt|bil)\s*(?:no\.?|#|:|\.)*\s*([A-Za-z0-9][A-Za-z0-9\-/]{2,})/i);
+        if (inv) {
+          this.$wire.set('invoiceNo', inv[1].trim());
+        }
+
         this.$wire.set('items', found);
         if (total > 0) {
           this.$wire.set('amount', total.toFixed(2));

@@ -39,10 +39,12 @@
             <label>3. Semak & simpan</label>
             <div class="row">
                 <div><label>Tarikh</label><input type="date" wire:model="date"></div>
+                <div><label>No Invois</label><input wire:model="invoiceNo" placeholder="cth: INV-0001"></div>
                 <div><label>Jumlah (RM)</label><input type="number" wire:model="amount" step="0.01" placeholder="0.00"></div>
             </div>
             @error('amount') <div class="auth-error">{{ $message }}</div> @enderror
             @error('date') <div class="auth-error">{{ $message }}</div> @enderror
+            @error('invoiceNo') <div class="auth-error">{{ $message }}</div> @enderror
 
             <div style="margin-top:10px">
                 <label>Item dikesan (boleh edit)</label>
@@ -75,12 +77,13 @@
         @else
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Tarikh</th><th>Kategori</th><th>Item</th><th class="num">Jumlah</th><th></th></tr></thead>
+                    <thead><tr><th>Tarikh</th><th>No Invois</th><th>Kategori</th><th>Item</th><th class="num">Jumlah</th><th></th></tr></thead>
                     <tbody>
                         @foreach ($receipts as $r)
                             @php $cat = config('outlet.categories.'.$r->category, ['nm' => $r->category, 'ic' => '📁']); @endphp
                             <tr wire:key="rec-{{ $r->id }}">
                                 <td>{{ $r->date->format('Y-m-d') }}</td>
+                                <td style="font-size:12px">{{ $r->invoice_no ?: '—' }}</td>
                                 <td><span class="chip">{{ $cat['ic'] }} {{ $cat['nm'] }}</span></td>
                                 <td style="color:var(--muted);font-size:12px">
                                     @if ($r->items->isNotEmpty())

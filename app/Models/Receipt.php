@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Receipt extends Model
 {
     protected $fillable = [
-        'outlet_id', 'date', 'category', 'amount', 'note', 'image_path',
+        'outlet_id', 'date', 'invoice_no', 'category', 'amount', 'note', 'image_path',
     ];
 
     protected $casts = [

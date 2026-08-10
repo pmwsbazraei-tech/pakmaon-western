@@ -22,6 +22,8 @@ class ScanReceipt extends Component
 
     public string $date = '';
 
+    public string $invoiceNo = '';
+
     public string $amount = '';
 
     public array $items = [];   // [ ['name'=>..., 'amount'=>...] ]
@@ -75,17 +77,19 @@ class ScanReceipt extends Component
         $this->validate([
             'category' => ['required', 'in:'.implode(',', $categories)],
             'date' => ['required', 'date'],
+            'invoiceNo' => ['nullable', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'note' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:8192'],
             'items.*.name' => ['nullable', 'string', 'max:255'],
             'items.*.amount' => ['nullable', 'numeric', 'min:0'],
-        ], attributes: ['category' => 'kategori', 'amount' => 'jumlah']);
+        ], attributes: ['category' => 'kategori', 'amount' => 'jumlah', 'invoiceNo' => 'no invois']);
 
         $path = $this->image ? $this->image->store('receipts', 'public') : null;
 
         $receipt = $this->outlet()->receipts()->create([
             'date' => $this->date,
+            'invoice_no' => $this->invoiceNo ?: null,
             'category' => $this->category,
             'amount' => (float) $this->amount,
             'note' => $this->note ?: null,
@@ -103,7 +107,7 @@ class ScanReceipt extends Component
         $catName = config("outlet.categories.{$this->category}.nm");
         $this->dispatch('toast', message: "Kos {$catName} ".rm($this->amount).' direkod');
 
-        $this->reset('category', 'image', 'amount', 'items', 'note');
+        $this->reset('category', 'image', 'invoiceNo', 'amount', 'items', 'note');
         $this->date = now()->format('Y-m-d');
     }
 

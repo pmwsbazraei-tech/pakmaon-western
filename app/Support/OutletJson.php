@@ -39,7 +39,7 @@ class OutletJson
                 'nm' => $f->name, 'amt' => (float) $f->amount, 'grp' => $f->group,
             ])->all(),
             'receipts' => $outlet->receipts->map(fn ($r) => [
-                'date' => $r->date->format('Y-m-d'), 'cat' => $r->category, 'amt' => (float) $r->amount,
+                'date' => $r->date->format('Y-m-d'), 'inv' => $r->invoice_no, 'cat' => $r->category, 'amt' => (float) $r->amount,
                 'items' => $r->items->map(fn ($i) => ['nm' => $i->name, 'amt' => (float) $i->amount])->all(),
                 'note' => $r->note,
             ])->all(),
@@ -113,6 +113,7 @@ class OutletJson
         foreach ($data['receipts'] ?? [] as $x) {
             $receipt = $outlet->receipts()->create([
                 'date' => $x['date'] ?? now()->format('Y-m-d'),
+                'invoice_no' => $x['inv'] ?? null,
                 'category' => $x['cat'] ?? 'lain', 'amount' => $x['amt'] ?? 0, 'note' => $x['note'] ?? null,
             ]);
             foreach ($x['items'] ?? [] as $it) {
