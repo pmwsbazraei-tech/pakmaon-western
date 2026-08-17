@@ -37,7 +37,8 @@ a{color:inherit;text-decoration:none}
 /* Cards */
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}.sidebar{width:64px}.brand b,.brand span,.nav a span.lbl,.outlet-switcher{display:none}}
+/* Grid mengecil pada skrin sederhana; SIDEBAR kekal papar perkataan penuh (tak jadi ikon sahaja) */
+@media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
 /* Pemilih outlet (multi-outlet) */
 .outlet-switcher{padding:2px 4px 12px;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
