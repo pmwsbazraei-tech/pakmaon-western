@@ -14,6 +14,7 @@ echo  JANGAN tutup tetingkap ini. Tekan Ctrl+C untuk berhenti.
 echo ===================================================
 start "" cmd /c "timeout /t 3 >nul & start http://127.0.0.1:8000"
 REM Guna server PHP terus (bukan "artisan serve" yang gagal di sesetengah Windows).
-cd public
-php -S 127.0.0.1:8000 ..\vendor\laravel\framework\src\Illuminate\Foundation\resources\server.php
+set "ROUTER=%~dp0vendor\laravel\framework\src\Illuminate\Foundation\resources\server.php"
+cd /d "%~dp0public"
+php -S 127.0.0.1:8000 "%ROUTER%"
 pause
