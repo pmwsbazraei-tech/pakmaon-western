@@ -57,7 +57,9 @@ echo  Log masuk: demo@pakmaon.test / password
 echo  JANGAN tutup tetingkap ini semasa guna webapp.
 echo ===================================================
 start "" cmd /c "timeout /t 3 >nul & start http://127.0.0.1:8000"
-call php artisan serve
+REM Guna server PHP terus (bukan "artisan serve" yang gagal di sesetengah Windows).
+cd public
+php -S 127.0.0.1:8000 ..\vendor\laravel\framework\src\Illuminate\Foundation\resources\server.php
 goto :eof
 
 :gagal
