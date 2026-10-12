@@ -60,6 +60,12 @@ php artisan serve
 Log masuk demo: **demo@pakmaon.test** / **password**
 (User baharu yang mendaftar akan diberi data DEFAULT secara automatik.)
 
+### Windows (automatik)
+
+Pasang **Laravel Herd** (PHP 8.4 + Composer) dan **Node.js**, kemudian double-click
+`setup-windows.bat` (kali pertama). Lain kali, double-click `mula-windows.bat`
+untuk buka webapp di http://127.0.0.1:8000.
+
 ### Guna MySQL secara local
 
 Set dalam `.env`:
