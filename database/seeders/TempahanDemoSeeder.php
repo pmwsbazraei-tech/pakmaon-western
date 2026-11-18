@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Hash;
  */
 class TempahanDemoSeeder extends Seeder
 {
-    public function run(User $owner): void
+    public function run(User $owner, bool $withStaff = true): void
     {
         if (OrderForm::where('user_id', $owner->id)->exists()) {
             return;
@@ -81,6 +81,10 @@ class TempahanDemoSeeder extends Seeder
         foreach ($forms as $form) {
             $form->outlets()->sync($outlets->pluck('id'));
             $form->products()->sync([$toast->id => ['sort' => 1], $talam->id => ['sort' => 2]]);
+        }
+
+        if (! $withStaff) {
+            return;
         }
 
         $staff = User::firstOrCreate(['email' => 'tangkak@pakmaon.test'], ['name' => 'Staf Tangkak', 'password' => Hash::make('password')]);
