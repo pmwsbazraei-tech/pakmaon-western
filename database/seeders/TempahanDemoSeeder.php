@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\Hash;
  */
 class TempahanDemoSeeder extends Seeder
 {
-    public function run(User $owner, bool $withStaff = true): void
+    public function run(User $owner, bool $withStaff = true, bool $onlyIfNoForms = true): void
     {
-        if (OrderForm::where('user_id', $owner->id)->exists()) {
+        if ($onlyIfNoForms && OrderForm::where('user_id', $owner->id)->exists()) {
             return;
         }
 
