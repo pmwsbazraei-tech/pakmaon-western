@@ -97,6 +97,7 @@ class FormController extends Controller
             'phone' => ['required', 'string'],
             'phone_normalized' => ['required'],
             'email' => ['nullable', 'email', 'max:150'],
+            'order_no' => ['required', 'string', 'max:50'],
             'outlet_id' => ['required', 'integer', Rule::in($form->outlets()->where('accepts_orders', true)->pluck('outlets.id'))],
             'booking_date' => ['exclude_unless:type,booking', 'required', 'date_format:Y-m-d'],
             'booking_time' => ['exclude_unless:type,booking', 'required', 'date_format:H:i'],
@@ -110,6 +111,7 @@ class FormController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
         ], [
             'phone_normalized.required' => 'Nombor telefon tidak sah. Contoh: 012-345 6789.',
+            'order_no.required' => 'Sila isi nombor order.',
             'outlet_id.required' => 'Sila pilih cawangan.',
             'outlet_id.in' => 'Cawangan tidak sah untuk page ini.',
         ]);
@@ -120,6 +122,7 @@ class FormController extends Controller
             'name' => trim($data['name']),
             'phone' => $data['phone_normalized'],
             'email' => $data['email'] ?? null,
+            'order_no' => trim($data['order_no']),
             'booking_date' => $data['booking_date'] ?? null,
             'booking_time' => $data['booking_time'] ?? null,
             'guests' => $data['guests'] ?? null,

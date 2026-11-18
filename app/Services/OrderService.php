@@ -20,7 +20,7 @@ class OrderService
      * Cipta pesanan/booking secara idempotent.
      * Kunci idempotency yang sama (klik dua kali, retry) memulangkan pesanan sedia ada.
      *
-     * @param  array{type:string, outlet_id:?int, name:string, phone:string, email:?string, booking_date:?string, booking_time:?string, guests:?int, fulfillment:string, delivery_address:?string, notes:?string, items:array}  $data
+     * @param  array{type:string, outlet_id:?int, name:string, phone:string, email:?string, order_no:?string, booking_date:?string, booking_time:?string, guests:?int, fulfillment:string, delivery_address:?string, notes:?string, items:array}  $data
      */
     public function create(OrderForm $form, array $data, string $idempotencyKey): Order
     {
@@ -79,6 +79,7 @@ class OrderService
                 'customer_name' => $data['name'],
                 'customer_phone' => $data['phone'],
                 'customer_email' => $data['email'] ?? null,
+                'customer_order_no' => $data['order_no'] ?? null,
                 'booking_at' => $bookingAt,
                 'guests' => $isBooking ? (int) $data['guests'] : null,
                 'fulfillment' => $data['fulfillment'],

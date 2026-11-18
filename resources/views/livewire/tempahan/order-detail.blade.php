@@ -18,6 +18,7 @@
                 <h2 class="sec" style="margin-top:0">Butiran <span class="hint" style="font-weight:400">· {{ $order->form->title }}</span></h2>
                 <dl class="kv">
                     <dt>Pelanggan</dt><dd>{{ $order->customer_name }}</dd>
+                    @if ($order->customer_order_no)<dt>No. order</dt><dd><b>{{ $order->customer_order_no }}</b></dd>@endif
                     <dt>Telefon</dt><dd>{{ Phone::display($order->customer_phone) }}</dd>
                     @if ($order->customer_email)<dt>Emel</dt><dd>{{ $order->customer_email }}</dd>@endif
                     <dt>Outlet</dt><dd>{{ $order->outlet?->name }}</dd>

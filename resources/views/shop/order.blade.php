@@ -80,6 +80,7 @@
         <h2 style="font-size:17px;font-weight:700;margin-bottom:10px">Ringkasan</h2>
         <dl class="sf-kv">
             <dt>Nama</dt><dd>{{ $order->customer_name }}</dd>
+            @if ($order->customer_order_no)<dt>No. order</dt><dd>{{ $order->customer_order_no }}</dd>@endif
             <dt>Telefon</dt><dd>{{ Phone::display($order->customer_phone) }}</dd>
             <dt>Cawangan</dt><dd>{{ $order->outlet?->name }}</dd>
             @if ($order->isBooking())

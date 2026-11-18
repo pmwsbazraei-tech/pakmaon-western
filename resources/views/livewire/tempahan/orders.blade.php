@@ -29,7 +29,7 @@
                     @forelse ($orders as $o)
                         <tr wire:key="o-{{ $o->id }}">
                             <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->reference }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? 'Booking' : 'Pembelian' }}</div></td>
-                            <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}</div></td>
+                            <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}@if ($o->customer_order_no) · No. order {{ $o->customer_order_no }}@endif</div></td>
                             <td>{{ $o->outlet?->name }}</td>
                             <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.$o->guests.' org' : Order::FULFILLMENTS[$o->fulfillment] }}</td>
                             <td class="num">@sen($o->total_cents)</td>

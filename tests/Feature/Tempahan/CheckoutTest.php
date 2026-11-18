@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tempahan;
 
 use App\Models\Order;
+use App\Services\WhatsAppService;
 
 class CheckoutTest extends PmwTestCase
 {
@@ -113,5 +114,20 @@ class CheckoutTest extends PmwTestCase
         $this->form()->update(['status' => 'maintenance']);
         $this->get(route('form.show', 'pak-maon-western'))->assertStatus(503);
         $this->postJson(route('form.store', 'pak-maon-western'), $this->bookingPayload())->assertStatus(503);
+    }
+
+    public function test_order_no_is_required_saved_and_sent_in_whatsapp(): void
+    {
+        $this->postJson(route('form.store', 'pak-maon-western'), $this->bookingPayload(['order_no' => '']))
+            ->assertStatus(422)->assertJsonValidationErrors('order_no');
+
+        $order = $this->placeOrder($this->bookingPayload(['order_no' => '  INV-778  ']));
+        $this->assertSame('INV-778', $order->customer_order_no);
+
+        $order->form->update(['whatsapp_template' => 'Nombor Order : {OrderNo}
+No: {order_no}']);
+        $msg = app(WhatsAppService::class)->message($order->fresh());
+        $this->assertStringContainsString('Nombor Order : INV-778', $msg);
+        $this->assertStringContainsString('No: INV-778', $msg);
     }
 }

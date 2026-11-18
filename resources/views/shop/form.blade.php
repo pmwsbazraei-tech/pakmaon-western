@@ -181,6 +181,9 @@
             <div class="sf-field"><label for="sf-name">Nama <span class="req">*</span></label>
                 <input id="sf-name" x-model.trim="d.name" autocomplete="name" maxlength="100">
                 <div class="sf-err" x-text="err.name"></div></div>
+            <div class="sf-field"><label for="sf-orderno">Nombor order <span class="req">*</span></label>
+                <input id="sf-orderno" x-model.trim="d.order_no" maxlength="50" autocomplete="off">
+                <div class="sf-err" x-text="err.order_no"></div></div>
             <div class="sf-field"><label for="sf-phone">Nombor telefon <span class="req">*</span></label>
                 <input id="sf-phone" x-model.trim="d.phone" @blur="formatPhone()" inputmode="tel" autocomplete="tel" placeholder="012-345 6789">
                 <div class="sf-err" x-text="err.phone || err.phone_normalized"></div></div>
@@ -292,7 +295,7 @@ function pmwShop(cfg) {
     return {
         ...cfg,
         step: 'menu', purpose: null, cart: [], open: {},
-        d: { name: '', phone: '', email: '', remember: false, outlet_id: '', date: '', time: '', guests: 2, fulfillment: '', address: '', notes: '' },
+        d: { name: '', order_no: '', phone: '', email: '', remember: false, outlet_id: '', date: '', time: '', guests: 2, fulfillment: '', address: '', notes: '' },
         err: {}, quote: null, slots: [], slotsReason: '', slotsLoading: false,
         submitting: false, showWelcome: false, toast: '', outletNote: '', _qTimer: null,
 
@@ -409,6 +412,7 @@ function pmwShop(cfg) {
         validateLocal() {
             const e = {};
             if (!this.d.name) e.name = 'Sila isi nama.';
+            if (!this.d.order_no) e.order_no = 'Sila isi nombor order.';
             if (!this.d.phone) e.phone = 'Sila isi nombor telefon.';
             if (!this.d.outlet_id) e.outlet_id = 'Sila pilih cawangan.';
             if (this.purpose === 'booking') {
@@ -430,7 +434,7 @@ function pmwShop(cfg) {
             try {
                 const res = await this.post(this.urls.store, {
                     idempotency_key: this.idemKey(), type: this.purpose,
-                    name: this.d.name, phone: this.d.phone, email: this.d.email || null,
+                    name: this.d.name, order_no: this.d.order_no, phone: this.d.phone, email: this.d.email || null,
                     outlet_id: this.d.outlet_id, booking_date: this.d.date, booking_time: this.d.time, guests: this.d.guests,
                     fulfillment: this.purpose === 'booking' ? null : this.d.fulfillment, delivery_address: this.d.address,
                     notes: this.d.notes, items: this.items(),

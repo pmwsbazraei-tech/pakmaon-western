@@ -22,6 +22,8 @@ class WhatsAppService
             '{reference}' => $order->reference,
             '{name}' => $order->customer_name,
             '{phone}' => Phone::display($order->customer_phone),
+            '{order_no}' => $order->customer_order_no ?: '-',
+            '{OrderNo}' => $order->customer_order_no ?: '-',   // alias
             '{outlet}' => $order->outlet?->name ?? '-',
             '{branch}' => $order->outlet?->name ?? '-',   // alias lama
             '{date}' => $order->booking_at?->translatedFormat('l, j F Y') ?? '-',

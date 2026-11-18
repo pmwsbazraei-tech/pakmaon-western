@@ -89,7 +89,7 @@
             <label class="chk"><input type="checkbox" wire:model="f.action_whatsapp"> <span><b>Aktifkan "Hantar ke WhatsApp"</b><br><span class="hint">Dibuka ke nombor WhatsApp outlet yang dipilih pelanggan.</span></span></label>
             @error('f.action_whatsapp')<div class="auth-error">{{ $message }}</div>@enderror
             <div style="margin-top:12px"><label>Templat mesej</label><textarea wire:model="f.whatsapp_template" rows="10" style="font-family:ui-monospace,Consolas,monospace;font-size:12.5px"></textarea></div>
-            <div class="hint">Pemboleh ubah: {reference} {name} {phone} {outlet} {date} {time} {guests} {items} {total} {notes} {fulfillment} {address} {payment_link}</div>
+            <div class="hint">Pemboleh ubah: {reference} {name} {order_no} {phone} {outlet} {date} {time} {guests} {items} {total} {notes} {fulfillment} {address} {payment_link}</div>
         </div>
 
         <div class="card" id="payment">
