@@ -23,7 +23,7 @@
 
     <div class="card">
         <div class="table-wrap">
-            <table>
+            <table class="tbl-sticky">
                 <thead><tr><th>Rujukan</th><th>Pelanggan</th><th>Outlet</th><th>Jadual / cara</th><th class="num">Jumlah</th><th>Status</th><th>Dicipta</th></tr></thead>
                 <tbody>
                     @forelse ($orders as $o)

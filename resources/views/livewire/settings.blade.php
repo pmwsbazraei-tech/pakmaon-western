@@ -22,7 +22,7 @@
 
         @if (count($outlets ?? []) > 1)
             <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-                <button class="btn sec sm" style="color:var(--red)" wire:click="deleteOutlet"
+                <button class="btn danger sm" wire:click="deleteOutlet"
                         wire:confirm="Padam outlet '{{ $outlet->name }}' dan SEMUA datanya? Tindakan ini tak boleh dibatalkan.">
                     🗑 Padam outlet ini
                 </button>
@@ -35,11 +35,11 @@
         <h2 class="sec" style="margin-top:0">Data</h2>
         <div class="row">
             <button class="btn sec sm" wire:click="export">⬇ Export data (JSON)</button>
-            <label class="btn sec sm" style="cursor:pointer;margin:0;color:inherit;text-transform:none;letter-spacing:normal">
+            <label class="btn sec sm" style="cursor:pointer;margin:0">
                 ⬆ Import data
                 <input type="file" wire:model="importFile" accept=".json" class="hidden">
             </label>
-            <button class="btn sec sm" style="color:var(--red)" wire:click="resetData"
+            <button class="btn danger sm" wire:click="resetData"
                     wire:confirm="Padam semua data dan mula semula?">↺ Reset semua</button>
         </div>
 

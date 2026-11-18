@@ -5,9 +5,13 @@
         <div class="row">
             <div><label>Tarikh</label><input type="date" wire:model.live="date"></div>
             <div><label>Outlet</label><select wire:model.live="outlet">@foreach ($outlets as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach</select></div>
-            <div style="flex:0;white-space:nowrap"><button class="btn sec" wire:click="shiftDay(-1)">← Semalam</button></div>
-            <div style="flex:0;white-space:nowrap"><button class="btn sec" wire:click="$set('date', '{{ now()->toDateString() }}')">Hari ini</button></div>
-            <div style="flex:0;white-space:nowrap"><button class="btn sec" wire:click="shiftDay(1)">Esok →</button></div>
+            <div style="flex:0 1 auto;white-space:nowrap">
+                <div class="daynav" role="group" aria-label="Navigasi tarikh">
+                    <button class="btn sec" wire:click="shiftDay(-1)">← Semalam</button>
+                    <button @class(['btn sec', 'today' => $date === now()->toDateString()]) wire:click="$set('date', '{{ now()->toDateString() }}')">Hari ini</button>
+                    <button class="btn sec" wire:click="shiftDay(1)">Esok →</button>
+                </div>
+            </div>
         </div>
         <label class="chk" style="margin-top:10px"><input type="checkbox" wire:model.live="showCancelled"> Tunjuk yang dibatalkan</label>
     </div>
@@ -36,7 +40,7 @@
                 <div class="card empty">Tiada booking pada tarikh ini.</div>
             @endforelse
         </div>
-        <div class="card" style="align-self:start">
+        <div class="card kitchen-total" style="align-self:start">
             <h2 class="sec" style="margin-top:0">Jumlah dapur</h2>
             <table>
                 <tbody>

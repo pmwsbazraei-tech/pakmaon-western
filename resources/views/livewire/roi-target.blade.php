@@ -20,7 +20,7 @@
     </div>
 
     <div class="split" style="margin-top:16px">
-        <div class="card">
+        <div class="card form-card">
             <h2 class="sec" style="margin-top:0">Tetapkan Sasaran</h2>
             <label>Target Jualan Bulanan (RM)</label>
             <input type="number" wire:model="targetSales">

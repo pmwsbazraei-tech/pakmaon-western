@@ -18,7 +18,7 @@
                 </div>
             @endforeach
         </div>
-        <div class="card">
+        <div class="card form-card">
             <h2 class="sec" style="margin-top:0">Cipta akaun staf</h2>
             <form wire:submit="create" style="display:grid;gap:10px">
                 <div><label>Nama</label><input wire:model="name">@error('name')<div class="auth-error">{{ $message }}</div>@enderror</div>

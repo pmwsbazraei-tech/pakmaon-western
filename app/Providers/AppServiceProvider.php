@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EnsureOutlet;
 use App\Services\Payments\ChipGateway;
 use App\Services\Payments\FakeGateway;
 use App\Services\Payments\PaymentGateway;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,5 +49,10 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('sen', fn ($expression) => "<?php echo rm(($expression) / 100); ?>");
 
         Carbon::setLocale('ms');
+
+        // Jalankan semula EnsureOutlet pada setiap kemas kini Livewire (/livewire/update),
+        // supaya $outlet yang dikongsi ke view wujud selepas tukar bulan / tapis.
+        // Tanpa ini, wire:model.live="month" di Dashboard menghasilkan "Undefined variable $outlet".
+        Livewire::addPersistentMiddleware([EnsureOutlet::class]);
     }
 }

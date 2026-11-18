@@ -98,7 +98,7 @@
                         <button class="btn sec" style="margin-top:10px" wire:click="reschedule">Simpan jadual baharu</button>
                         <h2 class="sec" style="color:var(--red)">Batalkan booking</h2>
                         <input wire:model="cancelNote" placeholder="Sebab pembatalan (pilihan)">
-                        <button class="btn" style="margin-top:10px;background:var(--red);color:#fff" wire:click="setStatus('booking_status', 'cancelled')" wire:confirm="Batalkan booking ini? Stok dan slot akan dilepaskan.">Batalkan</button>
+                        <button class="btn danger" style="margin-top:10px" wire:click="setStatus('booking_status', 'cancelled')" wire:confirm="Batalkan booking ini? Stok dan slot akan dilepaskan.">Batalkan</button>
                         @if ($order->isPaid())<div class="hint">Bayaran telah diterima. Refund perlu dibuat secara manual di portal CHIP.</div>@endif
                     @else
                         <div class="empty">Booking ini telah dibatalkan.</div>
@@ -109,7 +109,7 @@
                     <h2 class="sec" style="margin-top:0">Status fulfillment</h2>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                         @foreach (Order::FULFILLMENT_STATUSES as $k => $v)
-                            <button class="btn {{ $order->fulfillment_status === $k ? '' : 'sec' }} sm" wire:click="setStatus('fulfillment_status', '{{ $k }}')" @if ($k === 'cancelled') wire:confirm="Batalkan pesanan ini? Stok akan dilepaskan." @endif>{{ $v }}</button>
+                            <button class="btn {{ $order->fulfillment_status === $k ? '' : ($k === 'cancelled' ? 'danger' : 'sec') }} sm" wire:click="setStatus('fulfillment_status', '{{ $k }}')" @if ($k === 'cancelled') wire:confirm="Batalkan pesanan ini? Stok akan dilepaskan." @endif>{{ $v }}</button>
                         @endforeach
                     </div>
                 </div>

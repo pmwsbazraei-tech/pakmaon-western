@@ -7,7 +7,7 @@
         $warn = config('outlet.food_cost.warn');
     @endphp
 
-    <div class="grid g4">
+    <div class="kpi-grid">
         <div class="card kpi">
             <div class="lbl">Jualan Bulan Ini</div>
             <div class="val">@rm($c['sales'])</div>
@@ -39,9 +39,6 @@
             </div>
             <div class="sub">COGS @rm($c['cogs'])</div>
         </div>
-    </div>
-
-    <div class="grid g3" style="margin-top:14px">
         <div class="card kpi">
             <div class="lbl">Break-even (jualan)</div>
             <div class="val">@rm($c['beSales'])</div>
@@ -52,12 +49,16 @@
             <div class="val">@rm($c['capex'])</div>
             <div class="sub">Balik modal: {{ is_infinite($c['roiMonths']) ? '—' : number_format($c['roiMonths'], 1).' bulan' }}</div>
         </div>
-        <div class="card kpi">
+    </div>
+
+    <div class="card kpi target-card">
+        @php $pct = $outlet->target_sales > 0 ? $c['sales'] / $outlet->target_sales * 100 : 0; @endphp
+        <div>
             <div class="lbl">Pencapaian Target Sales</div>
-            @php $pct = $outlet->target_sales > 0 ? $c['sales'] / $outlet->target_sales * 100 : 0; @endphp
             <div class="val">{{ number_format($pct, 0) }}%</div>
-            <div class="bar"><span style="width:{{ min(100, $pct) }}%"></span></div>
         </div>
+        <div class="bar"><span style="width:{{ min(100, $pct) }}%"></span></div>
+        <div class="sub">Jualan @rm($c['sales']) daripada target @rm($outlet->target_sales)</div>
     </div>
 
     <div class="split" style="margin-top:16px">

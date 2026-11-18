@@ -5,7 +5,7 @@
     </div>
 
     @if ($readyOutlets === 0)
-        <div class="card" style="margin-bottom:14px;border-color:var(--yellow)">
+        <div class="card warn-card" style="margin-bottom:14px">
             <b>Belum ada outlet yang menerima tempahan.</b>
             <div class="hint">Buka <a href="{{ route('tempahan.outlets') }}" wire:navigate style="text-decoration:underline">Tetapan Outlet</a>, isi nombor WhatsApp dan aktifkan "Terima tempahan online".</div>
         </div>

@@ -75,7 +75,7 @@
         </div>
 
         {{-- Langkah 3: semak & simpan --}}
-        <div class="card">
+        <div class="card form-card">
             <label>3. Semak & simpan</label>
             <div class="row">
                 <div><label>Tarikh</label><input type="date" wire:model="date"></div>
@@ -86,7 +86,7 @@
             @error('date') <div class="auth-error">{{ $message }}</div> @enderror
             @error('invoiceNo') <div class="auth-error">{{ $message }}</div> @enderror
 
-            <div style="margin-top:10px">
+            <div class="items-box">
                 <label>Item dikesan (boleh edit)</label>
                 @if (count($items) === 0)
                     <div class="hint">Belum ada. Scan resit atau tambah manual.</div>
@@ -95,11 +95,11 @@
                         <div class="row" style="margin-bottom:6px" wire:key="item-{{ $i }}">
                             <div style="flex:2"><input wire:model.blur="items.{{ $i }}.name" placeholder="Nama item"></div>
                             <div><input type="number" step="0.01" class="miniedit" style="width:100%" wire:model.live="items.{{ $i }}.amount" placeholder="0.00"></div>
-                            <div style="flex:0"><button class="btn sec sm" wire:click="removeItem({{ $i }})">✕</button></div>
+                            <div style="flex:0"><button class="btn danger sm" wire:click="removeItem({{ $i }})" aria-label="Buang item">✕</button></div>
                         </div>
                     @endforeach
                 @endif
-                <button class="btn sec sm" wire:click="addItem" style="margin-top:8px">+ Tambah item</button>
+                <button class="btn sec sm add-line" wire:click="addItem" style="margin-top:8px">+ Tambah item</button>
             </div>
 
             <input wire:model="note" placeholder="Nota (opsyenal)" style="margin-top:10px">

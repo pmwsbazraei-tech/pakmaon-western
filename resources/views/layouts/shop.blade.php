@@ -9,9 +9,9 @@
     <meta property="og:title" content="@yield('title', 'Pak Maon Western')">
     <meta property="og:description" content="@yield('description', 'Tempah meja, pre-order menu dan pesan dari Pak Maon Western.')">
     <meta name="robots" content="@yield('robots', 'index,follow')">
-    <meta name="theme-color" content="#e9d21e">
+    <meta name="theme-color" content="#d23a1f">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=barlow:400,500,600,700|barlow-condensed:600,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
 <body class="sf">

@@ -7,6 +7,12 @@ import Tesseract from 'tesseract.js';
 window.Chart = Chart;
 window.Tesseract = Tesseract;
 
+// Tipografi carta ikut tema (warna dataset kekal dari server: makna untung/kos/jualan)
+Chart.defaults.font.family = "'Barlow', 'Segoe UI', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#5c5245';
+Chart.defaults.borderColor = 'rgba(120, 95, 60, 0.15)';
+
 /* Helper format Ringgit di klien (padan dengan helper Blade rm()) */
 window.RM = (n) =>
   'RM' +
