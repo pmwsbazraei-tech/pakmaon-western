@@ -29,6 +29,19 @@ Menu Food Cost · Peralatan · Bajet Buka · ROI & Target · Laporan Penuh · Te
 Semua data terikat pada **outlet** milik user (multi-tenant, dilindungi `OutletPolicy`).
 Pengiraan kewangan berpusat dalam `App\Services\OutletMetrics`.
 
+### Tempahan Online (Fasa 1)
+
+Landing page awam untuk **booking meja + pre-order menu** dan **pembelian produk** (pickup/delivery),
+dengan **Hantar ke WhatsApp** outlet dan **Bayar Online** (CHIP Collect). Butiran penuh, status setiap
+fungsi dan konfigurasi live: [docs/TEMPAHAN_ONLINE.md](docs/TEMPAHAN_ONLINE.md).
+
+- Awam (tanpa login): `/p/{slug}`, status pesanan `/o/{rujukan}?t=…`
+- Backend: menu **Tempahan Online** di sidebar (`/tempahan`)
+- Setiap **outlet** ialah cawangan (WhatsApp, waktu operasi, slot, cuti dalam *Tetapan Outlet*)
+- **Akaun staf cawangan** hanya nampak tempahan outlet yang diberikan; tiada akses modul kewangan
+- Demo selepas `migrate --seed`: http://localhost:8000/p/pak-maon-western ·
+  staf demo **tangkak@pakmaon.test** / **password**
+
 ## Keperluan
 
 - PHP **8.4**

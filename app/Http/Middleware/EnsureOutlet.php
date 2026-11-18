@@ -15,11 +15,17 @@ class EnsureOutlet
      * User baharu diberi data DEFAULT (macam prototaip mula dengan objek DEFAULT).
      * Kongsi outlet aktif ke semua view sebagai $outlet.
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $mode = null): Response
     {
         $user = $request->user();
 
         if ($user) {
+            // Staf cawangan (tempahan sahaja) tiada akses ke modul kewangan
+            // (kecuali laluan tempahan yang dibuka dengan middleware `outlet:staff`)
+            if ($user->isBranchStaff()) {
+                return $mode === 'staff' ? $next($request) : redirect()->route('tempahan.bookings');
+            }
+
             // User baharu diberi outlet pertama dengan data DEFAULT
             if (! $user->outlets()->exists()) {
                 DefaultOutletData::provision($user);

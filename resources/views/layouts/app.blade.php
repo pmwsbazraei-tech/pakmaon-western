@@ -25,6 +25,22 @@
         ['report',       '▣', 'Laporan Penuh'],
         ['settings',     '⚙', 'Tetapan'],
     ];
+
+    // Tempahan online: staf cawangan nampak menu operasi sahaja
+    $isBranchStaff = auth()->user()?->isBranchStaff() ?? false;
+    $bookingNav = [
+        ['tempahan.overview', '◎', 'Ringkasan Tempahan'],
+        ['tempahan.bookings', '◷', 'Booking Harian'],
+        ['tempahan.orders',   '≡', 'Pesanan & Booking'],
+    ];
+    if (! $isBranchStaff) {
+        $bookingNav = array_merge($bookingNav, [
+            ['tempahan.forms',    '⧉', 'Landing Page'],
+            ['tempahan.products', '◫', 'Produk & Stok'],
+            ['tempahan.outlets',  '⌂', 'Tetapan Outlet'],
+            ['tempahan.staff',    '☷', 'Akaun Staf'],
+        ]);
+    }
 @endphp
 <body x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
 
@@ -45,14 +61,27 @@
         </div>
 
         @auth
-            @livewire('outlet-switcher')
+            @unless ($isBranchStaff)
+                @livewire('outlet-switcher')
+            @endunless
         @endauth
 
         <nav class="nav">
-            @foreach ($navItems as [$route, $ico, $label])
+            @unless ($isBranchStaff)
+                @foreach ($navItems as [$route, $ico, $label])
+                    <a href="{{ route($route) }}" wire:navigate
+                       @click="sidebarOpen = false"
+                       @class(['active' => request()->routeIs($route)])>
+                        <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
+                    </a>
+                @endforeach
+            @endunless
+
+            <div class="navgroup">Tempahan Online</div>
+            @foreach ($bookingNav as [$route, $ico, $label])
                 <a href="{{ route($route) }}" wire:navigate
                    @click="sidebarOpen = false"
-                   @class(['active' => request()->routeIs($route)])>
+                   @class(['active' => request()->routeIs($route.'*')])>
                     <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
                 </a>
             @endforeach

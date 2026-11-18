@@ -23,5 +23,8 @@ class DatabaseSeeder extends Seeder
         if (! $user->outlets()->exists()) {
             DefaultOutletData::provision($user);
         }
+
+        // Tempahan online: 3 outlet cawangan, menu ujian, landing page & staf demo
+        $this->callWith(TempahanDemoSeeder::class, ['owner' => $user]);
     }
 }

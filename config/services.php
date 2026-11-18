@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // Tempahan online: Bayar Online
+    'payment_driver' => env('PAYMENT_DRIVER', 'fake'),
+
+    'chip' => [
+        'brand_id' => env('CHIP_BRAND_ID'),
+        'secret_key' => env('CHIP_SECRET_KEY'),
+        // Kunci awam webhook (PEM) dari portal CHIP. Kunci success_callback diambil automatik dari /public_key/.
+        'webhook_public_key' => env('CHIP_WEBHOOK_PUBLIC_KEY') ? str_replace('\n', "\n", env('CHIP_WEBHOOK_PUBLIC_KEY')) : null,
+    ],
+
 ];
