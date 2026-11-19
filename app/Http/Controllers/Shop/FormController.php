@@ -26,9 +26,11 @@ class FormController extends Controller
 
         $form->load(['outlets' => fn ($q) => $q->where('accepts_orders', true), 'products' => fn ($q) => $q->where('is_hidden', false)->with('activeVariants', 'category')]);
 
+        // Susunan ikut Produk & Stok: kategori (sort), kemudian produk (sort); tanpa kategori di hujung
         $catalog = $form->products
+            ->sortBy(fn ($p) => sprintf('%09d-%09d-%09d-%09d',
+                $p->category ? $p->category->sort : 999999999, $p->product_category_id ?? 999999999, $p->sort, $p->id))
             ->groupBy(fn ($p) => $p->category?->name ?? 'Lain-lain')
-            ->sortBy(fn ($items) => $items->first()->category?->sort ?? 999)
             ->map(fn ($items) => $items->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -89,6 +91,13 @@ class FormController extends Controller
 
         $request->merge(['phone_normalized' => Phone::normalize($request->input('phone'))]);
         $purposes = array_keys(array_filter(['booking' => $form->purpose_booking, 'purchase' => $form->purpose_purchase]));
+        $fulfillments = array_keys(array_filter(['pickup' => $form->allow_pickup, 'delivery' => $form->allow_delivery]));
+        if ($form->simple_form) {
+            // Borang ringkas: tiada tarikh/masa/cara terima; sentiasa pesanan pickup
+            $request->merge(['type' => 'purchase', 'fulfillment' => 'pickup', 'notes' => null]);
+            $purposes = ['purchase'];
+            $fulfillments = ['pickup'];
+        }
 
         $data = $request->validate([
             'idempotency_key' => ['required', 'string', 'min:16', 'max:64'],
@@ -102,7 +111,7 @@ class FormController extends Controller
             'booking_date' => ['exclude_unless:type,booking', 'required', 'date_format:Y-m-d'],
             'booking_time' => ['exclude_unless:type,booking', 'required', 'date_format:H:i'],
             'guests' => ['exclude_unless:type,booking', 'required', 'integer', 'min:1', 'max:200'],
-            'fulfillment' => ['exclude_if:type,booking', 'required', Rule::in(array_keys(array_filter(['pickup' => $form->allow_pickup, 'delivery' => $form->allow_delivery])))],
+            'fulfillment' => ['exclude_if:type,booking', 'required', Rule::in($fulfillments)],
             'delivery_address' => ['exclude_unless:fulfillment,delivery', 'required', 'string', 'max:500'],
             'notes' => ['nullable', 'string', 'max:500'],
             'items' => ['array', 'max:50'],

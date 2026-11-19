@@ -42,13 +42,13 @@ class FormEditor extends Component
             'title' => $m->title ?? '', 'slug' => $m->slug ?? '', 'status' => $m->status, 'description' => $m->description ?? '',
             'banner_url' => $m->banner_url ?? '', 'notices' => implode("\n", $m->notices ?? []), 'welcome_popup' => $m->welcome_popup ?? '',
             'maintenance_message' => $m->maintenance_message ?? '', 'purpose_booking' => (bool) $m->purpose_booking,
-            'purpose_purchase' => (bool) $m->purpose_purchase, 'booking_mode' => $m->booking_mode, 'booking_notice' => $m->booking_notice ?? '',
+            'purpose_purchase' => (bool) $m->purpose_purchase, 'booking_mode' => $m->booking_mode, 'simple_form' => (bool) $m->simple_form, 'booking_notice' => $m->booking_notice ?? '',
             'prices_include_sst' => (bool) $m->prices_include_sst, 'sst_rate' => (string) ($m->sst_rate ?? 6),
             'min_order' => $c($m->min_order_cents), 'max_order' => $c($m->max_order_cents), 'allow_pickup' => (bool) $m->allow_pickup,
             'allow_delivery' => (bool) $m->allow_delivery, 'delivery_fee' => $c($m->delivery_fee_cents ?? 0),
             'action_whatsapp' => (bool) $m->action_whatsapp, 'action_online' => (bool) $m->action_online,
             'auto_confirm_on_payment' => (bool) $m->auto_confirm_on_payment,
-            'whatsapp_template' => $m->whatsapp_template ?: OrderForm::DEFAULT_WHATSAPP_TEMPLATE,
+            'whatsapp_template' => $m->whatsapp_template ?: ($m->simple_form ? OrderForm::DEFAULT_SIMPLE_WHATSAPP_TEMPLATE : OrderForm::DEFAULT_WHATSAPP_TEMPLATE),
         ];
         $this->outletIds = $this->form ? $this->form->outlets()->pluck('outlets.id')->map(fn ($i) => (string) $i)->all()
             : $this->visibleOutlets()->pluck('id')->map(fn ($i) => (string) $i)->all();
@@ -82,7 +82,7 @@ class FormEditor extends Component
         if (! $this->f['action_whatsapp'] && ! $this->f['action_online']) {
             return $this->addError('f.action_whatsapp', 'Aktifkan sekurang-kurangnya satu tindakan selepas Proceed.');
         }
-        if ($this->f['purpose_purchase'] && ! $this->f['allow_pickup'] && ! $this->f['allow_delivery']) {
+        if ($this->f['purpose_purchase'] && ! $this->f['simple_form'] && ! $this->f['allow_pickup'] && ! $this->f['allow_delivery']) {
             return $this->addError('f.allow_pickup', 'Pembelian produk memerlukan pickup atau delivery.');
         }
 

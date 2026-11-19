@@ -8,7 +8,8 @@
     'slug' => $form->slug,
     'catalog' => $catalog,
     'outlets' => $outlets,
-    'purposes' => array_values(array_filter([$form->purpose_booking ? 'booking' : null, $form->purpose_purchase ? 'purchase' : null])),
+    'purposes' => $form->simple_form ? ['purchase'] : array_values(array_filter([$form->purpose_booking ? 'booking' : null, $form->purpose_purchase ? 'purchase' : null])),
+    'simpleForm' => (bool) $form->simple_form,
     'tableOnly' => $form->allowsTableOnly(),
     'allowPickup' => $form->allow_pickup,
     'allowDelivery' => $form->allow_delivery,
@@ -181,17 +182,27 @@
             <div class="sf-field"><label for="sf-name">Nama <span class="req">*</span></label>
                 <input id="sf-name" x-model.trim="d.name" autocomplete="name" maxlength="100">
                 <div class="sf-err" x-text="err.name"></div></div>
-            <div class="sf-field"><label for="sf-orderno">Nombor order <span class="req">*</span></label>
-                <input id="sf-orderno" x-model.trim="d.order_no" maxlength="50" autocomplete="off">
-                <div class="sf-err" x-text="err.order_no"></div></div>
             <div class="sf-field"><label for="sf-phone">Nombor telefon <span class="req">*</span></label>
                 <input id="sf-phone" x-model.trim="d.phone" @blur="formatPhone()" inputmode="tel" autocomplete="tel" placeholder="012-345 6789">
                 <div class="sf-err" x-text="err.phone || err.phone_normalized"></div></div>
+            <div class="sf-field"><label for="sf-orderno">Nombor order <span class="req">*</span></label>
+                <input id="sf-orderno" x-model.trim="d.order_no" maxlength="50" autocomplete="off">
+                <div class="sf-err" x-text="err.order_no"></div></div>
+            <template x-if="simpleForm">
+                <div class="sf-field"><label for="sf-outlet-s">Cawangan <span class="req">*</span></label>
+                    <select id="sf-outlet-s" x-model.number="d.outlet_id" @change="onOutletChange()">
+                        <option value="">Pilih cawangan</option>
+                        <template x-for="b in availableOutlets" :key="b.id"><option :value="b.id" x-text="b.name" :selected="b.id === d.outlet_id"></option></template>
+                    </select>
+                    <div class="sf-err" x-text="err.outlet_id"></div>
+                    <div class="sf-alert info" x-show="outletNote" x-text="outletNote" style="margin-top:8px"></div></div>
+            </template>
             <div class="sf-field"><label for="sf-email">Emel <span style="color:var(--muted);font-weight:400">(pilihan, untuk resit)</span></label>
                 <input id="sf-email" type="email" x-model.trim="d.email" autocomplete="email"></div>
             <label class="sf-check"><input type="checkbox" x-model="d.remember"> <span>Ingat maklumat saya pada peranti ini</span></label>
         </div>
 
+        <template x-if="!simpleForm"><div>
         <div class="sf-step"><span class="n">3</span><h2 x-text="purpose === 'booking' ? 'Cawangan, tarikh & masa' : 'Cawangan & cara terima'"></h2></div>
         <div class="card sf-stack">
             <div class="sf-field"><label for="sf-outlet">Cawangan <span class="req">*</span></label>
@@ -247,8 +258,9 @@
             <div class="sf-field"><label for="sf-notes">Nota <span style="color:var(--muted);font-weight:400">(pilihan)</span></label>
                 <textarea id="sf-notes" rows="2" x-model.trim="d.notes" maxlength="500" placeholder="Contoh: kerusi bayi, tanpa sayur"></textarea></div>
         </div>
+        </div></template>
 
-        <div class="sf-step"><span class="n">4</span><h2>Ringkasan</h2></div>
+        <div class="sf-step"><span class="n" x-text="simpleForm ? 3 : 4">4</span><h2>Ringkasan</h2></div>
         <div class="card">
             <div class="sf-totals" x-show="quote">
                 <div class="sf-between"><span>Subtotal</span><span x-text="quote ? quote.subtotal : ''"></span></div>
@@ -306,6 +318,7 @@ function pmwShop(cfg) {
             this.purpose = this.purposes.length === 1 ? this.purposes[0] : store.get('pmw_purpose_' + this.slug);
             if (!this.allowPickup && this.allowDelivery) this.d.fulfillment = 'delivery';
             if (this.allowPickup && !this.allowDelivery) this.d.fulfillment = 'pickup';
+            if (this.simpleForm) this.d.fulfillment = 'pickup';
             if (this.outlets.length === 1) this.d.outlet_id = this.outlets[0].id;
             this.$watch('cart', v => store.set('pmw_cart_' + this.slug, v));
             this.$watch('d.guests', () => { if (this.d.time && !this.slotFits(this.d.time)) this.d.time = ''; });
@@ -316,6 +329,7 @@ function pmwShop(cfg) {
         get maxDate() { const t = nowKL(); t.setDate(t.getDate() + (this.outlet ? this.outlet.advance_days : 30)); return ymd(t); },
         get outlet() { return this.outlets.find(b => b.id === Number(this.d.outlet_id)) || null; },
         get availableOutlets() {
+            if (this.simpleForm) return this.outlets;
             return this.outlets.filter(b => this.purpose === 'booking' ? b.booking : (this.d.fulfillment === 'delivery' ? b.delivery : (b.pickup || b.delivery)));
         },
         get count() { return this.cart.reduce((s, l) => s + l.qty, 0); },
@@ -381,7 +395,7 @@ function pmwShop(cfg) {
             await this.fetchQuote();
             this.outletNote = this.quote && this.quote.unavailable.length
                 ? 'Cawangan ditukar. Sesetengah item tiada di cawangan ini, sila semak cart.'
-                : (this.d.outlet_id ? 'Cawangan ditukar. Harga dan masa telah disemak semula.' : '');
+                : (this.d.outlet_id ? (this.simpleForm ? 'Cawangan ditukar. Harga telah disemak semula.' : 'Cawangan ditukar. Harga dan masa telah disemak semula.') : '');
             if (this.purpose === 'booking' && this.d.date) this.loadSlots();
         },
         async loadSlots() {
@@ -419,7 +433,7 @@ function pmwShop(cfg) {
                 if (!this.d.date) e.booking_date = 'Sila pilih tarikh.';
                 if (!this.d.guests || this.d.guests < 1) e.guests = 'Sila isi bilangan tetamu.';
                 if (!this.d.time) e.booking_time = 'Sila pilih masa.';
-            } else {
+            } else if (!this.simpleForm) {
                 if (!this.d.fulfillment) e.fulfillment = 'Sila pilih pickup atau delivery.';
                 if (this.d.fulfillment === 'delivery' && !this.d.address) e.delivery_address = 'Sila isi alamat penghantaran.';
             }

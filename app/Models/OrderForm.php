@@ -11,6 +11,8 @@ class OrderForm extends Model
 {
     protected $guarded = ['id'];
 
+    public const DEFAULT_SIMPLE_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat pesanan.\nRujukan: {reference}\nNama: {name}\nTelefon: {phone}\nNombor order: {order_no}\nCawangan: {outlet}\nEmel: {email}\n\nMenu:\n{items}\n\nJumlah: {total}\n{payment_link}";
+
     public const DEFAULT_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat tempahan.\nRujukan: {reference}\nNama: {name}\nNombor order: {order_no}\nTelefon: {phone}\nTarikh: {date}\nMasa: {time}\nBilangan tetamu: {guests}\n\nMenu:\n{items}\n\nJumlah: {total}\nNota: {notes}\n{payment_link}";
 
     protected function casts(): array
@@ -19,6 +21,7 @@ class OrderForm extends Model
             'notices' => 'array',
             'purpose_booking' => 'boolean',
             'purpose_purchase' => 'boolean',
+            'simple_form' => 'boolean',
             'prices_include_sst' => 'boolean',
             'sst_rate' => 'decimal:2',
             'allow_pickup' => 'boolean',
@@ -68,6 +71,6 @@ class OrderForm extends Model
 
     public function template(): string
     {
-        return $this->whatsapp_template ?: self::DEFAULT_WHATSAPP_TEMPLATE;
+        return $this->whatsapp_template ?: ($this->simple_form ? self::DEFAULT_SIMPLE_WHATSAPP_TEMPLATE : self::DEFAULT_WHATSAPP_TEMPLATE);
     }
 }

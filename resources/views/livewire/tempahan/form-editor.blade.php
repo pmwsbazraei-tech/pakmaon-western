@@ -81,7 +81,8 @@
 
         <div class="card" id="details">
             <h2 class="sec" style="margin-top:0">Customer Details</h2>
-            <div>Nama dan nombor telefon (format Malaysia) <b>wajib</b>. Emel pilihan. Pelanggan boleh pilih "Ingat maklumat saya" pada peranti sendiri.</div>
+            <div>Nama, nombor telefon (format Malaysia) dan nombor order <b>wajib</b>. Emel pilihan. Pelanggan boleh pilih "Ingat maklumat saya" pada peranti sendiri.</div>
+            <label class="chk" style="margin-top:12px"><input type="checkbox" wire:model="f.simple_form"> <span><b>Borang ringkas</b><br><span class="hint">Pelanggan hanya isi Nama, Telefon, Nombor order, Cawangan dan Emel. Tiada tarikh, masa, tetamu, pickup/delivery atau nota. Pesanan direkod sebagai Pickup.</span></span></label>
         </div>
 
         <div class="card" id="whatsapp">
@@ -89,7 +90,7 @@
             <label class="chk"><input type="checkbox" wire:model="f.action_whatsapp"> <span><b>Aktifkan "Hantar ke WhatsApp"</b><br><span class="hint">Dibuka ke nombor WhatsApp outlet yang dipilih pelanggan.</span></span></label>
             @error('f.action_whatsapp')<div class="auth-error">{{ $message }}</div>@enderror
             <div style="margin-top:12px"><label>Templat mesej</label><textarea wire:model="f.whatsapp_template" rows="10" style="font-family:ui-monospace,Consolas,monospace;font-size:12.5px"></textarea></div>
-            <div class="hint">Pemboleh ubah: {reference} {name} {order_no} {phone} {outlet} {date} {time} {guests} {items} {total} {notes} {fulfillment} {address} {payment_link}</div>
+            <div class="hint">Pemboleh ubah: {reference} {name} {order_no} {phone} {email} {outlet} {date} {time} {guests} {items} {total} {notes} {fulfillment} {address} {payment_link}</div>
         </div>
 
         <div class="card" id="payment">

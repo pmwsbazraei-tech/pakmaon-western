@@ -22,6 +22,7 @@ class WhatsAppService
             '{reference}' => $order->reference,
             '{name}' => $order->customer_name,
             '{phone}' => Phone::display($order->customer_phone),
+            '{email}' => $order->customer_email ?: '-',
             '{order_no}' => $order->customer_order_no ?: '-',
             '{OrderNo}' => $order->customer_order_no ?: '-',   // alias
             '{outlet}' => $order->outlet?->name ?? '-',
