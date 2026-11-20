@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\OnlinePayment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -67,6 +68,12 @@ class OrderForm extends Model
     public function publicUrl(): string
     {
         return route('form.show', $this->slug);
+    }
+
+    /** Bayar Online diaktifkan pada page DAN gateway sedia digunakan. */
+    public function onlinePaymentEnabled(): bool
+    {
+        return $this->action_online && OnlinePayment::enabled();
     }
 
     public function template(): string

@@ -14,7 +14,7 @@
     'allowPickup' => $form->allow_pickup,
     'allowDelivery' => $form->allow_delivery,
     'actionWhatsapp' => $form->action_whatsapp,
-    'actionOnline' => $form->action_online,
+    'actionOnline' => $form->onlinePaymentEnabled(),
     'welcome' => $form->welcome_popup,
     'urls' => [
         'quote' => route('form.quote', $form->slug),
@@ -474,6 +474,8 @@ function pmwShop(cfg) {
                     f.innerHTML = '<input type="hidden" name="_token" value="' + csrf() + '">';
                     document.body.appendChild(f); f.submit(); return;
                 }
+                // Tiada Bayar Online: terus buka WhatsApp cawangan dengan mesej templat
+                if (this.actionWhatsapp && !this.actionOnline) { location.href = j.redirect.replace('?', '/whatsapp?'); return; }
                 location.href = j.redirect;
             } catch (e) {
                 this.err = { _general: 'Sambungan terputus. Sila cuba lagi; pesanan anda tidak akan berganda.' };

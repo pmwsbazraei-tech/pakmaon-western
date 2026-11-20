@@ -8,17 +8,19 @@ use App\Models\Payment;
 use App\Services\Payments\PaymentGateway;
 use App\Services\Payments\PaymentService;
 use App\Services\WhatsAppService;
+use App\Support\OnlinePayment;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function show(Request $request, string $reference, PaymentService $payments, WhatsAppService $wa)
+    public function show(Request $request, string $reference)
     {
         $order = $this->find($request, $reference);
 
-        // Pelanggan kembali dari gateway: semak status terus dengan gateway (bukan percaya redirect)
-        if ($order->payments()->where('status', 'created')->exists()) {
-            $payments->refresh($order);
+        // Pelanggan kembali dari gateway: semak status terus dengan gateway (bukan percaya redirect).
+        // Gateway hanya dimuatkan bila perlu, supaya halaman ini tidak gagal jika CHIP belum dikonfigurasi.
+        if (OnlinePayment::enabled() && $order->payments()->where('status', 'created')->exists()) {
+            app(PaymentService::class)->refresh($order);
             $order->refresh();
         }
 
@@ -27,7 +29,7 @@ class OrderController extends Controller
         return view('shop.order', [
             'order' => $order,
             'whatsappAvailable' => $order->form->action_whatsapp && $order->outlet?->whatsapp,
-            'onlineAvailable' => $order->form->action_online && $order->total_cents > 0 && ! $order->isPaid() && ! $order->isCancelled(),
+            'onlineAvailable' => $order->form->onlinePaymentEnabled() && $order->total_cents > 0 && ! $order->isPaid() && ! $order->isCancelled(),
             'fromGateway' => $request->query('from') === 'gateway',
             'lastPayment' => $order->payments->first(),
         ]);
@@ -49,13 +51,13 @@ class OrderController extends Controller
         return redirect()->away($url);
     }
 
-    public function pay(Request $request, string $reference, PaymentService $payments)
+    public function pay(Request $request, string $reference)
     {
         $order = $this->find($request, $reference);
-        abort_unless($order->form->action_online, 404);
+        abort_unless($order->form->onlinePaymentEnabled(), 404);
 
         try {
-            $url = $payments->start($order);
+            $url = app(PaymentService::class)->start($order);
         } catch (\Throwable $e) {
             report($e);
 

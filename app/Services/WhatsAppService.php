@@ -16,7 +16,7 @@ class WhatsAppService
 
         $paymentLine = $order->isPaid()
             ? 'Status bayaran: Dibayar'
-            : ($order->form->action_online && $order->total_cents > 0 ? 'Pautan bayaran/invois: '.$order->publicUrl() : '');
+            : ($order->form->onlinePaymentEnabled() && $order->total_cents > 0 ? 'Pautan bayaran/invois: '.$order->publicUrl() : '');
 
         $vars = [
             '{reference}' => $order->reference,
