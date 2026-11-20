@@ -267,6 +267,7 @@
                 <div class="sf-between" x-show="quote && quote.discount"><span>Diskaun</span><span x-text="quote ? '-' + quote.discount : ''"></span></div>
                 <div class="sf-between" x-show="quote && quote.delivery"><span>Caj penghantaran</span><span x-text="quote ? quote.delivery : ''"></span></div>
                 <div class="sf-between" x-show="quote && quote.sst_added"><span>SST</span><span x-text="quote ? quote.sst_added : ''"></span></div>
+                <div class="sf-between" x-show="quote && quote.rounding"><span>Rounding</span><span x-text="quote ? quote.rounding : ''"></span></div>
                 <div class="sf-between grand"><span>Jumlah</span><span x-text="quote ? quote.total : ''"></span></div>
                 <div class="hint" x-show="quote && quote.sst_note" x-text="quote ? quote.sst_note : ''"></div>
             </div>

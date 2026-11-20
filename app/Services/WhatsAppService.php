@@ -18,7 +18,29 @@ class WhatsAppService
             ? 'Status bayaran: Dibayar'
             : ($order->form->onlinePaymentEnabled() && $order->total_cents > 0 ? 'Pautan bayaran/invois: '.$order->publicUrl() : '');
 
+        $rate = rtrim(rtrim((string) $order->sst_rate, '0'), '.');
+        $sstLine = match (true) {
+            $order->sst_added_cents > 0 => "SST {$rate}%: ".Money::format($order->sst_added_cents),
+            $order->prices_include_sst && $order->sst_included_cents > 0 => "SST {$rate}% (termasuk dalam harga): ".Money::format($order->sst_included_cents),
+            default => '',
+        };
+        $roundingLine = $order->rounding_cents ? 'Rounding: '.Money::format($order->rounding_cents) : '';
+
+        // Ringkasan bil: baris yang kosong (tiada diskaun/SST/rounding) tidak dipaparkan
+        $bill = implode("\n", array_filter([
+            'Subtotal: '.Money::format($order->subtotal_cents),
+            $order->discount_cents ? 'Diskaun: -'.Money::format($order->discount_cents) : '',
+            $order->delivery_fee_cents ? 'Caj penghantaran: '.Money::format($order->delivery_fee_cents) : '',
+            $sstLine,
+            $roundingLine,
+            'Jumlah akhir: '.Money::format($order->total_cents),
+        ]));
+
         $vars = [
+            '{subtotal}' => Money::format($order->subtotal_cents),
+            '{sst}' => Money::format($order->sst_added_cents ?: $order->sst_included_cents),
+            '{rounding}' => Money::format($order->rounding_cents),
+            '{bill}' => $bill,
             '{reference}' => $order->reference,
             '{name}' => $order->customer_name,
             '{phone}' => Phone::display($order->customer_phone),

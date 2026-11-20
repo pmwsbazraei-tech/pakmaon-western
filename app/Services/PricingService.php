@@ -18,7 +18,7 @@ class PricingService
 {
     /**
      * @param  array<int, array{product_id:int, variant_id?:int|null, quantity:int}>  $lines
-     * @return array{lines: array, subtotal_cents:int, discount_cents:int, delivery_fee_cents:int, sst_added_cents:int, sst_included_cents:int, total_cents:int, errors: array<int,string>, unavailable: array<int,string>}
+     * @return array{lines: array, subtotal_cents:int, discount_cents:int, delivery_fee_cents:int, sst_added_cents:int, sst_included_cents:int, rounding_cents:int, total_cents:int, errors: array<int,string>, unavailable: array<int,string>}
      */
     public function quote(OrderForm $form, array $lines, ?Outlet $outlet, string $fulfillment): array
     {
@@ -125,7 +125,10 @@ class PricingService
             $sstIncluded = 0;
         }
 
-        $total = $taxable + $sstAdded + $delivery;
+        // Bundar ke 5 sen terdekat (amalan pembundaran Malaysia): 1,2 turun; 3,4 naik; 6,7 turun; 8,9 naik
+        $beforeRounding = $taxable + $sstAdded + $delivery;
+        $total = (int) (round($beforeRounding / 5) * 5);
+        $rounding = $total - $beforeRounding;
 
         if ($subtotal > 0 && $form->min_order_cents && $subtotal < $form->min_order_cents) {
             $errors[] = 'Belian minimum ialah '.Money::format($form->min_order_cents).'.';
@@ -141,6 +144,7 @@ class PricingService
             'delivery_fee_cents' => $delivery,
             'sst_added_cents' => $sstAdded,
             'sst_included_cents' => $sstIncluded,
+            'rounding_cents' => $rounding,
             'total_cents' => $total,
             'errors' => array_values(array_unique($errors)),
             'unavailable' => $unavailable,

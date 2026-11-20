@@ -12,9 +12,9 @@ class OrderForm extends Model
 {
     protected $guarded = ['id'];
 
-    public const DEFAULT_SIMPLE_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat pesanan.\nRujukan: {reference}\nNama: {name}\nTelefon: {phone}\nNombor order: {order_no}\nCawangan: {outlet}\nEmel: {email}\n\nMenu:\n{items}\n\nJumlah: {total}\n{payment_link}";
+    public const DEFAULT_SIMPLE_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat pesanan.\nRujukan: {reference}\nNama: {name}\nTelefon: {phone}\nNombor order: {order_no}\nCawangan: {outlet}\nEmel: {email}\n\nMenu:\n{items}\n\n{bill}\n{payment_link}";
 
-    public const DEFAULT_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat tempahan.\nRujukan: {reference}\nNama: {name}\nNombor order: {order_no}\nTelefon: {phone}\nTarikh: {date}\nMasa: {time}\nBilangan tetamu: {guests}\n\nMenu:\n{items}\n\nJumlah: {total}\nNota: {notes}\n{payment_link}";
+    public const DEFAULT_WHATSAPP_TEMPLATE = "Salam Pak Maon Western ({outlet}),\n\nSaya ingin membuat tempahan.\nRujukan: {reference}\nNama: {name}\nNombor order: {order_no}\nTelefon: {phone}\nTarikh: {date}\nMasa: {time}\nBilangan tetamu: {guests}\n\nMenu:\n{items}\n\n{bill}\nNota: {notes}\n{payment_link}";
 
     protected function casts(): array
     {

@@ -50,6 +50,7 @@
                             @if ($order->discount_cents)<tr><td colspan="3">Diskaun</td><td class="num">-@sen($order->discount_cents)</td></tr>@endif
                             @if ($order->delivery_fee_cents)<tr><td colspan="3">Penghantaran</td><td class="num">@sen($order->delivery_fee_cents)</td></tr>@endif
                             @if ($order->sst_added_cents)<tr><td colspan="3">SST ditambah</td><td class="num">@sen($order->sst_added_cents)</td></tr>@endif
+                            @if ($order->rounding_cents)<tr><td colspan="3">Rounding</td><td class="num">{{ \App\Support\Money::format($order->rounding_cents) }}</td></tr>@endif
                             <tr><td colspan="3"><b>Jumlah</b></td><td class="num"><b>@sen($order->total_cents)</b></td></tr>
                         </tbody>
                     </table>

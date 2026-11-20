@@ -92,6 +92,7 @@ class OrderService
                 'delivery_fee_cents' => $quote['delivery_fee_cents'],
                 'sst_added_cents' => $quote['sst_added_cents'],
                 'sst_included_cents' => $quote['sst_included_cents'],
+                'rounding_cents' => $quote['rounding_cents'],
                 'total_cents' => $quote['total_cents'],
                 'booking_status' => $isBooking ? 'pending' : null,
                 'payment_status' => $quote['total_cents'] > 0 ? 'unpaid' : 'paid',

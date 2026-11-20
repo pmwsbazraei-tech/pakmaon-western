@@ -109,6 +109,7 @@
             @if ($order->discount_cents)<div class="sf-between"><span>Diskaun</span><span>-@sen($order->discount_cents)</span></div>@endif
             @if ($order->delivery_fee_cents)<div class="sf-between"><span>Caj penghantaran</span><span>@sen($order->delivery_fee_cents)</span></div>@endif
             @if ($order->sst_added_cents)<div class="sf-between"><span>SST</span><span>@sen($order->sst_added_cents)</span></div>@endif
+            @if ($order->rounding_cents)<div class="sf-between"><span>Rounding</span><span>{{ \App\Support\Money::format($order->rounding_cents) }}</span></div>@endif
             <div class="sf-between grand"><span>Jumlah</span><span>@sen($order->total_cents)</span></div>
             @if ($order->prices_include_sst && $order->sst_included_cents)
                 <div class="hint">Termasuk SST {{ rtrim(rtrim($order->sst_rate, '0'), '.') }}%: @sen($order->sst_included_cents)</div>

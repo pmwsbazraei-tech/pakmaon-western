@@ -179,6 +179,7 @@ class FormController extends Controller
             'delivery' => $q['delivery_fee_cents'] ? Money::format($q['delivery_fee_cents']) : null,
             'sst_added' => $q['sst_added_cents'] ? Money::format($q['sst_added_cents']) : null,
             'sst_note' => $form->prices_include_sst ? 'Harga sudah termasuk SST '.rtrim(rtrim((string) $form->sst_rate, '0'), '.').'%' : null,
+            'rounding' => $q['rounding_cents'] ? Money::format($q['rounding_cents']) : null,
             'total' => Money::format($q['total_cents']),
             'total_cents' => $q['total_cents'],
             'errors' => $q['errors'],
