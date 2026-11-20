@@ -143,6 +143,24 @@ class OrderService
         });
     }
 
+    /** Pesanan yang sudah dibayar online tidak boleh dipadam (rekod kewangan); batal & refund sahaja. */
+    public function canDelete(Order $order): bool
+    {
+        return ! $order->payments()->where('status', 'paid')->exists();
+    }
+
+    /** Padam pesanan terus: stok dipulangkan dahulu, kemudian item/bayaran/sejarah turut dipadam. */
+    public function delete(Order $order, ?int $userId = null): bool
+    {
+        if (! $this->canDelete($order)) {
+            return false;
+        }
+        $this->releaseStock($order, $userId);
+        $order->delete();
+
+        return true;
+    }
+
     private function reserveStock(array $line): void
     {
         if ($line['stock'] === null) {

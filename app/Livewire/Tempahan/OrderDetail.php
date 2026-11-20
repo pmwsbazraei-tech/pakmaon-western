@@ -72,6 +72,22 @@ class OrderDetail extends Component
         $this->dispatch('toast', message: 'Status dikemas kini.');
     }
 
+    public function deleteOrder(OrderService $orders)
+    {
+        $this->authorizeOrder($this->order);
+        abort_unless(auth()->user()->canManageShop(), 403);
+
+        if (! $orders->delete($this->order->fresh(), auth()->id())) {
+            $this->dispatch('toast', message: 'Pesanan yang sudah dibayar online tidak boleh dipadam. Batalkan dan buat refund.');
+
+            return null;
+        }
+
+        session()->flash('toast', 'Pesanan '.$this->order->reference.' dipadam.');
+
+        return $this->redirectRoute('tempahan.orders', navigate: true);
+    }
+
     public function reschedule(SlotService $slots): void
     {
         $this->authorizeOrder($this->order);

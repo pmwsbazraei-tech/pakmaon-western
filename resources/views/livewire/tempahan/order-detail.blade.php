@@ -130,6 +130,19 @@
                 <h2 class="sec" style="margin-top:0">Mesej WhatsApp</h2>
                 <pre style="white-space:pre-wrap;font-family:inherit;font-size:13px">{{ $message }}</pre>
             </div>
+
+            @if (auth()->user()->canManageShop())
+                <div class="card">
+                    <h2 class="sec" style="margin-top:0">Padam pesanan</h2>
+                    @if ($order->payments->contains('status', 'paid'))
+                        <p class="hint" style="margin:0">Pesanan ini sudah dibayar online, jadi tidak boleh dipadam. Batalkan dan buat refund jika perlu.</p>
+                    @else
+                        <p class="hint" style="margin-top:0">Buang rekod ini secara kekal (contoh: pesanan ujian atau spam). Stok akan dipulangkan.</p>
+                        <button class="btn danger sm" wire:click="deleteOrder"
+                                wire:confirm="Padam pesanan {{ $order->reference }} secara kekal? Tindakan ini tak boleh dibatalkan.">Padam pesanan</button>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 </div>

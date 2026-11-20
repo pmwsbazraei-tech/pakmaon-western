@@ -22,12 +22,21 @@
     </div>
 
     <div class="card">
+        @if ($canDelete && count($selected))
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+                <b>{{ count($selected) }} dipilih</b>
+                <button class="btn danger sm" wire:click="deleteSelected"
+                        wire:confirm="Padam {{ count($selected) }} pesanan ini secara kekal? Stok akan dipulangkan. Tindakan ini tak boleh dibatalkan.">Padam</button>
+                <button class="btn sec sm" wire:click="$set('selected', [])">Batal pilih</button>
+            </div>
+        @endif
         <div class="table-wrap">
             <table class="tbl-sticky">
-                <thead><tr><th>Rujukan</th><th>Pelanggan</th><th>Outlet</th><th>Jadual / cara</th><th class="num">Jumlah</th><th>Status</th><th>Dicipta</th></tr></thead>
+                <thead><tr>@if ($canDelete)<th style="width:36px"><input type="checkbox" aria-label="Pilih semua di halaman ini" x-on:change="$wire.set('selected', $event.target.checked ? @js($orders->pluck('id')->map(fn ($id) => (string) $id)->values()) : [])" @checked($orders->isNotEmpty() && count($selected) === $orders->count())></th>@endif<th>Rujukan</th><th>Pelanggan</th><th>Outlet</th><th>Jadual / cara</th><th class="num">Jumlah</th><th>Status</th><th>Dicipta</th></tr></thead>
                 <tbody>
                     @forelse ($orders as $o)
                         <tr wire:key="o-{{ $o->id }}">
+                            @if ($canDelete)<td><input type="checkbox" wire:model.live="selected" value="{{ $o->id }}" aria-label="Pilih {{ $o->reference }}"></td>@endif
                             <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->reference }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? 'Booking' : 'Pembelian' }}</div></td>
                             <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}@if ($o->customer_order_no) · No. order {{ $o->customer_order_no }}@endif</div></td>
                             <td>{{ $o->outlet?->name }}</td>
@@ -37,7 +46,7 @@
                             <td style="white-space:nowrap;color:var(--muted)">{{ $o->created_at->format('j/n g:i A') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="empty">Tiada rekod.</td></tr>
+                        <tr><td colspan="{{ $canDelete ? 8 : 7 }}" class="empty">Tiada rekod.</td></tr>
                     @endforelse
                 </tbody>
             </table>
