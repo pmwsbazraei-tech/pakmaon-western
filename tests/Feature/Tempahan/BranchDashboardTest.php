@@ -39,6 +39,6 @@ class BranchDashboardTest extends PmwTestCase
     {
         $this->actingAs($this->owner)->get(route('dashboard'))->assertOk()
             ->assertSee('Ringkasan Tempahan')->assertSee('Landing Page')
-            ->assertDontSee('Scan Resit')->assertDontSee('Petty Cash')->assertDontSee('ROI &amp; Target', false)->assertDontSee('+ Outlet Baru');
+            ->assertDontSee('Scan Resit')->assertDontSee('Petty Cash')->assertDontSee('ROI &amp; Target', false)->assertSee('Outlet aktif')->assertSee('+ Outlet Baru');
     }
 }

@@ -50,6 +50,12 @@
             <div><b>Pak Maon</b><br><span>Western Outlet</span></div>
         </div>
 
+        @auth
+            @unless ($isBranchStaff)
+                @livewire('outlet-switcher')
+            @endunless
+        @endauth
+
         <nav class="nav">
             @foreach ($navItems as [$route, $ico, $label])
                 <a href="{{ route($route) }}" wire:navigate
