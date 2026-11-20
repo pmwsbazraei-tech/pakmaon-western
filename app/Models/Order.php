@@ -24,17 +24,25 @@ class Order extends Model
         'unpaid' => 'Belum Bayar',
         'pending' => 'Menunggu Bayaran',
         'paid' => 'Dibayar',
+        'partial' => 'Deposit',
         'failed' => 'Gagal',
         'expired' => 'Tamat Tempoh',
         'refunded' => 'Dipulangkan',
     ];
 
+    /** Butang status pesanan di backend. */
     public const FULFILLMENT_STATUSES = [
         'new' => 'Baharu',
+        'deposit' => 'Deposit',
+        'paid' => 'Fully Paid',
+        'cancelled' => 'Dibatalkan',
+    ];
+
+    /** Label untuk paparan, termasuk status lama yang mungkin masih ada dalam rekod. */
+    public const FULFILLMENT_LABELS = self::FULFILLMENT_STATUSES + [
         'preparing' => 'Disediakan',
         'ready' => 'Sedia',
         'completed' => 'Selesai',
-        'cancelled' => 'Dibatalkan',
     ];
 
     public const FULFILLMENTS = ['dine_in' => 'Makan di kedai', 'pickup' => 'Pickup', 'delivery' => 'Delivery'];
@@ -94,6 +102,12 @@ class Order extends Model
     public function publicUrl(): string
     {
         return route('order.show', ['reference' => $this->reference, 't' => $this->public_token]);
+    }
+
+    /** Baki yang perlu dibayar (0 jika sudah dibayar penuh). */
+    public function balanceCents(): int
+    {
+        return $this->isPaid() ? 0 : max(0, $this->total_cents - (int) $this->deposit_cents);
     }
 
     public function log(string $action, ?string $details = null, ?int $userId = null): void

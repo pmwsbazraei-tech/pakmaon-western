@@ -111,6 +111,10 @@
             @if ($order->sst_added_cents)<div class="sf-between"><span>SST</span><span>@sen($order->sst_added_cents)</span></div>@endif
             @if ($order->rounding_cents)<div class="sf-between"><span>Rounding</span><span>{{ \App\Support\Money::format($order->rounding_cents) }}</span></div>@endif
             <div class="sf-between grand"><span>Jumlah</span><span>@sen($order->total_cents)</span></div>
+            @if ($order->deposit_cents && ! $order->isPaid())
+                <div class="sf-between"><span>Deposit diterima</span><span>-@sen($order->deposit_cents)</span></div>
+                <div class="sf-between grand"><span>Baki perlu dibayar</span><span>@sen($order->balanceCents())</span></div>
+            @endif
             @if ($order->prices_include_sst && $order->sst_included_cents)
                 <div class="hint">Termasuk SST {{ rtrim(rtrim($order->sst_rate, '0'), '.') }}%: @sen($order->sst_included_cents)</div>
             @endif

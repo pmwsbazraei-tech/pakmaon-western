@@ -41,7 +41,7 @@
                             <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}@if ($o->customer_order_no) · No. order {{ $o->customer_order_no }}@endif</div></td>
                             <td>{{ $o->outlet?->name }}</td>
                             <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.$o->guests.' org' : Order::FULFILLMENTS[$o->fulfillment] }}</td>
-                            <td class="num">@sen($o->total_cents)</td>
+                            <td class="num">@sen($o->total_cents)@if ($o->deposit_cents && ! $o->isPaid())<div class="hint" style="margin:0;white-space:nowrap">Deposit @sen($o->deposit_cents) · Baki @sen($o->balanceCents())</div>@endif</td>
                             <td>@include('livewire.tempahan._status', ['o' => $o])</td>
                             <td style="white-space:nowrap;color:var(--muted)">{{ $o->created_at->format('j/n g:i A') }}</td>
                         </tr>

@@ -8,6 +8,7 @@ use App\Services\OrderService;
 use App\Services\Payments\PaymentService;
 use App\Services\SlotService;
 use App\Services\WhatsAppService;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -27,10 +28,13 @@ class OrderDetail extends Component
 
     public string $cancelNote = '';
 
+    public string $depositAmount = '';
+
     public function mount(Order $order): void
     {
         $this->authorizeOrder($order);
         $this->order = $order;
+        $this->depositAmount = $order->deposit_cents ? number_format($order->deposit_cents / 100, 2, '.', '') : '';
         if ($order->booking_at) {
             $this->newDate = $order->booking_at->toDateString();
             $this->newTime = $order->booking_at->format('H:i');
@@ -57,7 +61,22 @@ class OrderDetail extends Component
             return;
         }
 
-        $order->update([$field => $value] + ($value === 'confirmed' ? ['confirmed_at' => now()] : []));
+        $extra = $value === 'confirmed' ? ['confirmed_at' => now()] : [];
+        if ($field === 'fulfillment_status') {
+            if ($value === 'deposit') {
+                $this->recordDeposit($orders);
+
+                return;
+            }
+            $paidOnline = $order->payments()->where('status', 'paid')->exists();
+            if ($value === 'paid') {
+                $extra = ['payment_status' => 'paid', 'paid_at' => $order->paid_at ?? now()];
+            } elseif ($value === 'new' && ! $paidOnline) {
+                $extra = ['payment_status' => 'unpaid', 'paid_at' => null, 'deposit_cents' => 0];
+            }
+        }
+
+        $order->update([$field => $value] + $extra);
         $note = $value === 'cancelled' && trim($this->cancelNote) !== '' ? '. Nota: '.trim($this->cancelNote) : '';
         $order->log($field.'_changed', ($labels[$old] ?? $old).' → '.$labels[$value].$note, auth()->id());
 
@@ -70,6 +89,38 @@ class OrderDetail extends Component
 
         $this->order = $order->fresh();
         $this->dispatch('toast', message: 'Status dikemas kini.');
+    }
+
+    /** Rekod deposit manual (RM). Baki = jumlah - deposit. */
+    public function recordDeposit(OrderService $orders): void
+    {
+        $this->authorizeOrder($this->order);
+        $order = $this->order->fresh();
+        abort_if($order->isBooking(), 422);
+        if ($order->isCancelled()) {
+            $this->dispatch('toast', message: 'Rekod yang dibatalkan tidak boleh dikemas kini.');
+
+            return;
+        }
+
+        $cents = Money::toCents($this->depositAmount);
+        if (! $cents || $cents <= 0) {
+            $this->addError('depositAmount', 'Masukkan jumlah deposit.');
+
+            return;
+        }
+        if ($cents >= $order->total_cents) {
+            $this->addError('depositAmount', 'Deposit mesti kurang daripada jumlah ('.Money::format($order->total_cents).'). Guna "Fully Paid" jika dibayar penuh.');
+
+            return;
+        }
+
+        $order->update(['fulfillment_status' => 'deposit', 'payment_status' => 'partial', 'deposit_cents' => $cents, 'paid_at' => null]);
+        $order->log('deposit_recorded', 'Deposit '.Money::format($cents).' diterima. Baki '.Money::format($order->total_cents - $cents).'.', auth()->id());
+
+        $this->resetErrorBag('depositAmount');
+        $this->order = $order->fresh();
+        $this->dispatch('toast', message: 'Deposit direkodkan.');
     }
 
     public function deleteOrder(OrderService $orders)

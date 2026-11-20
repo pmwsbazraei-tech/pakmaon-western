@@ -108,11 +108,34 @@
                 </div>
             @else
                 <div class="card">
-                    <h2 class="sec" style="margin-top:0">Status fulfillment</h2>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <h2 class="sec" style="margin-top:0">Status pesanan</h2>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap" x-data="{ dep: @js($order->fulfillment_status === 'deposit') }">
                         @foreach (Order::FULFILLMENT_STATUSES as $k => $v)
-                            <button class="btn {{ $order->fulfillment_status === $k ? '' : ($k === 'cancelled' ? 'danger' : 'sec') }} sm" wire:click="setStatus('fulfillment_status', '{{ $k }}')" @if ($k === 'cancelled') wire:confirm="Batalkan pesanan ini? Stok akan dilepaskan." @endif>{{ $v }}</button>
+                            @if ($k === 'deposit')
+                                <button class="btn {{ $order->fulfillment_status === 'deposit' ? '' : 'sec' }} sm" x-on:click="dep = true; $nextTick(() => $refs.dep?.focus())">{{ $v }}</button>
+                            @else
+                                <button class="btn {{ $order->fulfillment_status === $k ? '' : ($k === 'cancelled' ? 'danger' : 'sec') }} sm" wire:click="setStatus('fulfillment_status', '{{ $k }}')"
+                                    @if ($k === 'cancelled') wire:confirm="Batalkan pesanan ini? Stok akan dilepaskan."
+                                    @elseif ($k === 'paid') wire:confirm="Tandakan pesanan ini sudah dibayar penuh (@sen($order->total_cents))?" @endif>{{ $v }}</button>
+                            @endif
                         @endforeach
+
+                        <form x-show="dep" x-cloak wire:submit="recordDeposit" style="flex-basis:100%;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:6px">
+                            <div style="flex:1;min-width:140px">
+                                <label for="dep-amt">Jumlah deposit (RM)</label>
+                                <input id="dep-amt" x-ref="dep" type="number" step="0.01" min="0.01" inputmode="decimal" wire:model="depositAmount" placeholder="cth. 10.00">
+                                @error('depositAmount')<div class="hint" style="color:var(--red);margin:4px 0 0">{{ $message }}</div>@enderror
+                            </div>
+                            <button class="btn sm" type="submit">Simpan deposit</button>
+                        </form>
+                    </div>
+
+                    <div class="sf-totals" style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+                        <div style="display:flex;justify-content:space-between"><span>Jumlah</span><b>@sen($order->total_cents)</b></div>
+                        @if ($order->deposit_cents && ! $order->isPaid())
+                            <div style="display:flex;justify-content:space-between"><span>Deposit diterima</span><span>-@sen($order->deposit_cents)</span></div>
+                        @endif
+                        <div style="display:flex;justify-content:space-between;font-size:1.1em"><b>Baki</b><b style="color:{{ $order->balanceCents() ? 'var(--red)' : 'var(--green)' }}">@sen($order->balanceCents())</b></div>
                     </div>
                 </div>
             @endif
