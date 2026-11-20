@@ -24,7 +24,7 @@ class LivewireOutletContextTest extends TestCase
         $outlet = DefaultOutletData::provision($user);
         DB::table('sales')->insert(['outlet_id' => $outlet->id, 'date' => '2026-09-05', 'amount' => 4321.5, 'created_at' => now(), 'updated_at' => now()]);
 
-        $html = $this->actingAs($user)->get(route('dashboard', ['month' => '2026-08']))->assertOk()->getContent();
+        $html = $this->actingAs($user)->get(route('finance', ['month' => '2026-08']))->assertOk()->getContent();
         // Halaman ada beberapa komponen (cth. pemilih outlet di sidebar): ambil snapshot Dashboard
         preg_match_all('/wire:snapshot="([^"]+)"/', $html, $all);
         $snapshot = collect($all[1])->map(fn ($s) => html_entity_decode($s, ENT_QUOTES))

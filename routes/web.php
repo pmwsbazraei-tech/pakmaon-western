@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware(['auth', 'outlet'])->group(function () {
-    Route::get('dashboard', Dashboard::class)->name('dashboard');
+    // Modul kewangan lama: disembunyikan dari menu, laluan dikekalkan
+    Route::get('kewangan', Dashboard::class)->name('finance');
     Route::get('scan', ScanReceipt::class)->name('scan');
     Route::get('staff', StaffManager::class)->name('staff');
     Route::get('kos-tetap', FixedCosts::class)->name('fixed-costs');
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'outlet'])->group(function () {
     Route::get('laporan', FullReport::class)->name('report');
     Route::get('tetapan', Settings::class)->name('settings');
 });
+
+// Dashboard utama: tempahan online ikut cawangan (pemilik + staf cawangan)
+Route::get('dashboard', Tempahan\BranchDashboard::class)->middleware(['auth', 'outlet:staff'])->name('dashboard');
 
 // Log keluar: semua user log masuk, termasuk staf cawangan
 Route::post('logout', function (Logout $logout) {

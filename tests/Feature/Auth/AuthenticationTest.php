@@ -61,7 +61,7 @@ class AuthenticationTest extends TestCase
         $this->actingAs($user)
             ->get('/dashboard')
             ->assertOk()
-            ->assertSee('Menu Food Cost')
+            ->assertSee('Dashboard')->assertSee('Pesanan &amp; Booking', false)->assertDontSee('Menu Food Cost')
             ->assertSee('Log Keluar');
     }
 

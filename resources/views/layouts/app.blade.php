@@ -12,18 +12,8 @@
 </head>
 @php
     $navItems = [
+        // Menu utama: Dashboard + Tempahan Online sahaja. Modul kewangan lama disembunyikan (laluan masih wujud).
         ['dashboard',    '▦', 'Dashboard'],
-        ['scan',         '▤', 'Scan Resit'],
-        ['staff',        '☺', 'Staff'],
-        ['fixed-costs',  '▧', 'Kos Tetap'],
-        ['sales',        '▨', 'Sales'],
-        ['petty-cash',   '$', 'Petty Cash'],
-        ['menu',         '☰', 'Menu Food Cost'],
-        ['equipment',    '▬', 'Peralatan'],
-        ['capex',        '▩', 'Bajet Buka'],
-        ['roi',          '◆', 'ROI & Target'],
-        ['report',       '▣', 'Laporan Penuh'],
-        ['settings',     '⚙', 'Tetapan'],
     ];
 
     // Tempahan online: staf cawangan nampak menu operasi sahaja
@@ -60,22 +50,14 @@
             <div><b>Pak Maon</b><br><span>Western Outlet</span></div>
         </div>
 
-        @auth
-            @unless ($isBranchStaff)
-                @livewire('outlet-switcher')
-            @endunless
-        @endauth
-
         <nav class="nav">
-            @unless ($isBranchStaff)
-                @foreach ($navItems as [$route, $ico, $label])
-                    <a href="{{ route($route) }}" wire:navigate
-                       @click="sidebarOpen = false"
-                       @class(['active' => request()->routeIs($route)])>
-                        <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
-                    </a>
-                @endforeach
-            @endunless
+            @foreach ($navItems as [$route, $ico, $label])
+                <a href="{{ route($route) }}" wire:navigate
+                   @click="sidebarOpen = false"
+                   @class(['active' => request()->routeIs($route)])>
+                    <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
+                </a>
+            @endforeach
 
             <div class="navgroup">Tempahan Online</div>
             @foreach ($bookingNav as [$route, $ico, $label])

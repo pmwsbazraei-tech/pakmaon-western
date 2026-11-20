@@ -39,7 +39,7 @@ class AdminTest extends PmwTestCase
     {
         $this->actingAs($this->staff());
 
-        $this->get(route('dashboard'))->assertRedirect(route('tempahan.bookings'));
+        $this->get(route('dashboard'))->assertOk()->assertSee('Pak Maon Western Tangkak')->assertDontSee('Pak Maon Western Melaka');
         $this->get(route('sales'))->assertRedirect(route('tempahan.bookings'));
         $this->get(route('tempahan.bookings'))->assertOk()->assertDontSee('Menu Food Cost')->assertDontSee('Landing Page');
         $this->get(route('tempahan.forms'))->assertForbidden();
