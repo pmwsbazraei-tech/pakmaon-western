@@ -4,10 +4,6 @@
             <a href="{{ route('tempahan.products') }}" wire:navigate class="hint" style="text-decoration:underline">← {{ __('Semua produk') }}</a>
             <h1 style="margin-top:4px">{{ $product ? $product->name : __('Produk baharu') }}</h1>
         </div>
-        @if ($product)
-            {{-- Selepas produk disimpan: terus cipta produk seterusnya --}}
-            <a class="btn" href="{{ route('tempahan.products.create') }}" wire:navigate>+ {{ __('Cipta produk baharu') }}</a>
-        @endif
     </div>
 
     <form wire:submit="save" style="display:grid;gap:14px">
