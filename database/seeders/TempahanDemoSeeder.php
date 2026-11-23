@@ -55,7 +55,7 @@ class TempahanDemoSeeder extends Seeder
         ]);
         $talam = Product::create([
             'user_id' => $owner->id, 'product_category_id' => $set->id, 'name' => 'Set Talam Dua Muka Spaghetti Chicken',
-            'sku' => 'PMW-TALAM-SPG', 'description' => 'Set kongsi spaghetti dengan pilihan ayam.', 'has_variants' => true, 'sort' => 1,
+            'sku' => 'PMW-TALAM-SPG', 'description' => 'Set kongsi spaghetti dengan pilihan ayam.', 'has_variants' => true, 'price_cents' => 0, 'sort' => 1,
         ]);
         $ayam = VariantGroup::create(['user_id' => $owner->id, 'name' => 'Pilihan Ayam', 'sort' => 0]);
         foreach ([['Chicken Crispy Breast', 5830, 'PMW-TALAM-SPG-CB'], ['Chicken Grill', 6255, 'PMW-TALAM-SPG-CG'], ['Crispy Chicken Thigh', 6470, 'PMW-TALAM-SPG-CT']] as $i => [$n, $p, $sku]) {

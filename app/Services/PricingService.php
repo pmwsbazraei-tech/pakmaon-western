@@ -17,7 +17,9 @@ use App\Support\Money;
 class PricingService
 {
     /**
-     * @param  array<int, array{product_id:int, variant_id?:int|null, quantity:int}>  $lines
+     * Harga baris = harga produk + harga semua add-on yang dipilih.
+     *
+     * @param  array<int, array{product_id:int, options?:array<int,int>, variant_id?:int|null, quantity:int}>  $lines
      * @return array{lines: array, subtotal_cents:int, discount_cents:int, delivery_fee_cents:int, sst_added_cents:int, sst_included_cents:int, rounding_cents:int, total_cents:int, errors: array<int,string>, unavailable: array<int,string>}
      */
     public function quote(OrderForm $form, array $lines, ?Outlet $outlet, string $fulfillment): array
@@ -30,20 +32,24 @@ class PricingService
         $hiddenVariants = $form->exists ? $form->hiddenVariantIds() : [];
         $outletUnavailable = $outlet ? $outlet->unavailableProductIds() : [];
 
-        // Gabungkan baris yang sama (produk + variasi)
+        // Gabungkan baris yang sama (produk + set add-on yang sama)
         $merged = [];
         foreach ($lines as $line) {
             $pid = (int) ($line['product_id'] ?? 0);
-            $vid = isset($line['variant_id']) && $line['variant_id'] !== null && $line['variant_id'] !== '' ? (int) $line['variant_id'] : null;
             $qty = (int) ($line['quantity'] ?? 0);
             if ($pid <= 0 || $qty <= 0) {
                 continue;
             }
-            $key = $pid.':'.($vid ?? 0);
-            $merged[$key] = ['product_id' => $pid, 'variant_id' => $vid, 'quantity' => ($merged[$key]['quantity'] ?? 0) + $qty];
+            $opts = collect($line['options'] ?? [])->map(fn ($i) => (int) $i)->filter()->unique()->sort()->values()->all();
+            // Cart lama: satu variant_id
+            if ($opts === [] && ! empty($line['variant_id'])) {
+                $opts = [(int) $line['variant_id']];
+            }
+            $key = $pid.':'.implode(',', $opts);
+            $merged[$key] = ['product_id' => $pid, 'options' => $opts, 'quantity' => ($merged[$key]['quantity'] ?? 0) + $qty];
         }
 
-        $products = Product::with('activeVariants')->whereIn('id', array_column($merged, 'product_id'))->get()->keyBy('id');
+        $products = Product::with('activeVariants.variant.group')->whereIn('id', array_column($merged, 'product_id'))->get()->keyBy('id');
 
         foreach ($merged as $line) {
             /** @var Product|null $product */
@@ -54,28 +60,44 @@ class PricingService
                 continue;
             }
 
-            $variant = null;
-            if ($product->has_variants) {
-                /** @var ProductVariant|null $variant */
-                $variant = $product->activeVariants->firstWhere('id', $line['variant_id']);
-                if ($variant && in_array($variant->id, $hiddenVariants, true)) {
-                    $errors[] = 'Satu item dalam cart tidak lagi tersedia dan telah dibuang.';
+            // Add-on: setiap pilihan mesti milik produk ini dan tidak disorok pada landing page
+            $available = $product->activeVariants->reject(fn ($v) => in_array($v->id, $hiddenVariants, true))->keyBy('id');
+            $chosen = collect($line['options'])->map(fn ($id) => $available->get($id));
+            if ($chosen->contains(null)) {
+                $errors[] = 'Satu item dalam cart tidak lagi tersedia dan telah dibuang.';
 
-                    continue;
-                }
-                if (! $variant) {
-                    $errors[] = "Sila pilih variasi untuk {$product->name}.";
-
-                    continue;
-                }
-                $unit = $variant->effectivePrice();
-                $stock = $variant->stock;
-            } else {
-                $unit = $product->effectivePrice() ?? 0;
-                $stock = $product->stock;
+                continue;
             }
 
-            $label = $product->name.($variant ? " ({$variant->name})" : '');
+            // Peraturan setiap group: Required (sekurang-kurangnya 1) & maksimum pilihan
+            $ruleError = null;
+            foreach ($available->groupBy(fn ($v) => $v->variant?->variant_group_id ?? 0) as $groupId => $options) {
+                $group = $options->first()->variant?->group;
+                $picked = $chosen->filter(fn ($v) => ($v->variant?->variant_group_id ?? 0) === $groupId)->count();
+                $required = $group ? $group->is_required : true;
+                $max = $group ? $group->effectiveMax($options->count()) : 1;
+                $name = $group?->name ?? 'pilihan';
+                if ($required && $picked === 0) {
+                    $ruleError = "Sila pilih {$name} untuk {$product->name}.";
+                    break;
+                }
+                if ($picked > $max) {
+                    $ruleError = "{$product->name}: pilih maksimum {$max} {$name}.";
+                    break;
+                }
+            }
+            if ($ruleError) {
+                $errors[] = $ruleError;
+
+                continue;
+            }
+
+            $chosen = $chosen->sortBy('sort')->values();
+            $unit = ($product->effectivePrice() ?? 0) + $chosen->sum(fn (ProductVariant $v) => $v->effectivePrice());
+            $stock = $product->stock;
+            $optionNames = $chosen->pluck('name')->join(', ');
+
+            $label = $product->name.($optionNames !== '' ? " ({$optionNames})" : '');
 
             if (in_array($product->id, $outletUnavailable, true)) {
                 $unavailable[] = $label;
@@ -95,10 +117,15 @@ class PricingService
             }
             $priced[] = [
                 'product_id' => $product->id,
-                'variant_id' => $variant?->id,
+                // Stok dikira pada produk; variant tiada stok sendiri
+                'variant_id' => null,
+                'option_ids' => $chosen->pluck('id')->all(),
+                'options' => $chosen->map(fn ($v) => [
+                    'id' => $v->id, 'group' => $v->variant?->group?->name, 'name' => $v->name, 'price_cents' => $v->effectivePrice(),
+                ])->all(),
                 'product_name' => $product->name,
-                'variant_name' => $variant?->name,
-                'sku' => $variant?->sku ?? $product->sku,
+                'variant_name' => $optionNames !== '' ? $optionNames : null,
+                'sku' => $product->sku,
                 'unit_price_cents' => $unit,
                 'quantity' => $qty,
                 'line_total_cents' => $unit * $qty,

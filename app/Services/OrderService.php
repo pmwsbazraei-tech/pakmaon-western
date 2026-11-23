@@ -100,8 +100,8 @@ class OrderService
 
             foreach ($quote['lines'] as $line) {
                 $order->items()->create(collect($line)->only([
-                    'product_id', 'product_name', 'variant_name', 'sku', 'unit_price_cents', 'quantity', 'line_total_cents',
-                ])->put('product_variant_id', $line['variant_id'])->all());
+                    'product_id', 'product_name', 'variant_name', 'options', 'sku', 'unit_price_cents', 'quantity', 'line_total_cents',
+                ])->put('product_variant_id', count($line['option_ids'] ?? []) === 1 ? $line['option_ids'][0] : null)->all());
 
                 if ($line['stock'] !== null) {
                     DB::table('stock_movements')->insert([

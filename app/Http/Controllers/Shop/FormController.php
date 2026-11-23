@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\OrderForm;
 use App\Models\Outlet;
+use App\Models\Product;
 use App\Services\OrderService;
 use App\Services\PricingService;
 use App\Services\SlotService;
@@ -43,15 +44,13 @@ class FormController extends Controller
                 'name' => $p->name,
                 'description' => $p->description,
                 'image' => $p->image_url,
-                'has_variants' => $p->has_variants,
-                'price' => $p->has_variants ? null : $p->effectivePrice(),
-                'regular_price' => $p->has_variants ? null : $p->price_cents,
-                'from_price' => $p->has_variants ? $p->activeVariants->min(fn ($v) => $v->effectivePrice()) : null,
+                'has_variants' => $p->has_variants && $p->activeVariants->isNotEmpty(),
+                // Harga asas produk; harga add-on ditambah di atasnya
+                'price' => $p->effectivePrice() ?? 0,
+                'regular_price' => $p->price_cents ?? 0,
+                'from_price' => ($p->effectivePrice() ?? 0) + $this->addonGroups($p)->where('required', true)->sum(fn ($g) => collect($g['options'])->min('price')),
                 'sold_out' => $p->isSoldOut(),
-                'variants' => $p->activeVariants->map(fn ($v) => [
-                    'id' => $v->id, 'name' => $v->name, 'group' => $v->variant?->group?->name, 'price' => $v->effectivePrice(), 'regular_price' => $v->price_cents,
-                    'sold_out' => $v->stock !== null && $v->stock <= 0,
-                ])->values(),
+                'groups' => $this->addonGroups($p),
             ])->values());
 
         return view('shop.form', [
@@ -123,6 +122,8 @@ class FormController extends Controller
             'items' => ['array', 'max:50'],
             'items.*.product_id' => ['required', 'integer'],
             'items.*.variant_id' => ['nullable', 'integer'],
+            'items.*.options' => ['nullable', 'array', 'max:30'],
+            'items.*.options.*' => ['integer'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
         ], [
             'phone_normalized.required' => 'Nombor telefon tidak sah. Contoh: 012-345 6789.',
@@ -167,6 +168,27 @@ class FormController extends Controller
         return $request->boolean('preview') && $request->user()?->id === $form->user_id;
     }
 
+    /**
+     * Add-on produk dikumpul ikut variant group, dengan peraturan Required/maksimum.
+     * Id pilihan ialah id product_variants (pautan produk ↔ pilihan).
+     */
+    private function addonGroups(Product $p)
+    {
+        return $p->activeVariants->groupBy(fn ($v) => $v->variant?->variant_group_id ?? 0)
+            ->map(function ($options, $groupId) {
+                $group = $options->first()->variant?->group;
+
+                return [
+                    'id' => (int) $groupId,
+                    'name' => $group?->name ?? 'Pilihan',
+                    'required' => $group ? $group->is_required : true,
+                    'max' => $group ? $group->effectiveMax($options->count()) : 1,
+                    'rule' => $group ? $group->ruleLabel($options->count()) : 'Wajib · pilih 1',
+                    'options' => $options->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice()])->values()->all(),
+                ];
+            })->values();
+    }
+
     private function outletFor(OrderForm $form, $id): ?Outlet
     {
         return $id ? $form->outlets()->where('outlets.id', $id)->where('accepts_orders', true)->first() : null;
@@ -176,7 +198,7 @@ class FormController extends Controller
     {
         return [
             'lines' => collect($q['lines'])->map(fn ($l) => [
-                'product_id' => $l['product_id'], 'variant_id' => $l['variant_id'], 'quantity' => $l['quantity'],
+                'product_id' => $l['product_id'], 'options' => $l['option_ids'], 'quantity' => $l['quantity'],
                 'name' => $l['product_name'], 'variant' => $l['variant_name'],
                 'unit' => Money::format($l['unit_price_cents']), 'total' => Money::format($l['line_total_cents']),
             ]),

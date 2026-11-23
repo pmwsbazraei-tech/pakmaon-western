@@ -49,10 +49,14 @@ class VariantLibraryTest extends PmwTestCase
         $this->assertSame(6, $toast->activeVariants()->count());
         $this->assertSame([950, 950], $opt1->productVariants()->pluck('price_cents')->all());
 
-        // Pelanggan: harga dari pelayan, nama group dihantar ke halaman
-        $line = $toast->activeVariants()->where('name', 'Chicken 1')->first();
-        $order = $this->placeOrder($this->purchasePayload(['items' => [['product_id' => $toast->id, 'variant_id' => $line->id, 'quantity' => 2]]]));
-        $this->assertSame(1900, $order->items->first()->line_total_cents);
+        // Pelanggan: harga = harga produk (RM5.30) + add-on dari setiap group (Chicken 1 RM9.50 + Lamb 1 RM20.00)
+        $chicken1 = $toast->activeVariants()->where('name', 'Chicken 1')->first();
+        $lamb1 = $toast->activeVariants()->where('name', 'Lamb 1')->first();
+        $order = $this->placeOrder($this->purchasePayload(['items' => [['product_id' => $toast->id, 'options' => [$chicken1->id, $lamb1->id], 'quantity' => 2]]]));
+        $item = $order->items->first();
+        $this->assertSame(3480 * 2, $item->line_total_cents);
+        $this->assertSame('Chicken 1, Lamb 1', $item->variant_name);
+        $this->assertSame(['Chicken', 'Lamb'], array_column($item->options, 'group'));
         $this->assertStringContainsString('Lamb', $this->get('/p/pak-maon-western')->assertOk()->getContent());
     }
 

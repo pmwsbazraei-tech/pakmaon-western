@@ -13,7 +13,26 @@ class VariantGroup extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'is_required' => 'boolean', 'max_select' => 'integer'];
+    }
+
+    /** Maksimum pilihan sebenar: tidak melebihi bilangan pilihan aktif yang ada (sekurang-kurangnya 1). */
+    public function effectiveMax(?int $optionCount = null): int
+    {
+        $count = $optionCount ?? $this->activeVariants()->count();
+
+        return max(1, min((int) $this->max_select ?: 1, max(1, $count)));
+    }
+
+    /** Penerangan peraturan untuk pelanggan, cth. "Wajib · pilih 1" / "Pilihan · sehingga 3". */
+    public function ruleLabel(?int $optionCount = null): string
+    {
+        $max = $this->effectiveMax($optionCount);
+        if ($this->is_required) {
+            return $max === 1 ? __('Wajib · pilih 1') : __('Wajib · pilih 1 hingga :max', ['max' => $max]);
+        }
+
+        return $max === 1 ? __('Pilihan · maksimum 1') : __('Pilihan · sehingga :max', ['max' => $max]);
     }
 
     public function variants(): HasMany

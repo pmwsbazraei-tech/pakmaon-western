@@ -92,43 +92,25 @@
                                         <span class="sf-price"><span x-text="rm(p.price)"></span><s x-show="p.regular_price && p.regular_price > p.price" x-text="rm(p.regular_price)"></s></span>
                                         <span x-show="p.sold_out" class="sf-soldout">Habis</span>
                                         <div x-show="!p.sold_out">
-                                            <button type="button" class="btn sm" x-show="qtyOf(p.id, null) === 0" @click="add(p, null)">Tambah</button>
-                                            <div class="sf-qty" x-show="qtyOf(p.id, null) > 0">
-                                                <button type="button" class="sf-qbtn" @click="dec(p.id, null)" :aria-label="'Kurang ' + p.name">−</button>
-                                                <b x-text="qtyOf(p.id, null)"></b>
-                                                <button type="button" class="sf-qbtn" @click="add(p, null)" :aria-label="'Tambah ' + p.name">+</button>
+                                            <button type="button" class="btn sm" x-show="qtyOf(p.id, []) === 0" @click="add(p, [])">Tambah</button>
+                                            <div class="sf-qty" x-show="qtyOf(p.id, []) > 0">
+                                                <button type="button" class="sf-qbtn" @click="decKey(key(p.id, []))" :aria-label="'Kurang ' + p.name">−</button>
+                                                <b x-text="qtyOf(p.id, [])"></b>
+                                                <button type="button" class="sf-qbtn" @click="add(p, [])" :aria-label="'Tambah ' + p.name">+</button>
                                             </div>
                                         </div>
                                     </div>
                                 </template>
 
+                                {{-- Produk dengan add-on: buka pemilih --}}
                                 <template x-if="p.has_variants">
                                     <div class="sf-between">
-                                        <span class="sf-price">dari <span x-text="rm(p.from_price)"></span></span>
-                                        <button type="button" class="sf-toggle" @click="toggle(p.id)" :aria-expanded="isOpen(p.id)">
-                                            <span x-text="isOpen(p.id) ? 'Tutup pilihan' : 'Pilih variasi'"></span>
+                                        <span class="sf-price"><span x-show="p.from_price > p.price || p.price === 0">dari </span><span x-text="rm(p.from_price)"></span></span>
+                                        <span x-show="p.sold_out" class="sf-soldout">Habis</span>
+                                        <div x-show="!p.sold_out" style="display:flex;align-items:center;gap:8px">
                                             <span x-show="qtyOfProduct(p.id) > 0" class="chip" x-text="qtyOfProduct(p.id) + ' dalam cart'"></span>
-                                        </button>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <div class="sf-variants" x-show="p.has_variants && isOpen(p.id)" x-transition>
-                                <template x-for="(v, vi) in p.variants" :key="v.id">
-                                    <div>
-                                    <div class="sf-vgroup" x-show="v.group && p.variants.some(x => x.group !== v.group) && (vi === 0 || p.variants[vi - 1].group !== v.group)" x-text="v.group"></div>
-                                    <div class="sf-variant">
-                                        <div class="sf-grow"><span x-text="v.name"></span><br><span class="sf-price" x-text="rm(v.price)"></span></div>
-                                        <span x-show="v.sold_out" class="sf-soldout">Habis</span>
-                                        <div x-show="!v.sold_out">
-                                            <button type="button" class="btn sm" x-show="qtyOf(p.id, v.id) === 0" @click="add(p, v)">Tambah</button>
-                                            <div class="sf-qty" x-show="qtyOf(p.id, v.id) > 0">
-                                                <button type="button" class="sf-qbtn" @click="dec(p.id, v.id)" :aria-label="'Kurang ' + v.name">−</button>
-                                                <b x-text="qtyOf(p.id, v.id)"></b>
-                                                <button type="button" class="sf-qbtn" @click="add(p, v)" :aria-label="'Tambah ' + v.name">+</button>
-                                            </div>
+                                            <button type="button" class="btn sm" @click="openPicker(p)">Pilih</button>
                                         </div>
-                                    </div>
                                     </div>
                                 </template>
                             </div>
@@ -166,7 +148,7 @@
                     <div class="sf-price" style="text-align:right" x-text="rm(l.price * l.qty)"></div>
                     <div class="act">
                         <div class="sf-qty">
-                            <button type="button" class="sf-qbtn" @click="dec(l.product_id, l.variant_id)" aria-label="Kurang">−</button>
+                            <button type="button" class="sf-qbtn" @click="decKey(l.key)" aria-label="Kurang">−</button>
                             <b x-text="l.qty"></b>
                             <button type="button" class="sf-qbtn" @click="inc(l)" aria-label="Tambah">+</button>
                         </div>
@@ -283,6 +265,51 @@
         </div>
     </main>
 
+    {{-- Pemilih add-on (variant group) --}}
+    <div class="sf-modal-back" x-show="picker" x-transition.opacity @click.self="picker = null" @keydown.escape.window="picker = null" x-cloak>
+        <template x-if="picker">
+            <div class="card sf-modal sf-picker" role="dialog" aria-modal="true" :aria-label="picker.p.name">
+                <div class="sf-between" style="align-items:flex-start">
+                    <div>
+                        <h2 style="font-size:19px;font-weight:800;margin:0" x-text="picker.p.name"></h2>
+                        <div class="sf-price" style="font-size:14px" x-show="picker.p.price > 0" x-text="'Harga asas ' + rm(picker.p.price)"></div>
+                    </div>
+                    <button type="button" class="sf-linkdel" @click="picker = null" aria-label="Tutup">✕</button>
+                </div>
+
+                <div class="sf-picker-body">
+                    <template x-for="g in picker.p.groups" :key="g.id">
+                        <fieldset class="sf-pgroup">
+                            <legend>
+                                <b x-text="g.name"></b>
+                                <span class="sf-rule" :class="{ req: g.required }" x-text="g.rule"></span>
+                            </legend>
+                            <template x-for="o in g.options" :key="o.id">
+                                <label class="sf-popt" :class="{ on: picked(g, o), off: !picked(g, o) && atMax(g) && g.max > 1 }">
+                                    <input :type="g.max === 1 && g.required ? 'radio' : 'checkbox'" :name="'g' + g.id"
+                                           :checked="picked(g, o)" :disabled="!picked(g, o) && atMax(g) && g.max > 1"
+                                           @change="pick(g, o)">
+                                    <span class="sf-grow" x-text="o.name"></span>
+                                    <span class="sf-price" x-text="o.price > 0 ? '+' + rm(o.price) : 'Percuma'"></span>
+                                </label>
+                            </template>
+                            <div class="sf-err" x-show="picker.tried && g.required && !(picker.sel[g.id] || []).length" x-text="'Sila pilih ' + g.name + '.'"></div>
+                        </fieldset>
+                    </template>
+                </div>
+
+                <div class="sf-between" style="margin-top:12px">
+                    <div class="sf-qty">
+                        <button type="button" class="sf-qbtn" @click="picker.qty = Math.max(1, picker.qty - 1)" aria-label="Kurang">−</button>
+                        <b x-text="picker.qty"></b>
+                        <button type="button" class="sf-qbtn" @click="picker.qty++" aria-label="Tambah">+</button>
+                    </div>
+                    <button type="button" class="btn" @click="confirmPicker()" x-text="'Tambah · ' + rm(pickerUnit * picker.qty)"></button>
+                </div>
+            </div>
+        </template>
+    </div>
+
     <div class="sf-modal-back" x-show="showWelcome" x-transition.opacity @click.self="closeWelcome()">
         <div class="card sf-modal sf-stack" role="dialog" aria-modal="true">
             <h2 style="font-size:19px;font-weight:800">Selamat datang</h2>
@@ -313,10 +340,14 @@ function pmwShop(cfg) {
         step: 'menu', purpose: null, cart: [], open: {},
         d: { name: '', order_no: '', phone: '', email: '', remember: false, outlet_id: '', date: '', time: '', guests: 2, fulfillment: '', address: '', notes: '' },
         err: {}, quote: null, slots: [], slotsReason: '', slotsLoading: false,
-        submitting: false, showWelcome: false, toast: '', outletNote: '', _qTimer: null,
+        submitting: false, showWelcome: false, toast: '', outletNote: '', _qTimer: null, picker: null,
 
         init() {
-            this.cart = store.get('pmw_cart_' + this.slug) || [];
+            // Cart lama (satu variant_id) ditukar ke format add-on (senarai pilihan)
+            this.cart = (store.get('pmw_cart_' + this.slug) || []).map(l => {
+                const options = l.options || (l.variant_id ? [l.variant_id] : []);
+                return { ...l, options, key: this.key(l.product_id, options) };
+            });
             const saved = store.get('pmw_details');
             if (saved) Object.assign(this.d, saved, { remember: true });
             this.purpose = this.purposes.length === 1 ? this.purposes[0] : store.get('pmw_purpose_' + this.slug);
@@ -349,28 +380,56 @@ function pmwShop(cfg) {
         rm(c) { return window.RM ? window.RM((c || 0) / 100) : 'RM' + ((c || 0) / 100).toFixed(2); },
         initials(n) { return n.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); },
         slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-'); },
-        toggle(id) { this.open[id] = !this.open[id]; },
-        isOpen(id) { return !!this.open[id]; },
-        key(pid, vid) { return pid + ':' + (vid || 0); },
-        qtyOf(pid, vid) { const l = this.cart.find(l => l.key === this.key(pid, vid)); return l ? l.qty : 0; },
+        // Satu baris cart = produk + set add-on yang sama
+        key(pid, opts) { return pid + ':' + [...(opts || [])].map(Number).sort((a, b) => a - b).join(','); },
+        qtyOf(pid, opts) { const l = this.cart.find(l => l.key === this.key(pid, opts)); return l ? l.qty : 0; },
         qtyOfProduct(pid) { return this.cart.filter(l => l.product_id === pid).reduce((s, l) => s + l.qty, 0); },
 
-        add(p, v) {
-            const k = this.key(p.id, v ? v.id : null);
+        add(p, opts, qty = 1) {
+            const options = (opts || []).map(o => o.id ?? o);
+            const k = this.key(p.id, options);
             const l = this.cart.find(l => l.key === k);
-            if (l) l.qty++;
-            else this.cart.push({ key: k, product_id: p.id, variant_id: v ? v.id : null, name: p.name, variant: v ? v.name : null, price: v ? v.price : p.price, qty: 1 });
+            const chosen = (p.groups || []).flatMap(g => g.options).filter(o => options.includes(o.id));
+            if (l) l.qty += qty;
+            else this.cart.push({
+                key: k, product_id: p.id, options, name: p.name,
+                variant: chosen.map(o => o.name).join(', ') || null,
+                price: p.price + chosen.reduce((s, o) => s + o.price, 0), qty,
+            });
             this.flash('Ditambah ke cart');
             this.requote();
         },
         inc(l) { l.qty++; this.requote(); },
-        dec(pid, vid) {
-            const k = this.key(pid, vid);
+        decKey(k) {
             const l = this.cart.find(l => l.key === k);
             if (!l) return;
             l.qty--;
             if (l.qty <= 0) this.cart = this.cart.filter(x => x.key !== k);
             this.requote();
+        },
+
+        // ---- Pemilih add-on ----
+        openPicker(p) { this.picker = { p, sel: {}, qty: 1, tried: false }; },
+        picked(g, o) { return (this.picker.sel[g.id] || []).includes(o.id); },
+        atMax(g) { return (this.picker.sel[g.id] || []).length >= g.max; },
+        pick(g, o) {
+            let s = [...(this.picker.sel[g.id] || [])];
+            if (s.includes(o.id)) s = s.filter(id => id !== o.id);
+            else if (g.max === 1) s = [o.id];
+            else if (s.length < g.max) s.push(o.id);
+            this.picker.sel = { ...this.picker.sel, [g.id]: s };
+        },
+        get pickerUnit() {
+            if (!this.picker) return 0;
+            const ids = Object.values(this.picker.sel).flat();
+            return this.picker.p.price + this.picker.p.groups.flatMap(g => g.options).filter(o => ids.includes(o.id)).reduce((s, o) => s + o.price, 0);
+        },
+        confirmPicker() {
+            const pk = this.picker;
+            pk.tried = true;
+            if (pk.p.groups.some(g => g.required && !(pk.sel[g.id] || []).length)) return;
+            this.add(pk.p, Object.values(pk.sel).flat(), pk.qty);
+            this.picker = null;
         },
         remove(k) { this.cart = this.cart.filter(x => x.key !== k); this.requote(); },
 
@@ -484,7 +543,7 @@ function pmwShop(cfg) {
                 this.err = { _general: 'Sambungan terputus. Sila cuba lagi; pesanan anda tidak akan berganda.' };
             } finally { this.submitting = false; }
         },
-        items() { return this.cart.map(l => ({ product_id: l.product_id, variant_id: l.variant_id, quantity: l.qty })); },
+        items() { return this.cart.map(l => ({ product_id: l.product_id, options: l.options || [], quantity: l.qty })); },
         post(url, body) {
             return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() }, body: JSON.stringify(body) });
         },

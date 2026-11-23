@@ -47,7 +47,7 @@ class ProductEditor extends Component
         $this->p = [
             'name' => $m->name ?? '', 'sku' => $m->sku ?? '', 'product_category_id' => (string) ($m->product_category_id ?? ''),
             'new_category' => '', 'description' => $m->description ?? '', 'image_url' => $m->image_url ?? '',
-            'menu_id' => (string) ($m->menu_id ?? ''), 'price' => $c($m->price_cents), 'promo_price' => $c($m->promo_price_cents),
+            'menu_id' => (string) ($m->menu_id ?? ''), 'price' => $c($m->price_cents ?? ($m->has_variants ? 0 : null)), 'promo_price' => $c($m->promo_price_cents),
             'stock' => $m->stock !== null ? (string) $m->stock : '',
             'is_hidden' => (bool) $m->is_hidden,
         ];
@@ -133,8 +133,9 @@ class ProductEditor extends Component
 
         $groupIds = array_values(array_unique(array_map('intval', $this->groupIds)));
         $hasVariants = $groupIds !== [];
-        if (! $hasVariants && $this->p['price'] === '') {
-            return $this->addError('p.price', __('Isi harga, atau tick sekurang-kurangnya satu variant group.'));
+        // Harga asas wajib (boleh 0 jika harga datang dari add-on, cth. pilihan ayam)
+        if ($this->p['price'] === '' || $this->p['price'] === null) {
+            return $this->addError('p.price', __('Isi harga produk. Letak 0 jika harga ikut pilihan variant.'));
         }
 
         // Gambar dimuat naik menggantikan URL gambar
@@ -160,9 +161,9 @@ class ProductEditor extends Component
                 'name' => $this->p['name'], 'sku' => $nul($this->p['sku']), 'product_category_id' => $categoryId,
                 'menu_id' => $nul($this->p['menu_id']), 'description' => $nul($this->p['description']), 'image_url' => $nul($this->p['image_url']),
                 'has_variants' => $hasVariants,
-                'price_cents' => $hasVariants ? null : Money::toCents($this->p['price']),
-                'promo_price_cents' => $hasVariants ? null : Money::toCents($this->p['promo_price']),
-                'stock' => $hasVariants ? null : $nul($this->p['stock']),
+                'price_cents' => Money::toCents($this->p['price']) ?? 0,
+                'promo_price_cents' => Money::toCents($this->p['promo_price']),
+                'stock' => $nul($this->p['stock']),
                 'max_per_order' => null, // had belian dibuang dari sistem
                 'is_hidden' => (bool) $this->p['is_hidden'],
             ]);

@@ -68,6 +68,26 @@
                 </div>
 
                 <div x-show="open" x-collapse.duration.150ms>
+                    {{-- Peraturan pilihan untuk pelanggan --}}
+                    @php $optCount = $g->activeVariants->count(); @endphp
+                    <div class="group-rules">
+                        <label>
+                            <span>{{ __('Jenis') }}</span>
+                            <select x-on:change="$wire.setRequired({{ $g->id }}, $event.target.value === '1')">
+                                <option value="1" @selected($g->is_required)>{{ __('Required (wajib pilih)') }}</option>
+                                <option value="0" @selected(! $g->is_required)>{{ __('Optional (boleh langkau)') }}</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>{{ __('Maksimum pilihan') }}</span>
+                            <select x-on:change="$wire.setMax({{ $g->id }}, +$event.target.value)" @disabled($optCount <= 1)>
+                                @for ($n = 1; $n <= max(1, $optCount); $n++)
+                                    <option value="{{ $n }}" @selected($g->effectiveMax($optCount) === $n)>{{ $n === 1 ? __('Pilih 1 sahaja') : __('Sehingga :n', ['n' => $n]) }}{{ $n === $optCount && $n > 1 ? ' ('.__('semua').')' : '' }}</option>
+                                @endfor
+                            </select>
+                        </label>
+                        <span class="badge {{ $g->is_required ? 'warn' : '' }}">{{ $g->ruleLabel($optCount) }}</span>
+                    </div>
                     <div class="sortrows" x-data="sortable('sortOptions', {{ $g->id }})">
                         @forelse ($g->activeVariants as $v)
                             <div class="sortrow opt-row" wire:key="o-{{ $v->id }}" data-sort-id="{{ $v->id }}" @if ($optId === $v->id) style="background:var(--panel2)" @endif>

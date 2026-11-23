@@ -67,8 +67,8 @@ class Product extends Model
         $hasVariants = $groups->isNotEmpty();
         if ($this->has_variants !== $hasVariants) {
             $this->has_variants = $hasVariants;
-            // Tiada group lagi dan tiada harga produk: sembunyikan supaya pelanggan tidak nampak produk tanpa harga
-            if (! $hasVariants && $this->price_cents === null) {
+            // Tiada group lagi dan harga produk kosong/RM0: sembunyikan supaya tidak dijual percuma
+            if (! $hasVariants && ! $this->price_cents) {
                 $this->is_hidden = true;
             }
             $this->save();
@@ -80,12 +80,9 @@ class Product extends Model
         return $this->promo_price_cents ?? $this->price_cents;
     }
 
+    /** Stok dikira pada produk; add-on (variant) tiada stok sendiri. */
     public function isSoldOut(): bool
     {
-        if ($this->has_variants) {
-            return $this->activeVariants->every(fn ($v) => $v->stock !== null && $v->stock <= 0);
-        }
-
         return $this->stock !== null && $this->stock <= 0;
     }
 }

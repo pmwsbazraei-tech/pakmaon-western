@@ -66,6 +66,21 @@ class Variants extends Component
         $this->cancelGroup();
     }
 
+    /** Required = pelanggan wajib pilih sekurang-kurangnya 1; Optional = boleh langkau. */
+    public function setRequired(int $id, bool $required): void
+    {
+        $this->findGroup($id)->update(['is_required' => $required]);
+        $this->dispatch('toast', message: __('Tetapan group disimpan.'));
+    }
+
+    /** Maksimum pilihan yang boleh dipilih pelanggan (1 hingga bilangan pilihan dalam group). */
+    public function setMax(int $id, int $max): void
+    {
+        $g = $this->findGroup($id);
+        $g->update(['max_select' => max(1, min($max, max(1, $g->activeVariants()->count())))]);
+        $this->dispatch('toast', message: __('Tetapan group disimpan.'));
+    }
+
     /** Padam group: dibuang dari semua produk. */
     public function deleteGroup(int $id): void
     {

@@ -78,16 +78,15 @@
             </div>
         </div>
 
-        @if (count($groupIds) === 0)
-            <div class="card">
-                <h2 class="sec" style="margin-top:0">{{ __('Harga & stok (tanpa variasi)') }}</h2>
-                <div class="row">
-                    <div><label>{{ __('Harga (RM)') }} *</label><input type="number" step="0.01" min="0" wire:model="p.price">@error('p.price')<div class="auth-error">{{ $message }}</div>@enderror</div>
-                    <div><label>{{ __('Harga promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="p.promo_price"></div>
-                    <div><label>{{ __('Stok') }}</label><input type="number" min="0" wire:model="p.stock" placeholder="{{ __('Kosong = tiada had') }}"></div>
-                </div>
+        <div class="card">
+            <h2 class="sec" style="margin-top:0">{{ __('Harga & stok') }}</h2>
+            <div class="row">
+                <div><label>{{ __('Harga (RM)') }} *</label><input type="number" step="0.01" min="0" wire:model="p.price">@error('p.price')<div class="auth-error">{{ $message }}</div>@enderror</div>
+                <div><label>{{ __('Harga promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="p.promo_price"></div>
+                <div><label>{{ __('Stok') }}</label><input type="number" min="0" wire:model="p.stock" placeholder="{{ __('Kosong = tiada had') }}"></div>
             </div>
-        @endif
+            <p class="hint" x-show="$wire.groupIds.length > 0" x-cloak>{{ __('Harga variant yang dipilih pelanggan ditambah atas harga ini. Letak 0 jika harga ikut pilihan variant sahaja.') }}</p>
+        </div>
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Variasi') }}</h2>
@@ -101,7 +100,7 @@
                         <label wire:key="lg-{{ $g->id }}" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel2);margin:0;cursor:pointer">
                             <input type="checkbox" value="{{ $g->id }}" wire:model.live="groupIds" style="margin-top:3px;width:auto;flex:0 0 auto">
                             <span>
-                                <b>{{ $g->name }}</b>
+                                <b>{{ $g->name }}</b> <span class="badge {{ $g->is_required ? 'warn' : '' }}" style="font-size:11px">{{ $g->ruleLabel($g->activeVariants->count()) }}</span>
                                 <span class="hint" style="margin:2px 0 0;display:block">
                                     @forelse ($g->activeVariants as $v){{ $v->name }} (@sen($v->promo_price_cents ?? $v->price_cents))@if (! $loop->last), @endif @empty{{ __('Tiada pilihan lagi') }}@endforelse
                                 </span>
@@ -109,9 +108,6 @@
                         </label>
                     @endforeach
                 </div>
-                @if (count($groupIds))
-                    <p class="hint">{{ __('Produk ini dijual ikut pilihan dalam group yang ditick; harga produk diabaikan.') }}</p>
-                @endif
             @endif
         </div>
 
