@@ -19,6 +19,13 @@ class Products extends Component
     #[Url]
     public string $q = '';
 
+    public function mount(): void
+    {
+        if ($msg = session('toast')) {
+            $this->dispatch('toast', message: $msg);
+        }
+    }
+
     /** Susunan kategori selepas drag. Susunan ini juga dipakai di landing page. */
     public function sortCategories(array $ids): void
     {

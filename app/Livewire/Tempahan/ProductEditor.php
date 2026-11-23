@@ -67,6 +67,26 @@ class ProductEditor extends Component
         $this->validateOnly('photo', ['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']], [], ['photo' => __('gambar')]);
     }
 
+    /**
+     * Padam produk secara kekal. Rekod pesanan lama kekal (nama & harga produk disimpan pada item pesanan).
+     */
+    public function deleteProduct()
+    {
+        abort_unless($this->product, 404);
+        $product = Product::where('user_id', $this->shopOwner()->id)->findOrFail($this->product->id);
+        $name = $product->name;
+        $image = $product->image_url;
+
+        DB::transaction(fn () => $product->delete());
+        if ($image && str_starts_with($image, Product::UPLOAD_PREFIX)) {
+            Storage::disk('public')->delete('products/'.basename($image));
+        }
+
+        session()->flash('toast', __('Produk ":name" dipadam.', ['name' => $name]));
+
+        return $this->redirectRoute('tempahan.products', navigate: true);
+    }
+
     /** Buang gambar (pratonton baharu atau gambar sedia ada). */
     public function removePhoto(): void
     {

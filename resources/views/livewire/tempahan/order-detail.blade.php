@@ -162,8 +162,8 @@
                         <p class="hint" style="margin:0">{{ __('Pesanan ini sudah dibayar online, jadi tidak boleh dipadam. Batalkan dan buat refund jika perlu.') }}</p>
                     @else
                         <p class="hint" style="margin-top:0">{{ __('Buang rekod ini secara kekal (contoh: pesanan ujian atau spam). Stok akan dipulangkan.') }}</p>
-                        <button class="btn danger sm" wire:click="deleteOrder"
-                                wire:confirm="{{ __('Padam pesanan :ref secara kekal? Tindakan ini tak boleh dibatalkan.', ['ref' => $order->displayReference()]) }}">{{ __('Padam pesanan') }}</button>
+                        <button class="btn danger sm" type="button"
+                                x-on:click="confirmTwice(@js(__('Padam pesanan :ref secara kekal? Tindakan ini tak boleh dibatalkan.', ['ref' => $order->displayReference()]))) && $wire.deleteOrder()">{{ __('Padam pesanan') }}</button>
                     @endif
                 </div>
             @endif

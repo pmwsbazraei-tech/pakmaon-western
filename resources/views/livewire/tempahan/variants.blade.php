@@ -40,8 +40,8 @@
                     </button>
                     <div class="actions">
                         <button type="button" class="btn sec sm" wire:click="editGroup({{ $g->id }})">{{ __('Namakan semula') }}</button>
-                        <button type="button" class="btn danger sm" wire:click="deleteGroup({{ $g->id }})"
-                                wire:confirm="{{ $g->products_count ? __('Padam group :name? Ia akan dibuang dari :count produk.', ['name' => $g->name, 'count' => $g->products_count]) : __('Padam group :name?', ['name' => $g->name]) }}">{{ __('Padam') }}</button>
+                        <button type="button" class="btn danger sm"
+                                x-on:click="confirmTwice(@js($g->products_count ? __('Padam group :name? Ia akan dibuang dari :count produk.', ['name' => $g->name, 'count' => $g->products_count]) : __('Padam group :name?', ['name' => $g->name]))) && $wire.deleteGroup({{ $g->id }})">{{ __('Padam') }}</button>
                     </div>
                 </header>
 
@@ -60,7 +60,7 @@
                                 </div>
                                 <div class="sr-actions">
                                     <button type="button" class="btn sec sm" wire:click="openOption({{ $g->id }}, {{ $v->id }})">{{ __('Sunting') }}</button>
-                                    <button type="button" class="btn danger sm" wire:click="deleteOption({{ $g->id }}, {{ $v->id }})" wire:confirm="{{ __('Padam pilihan :name?', ['name' => $v->name]) }}">{{ __('Padam') }}</button>
+                                    <button type="button" class="btn danger sm" x-on:click="confirmTwice(@js(__('Padam pilihan :name?', ['name' => $v->name]))) && $wire.deleteOption({{ $g->id }}, {{ $v->id }})">{{ __('Padam') }}</button>
                                 </div>
                             </div>
                         @empty

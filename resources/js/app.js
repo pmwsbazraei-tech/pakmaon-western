@@ -14,6 +14,14 @@ Chart.defaults.font.size = 12;
 Chart.defaults.color = '#5c5245';
 Chart.defaults.borderColor = 'rgba(120, 95, 60, 0.15)';
 
+/*
+ * Pengesahan dua kali untuk tindakan padam. Guna:
+ *   x-on:click="confirmTwice('Padam X?') && $wire.deleteX()"
+ * Mesej kedua (ikut bahasa) ditetapkan oleh layout dalam window.PMW_CONFIRM2.
+ */
+window.confirmTwice = (msg) =>
+  window.confirm(msg) && window.confirm(window.PMW_CONFIRM2 || 'Anda pasti? Tindakan ini tak boleh dibatalkan.');
+
 /* Helper format Ringgit di klien (padan dengan helper Blade rm()) */
 window.RM = (n) =>
   'RM' +

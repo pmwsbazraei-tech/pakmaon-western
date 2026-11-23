@@ -22,8 +22,8 @@
 
         @if (count($outlets ?? []) > 1)
             <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
-                <button class="btn danger sm" wire:click="deleteOutlet"
-                        wire:confirm="Padam outlet '{{ $outlet->name }}' dan SEMUA datanya? Tindakan ini tak boleh dibatalkan.">
+                <button class="btn danger sm" type="button"
+                        x-on:click="confirmTwice(@js(__('Padam outlet :name dan SEMUA datanya? Tindakan ini tak boleh dibatalkan.', ['name' => $outlet->name]))) && $wire.deleteOutlet()">
                     🗑 Padam outlet ini
                 </button>
                 <div class="hint">Padam outlet ini sepenuhnya (staff, menu, resit, dll). Anda ada {{ count($outlets) }} outlet.</div>
@@ -39,8 +39,8 @@
                 ⬆ Import data
                 <input type="file" wire:model="importFile" accept=".json" class="hidden">
             </label>
-            <button class="btn danger sm" wire:click="resetData"
-                    wire:confirm="Padam semua data dan mula semula?">↺ Reset semua</button>
+            <button class="btn danger sm" type="button"
+                    x-on:click="confirmTwice(@js(__('Padam semua data dan mula semula?'))) && $wire.resetData()">↺ Reset semua</button>
         </div>
 
         @error('importFile') <div class="auth-error">{{ $message }}</div> @enderror

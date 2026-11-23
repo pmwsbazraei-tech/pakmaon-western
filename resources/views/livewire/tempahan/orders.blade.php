@@ -25,8 +25,8 @@
         @if ($canDelete && count($selected))
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
                 <b>{{ __(':count dipilih', ['count' => count($selected)]) }}</b>
-                <button class="btn danger sm" wire:click="deleteSelected"
-                        wire:confirm="{{ __('Padam :count pesanan ini secara kekal? Stok akan dipulangkan. Tindakan ini tak boleh dibatalkan.', ['count' => count($selected)]) }}">{{ __('Padam') }}</button>
+                <button class="btn danger sm" type="button"
+                        x-on:click="confirmTwice(@js(__('Padam :count pesanan ini secara kekal? Stok akan dipulangkan. Tindakan ini tak boleh dibatalkan.', ['count' => count($selected)]))) && $wire.deleteSelected()">{{ __('Padam') }}</button>
                 <button class="btn sec sm" wire:click="$set('selected', [])">{{ __('Batal pilih') }}</button>
             </div>
         @endif

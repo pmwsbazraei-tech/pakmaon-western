@@ -31,6 +31,21 @@ class ProductOutletAvailabilityTest extends PmwTestCase
         $this->assertSame(0, DB::table('outlet_product')->where('product_id', $toast->id)->count());
     }
 
+    public function test_owner_can_delete_product_and_past_orders_keep_their_items(): void
+    {
+        $toast = $this->toast();
+        $order = $this->placeOrder($this->purchasePayload());
+
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $toast])
+            ->call('deleteProduct')->assertRedirect(route('tempahan.products'));
+
+        $this->assertNull($toast->fresh());
+        $item = $order->items()->first();
+        $this->assertNull($item->product_id);
+        $this->assertSame('Double Butter Kaya Toast', $item->product_name);
+        $this->actingAs($this->owner)->get(route('tempahan.orders.show', $order))->assertOk();
+    }
+
     public function test_editor_has_select_all_control(): void
     {
         $this->actingAs($this->owner)->get(route('tempahan.products.edit', $this->toast()))->assertOk()->assertSee('Pilih semua outlet');

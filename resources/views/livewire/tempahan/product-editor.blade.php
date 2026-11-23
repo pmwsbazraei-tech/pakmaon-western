@@ -131,6 +131,12 @@
             @endif
         </div>
 
-        <div><button class="btn" type="submit" wire:loading.attr="disabled">{{ __('Simpan produk') }}</button></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn" type="submit" wire:loading.attr="disabled">{{ __('Simpan produk') }}</button>
+            @if ($product)
+                <button class="btn danger" type="button"
+                        x-on:click="confirmTwice(@js(__('Padam produk ":name"? Ia akan dibuang dari semua landing page. Rekod pesanan lama tidak terjejas.', ['name' => $product->name]))) && $wire.deleteProduct()">{{ __('Padam produk') }}</button>
+            @endif
+        </div>
     </form>
 </div>

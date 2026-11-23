@@ -7,6 +7,7 @@
     <title>{{ $outlet->name ?? 'Pak Maon Western' }} — {{ __('Sistem Outlet') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=barlow:400,500,600,700|barlow-condensed:600,700&display=swap" rel="stylesheet">
+    <script>window.PMW_CONFIRM2 = @js(__('Pengesahan kedua: anda pasti mahu padam? Tindakan ini tak boleh dibatalkan.'));</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
