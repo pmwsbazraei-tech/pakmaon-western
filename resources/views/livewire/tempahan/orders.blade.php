@@ -40,7 +40,7 @@
                             <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->displayReference() }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? __('Booking') : __('Pembelian') }}@if ($o->customer_order_no) · {{ $o->reference }}@endif</div></td>
                             <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}</div></td>
                             <td>{{ $o->outlet?->name }}</td>
-                            <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.__(':count org', ['count' => $o->guests]) : __(Order::FULFILLMENTS[$o->fulfillment]) }}</td>
+                            <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.__(':count org', ['count' => $o->guests]) : ($o->showsFulfillment() ? __(Order::FULFILLMENTS[$o->fulfillment]) : '–') }}</td>
                             <td class="num">@sen($o->total_cents)@if ($o->deposit_cents && ! $o->isPaid())<div class="hint" style="margin:0;white-space:nowrap">{{ __('Deposit') }} @sen($o->deposit_cents) · {{ __('Baki') }} @sen($o->balanceCents())</div>@endif</td>
                             <td>@include('livewire.tempahan._status', ['o' => $o])</td>
                             <td style="white-space:nowrap;color:var(--muted)">{{ $o->created_at->format('j/n g:i A') }}</td>

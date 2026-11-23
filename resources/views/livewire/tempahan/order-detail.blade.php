@@ -27,7 +27,7 @@
                         <dt>{{ __('Waktu ketibaan') }}</dt><dd><b>{{ $order->booking_at->translatedFormat('l, j F Y') }}, {{ $order->booking_at->format('g:i A') }}</b></dd>
                         <dt>{{ __('Tetamu') }}</dt><dd>{{ __(':count orang', ['count' => $order->guests]) }}</dd>
                     @else
-                        <dt>{{ __('Cara terima') }}</dt><dd>{{ __(Order::FULFILLMENTS[$order->fulfillment]) }}</dd>
+                        @if ($order->showsFulfillment())<dt>{{ __('Cara terima') }}</dt><dd>{{ __(Order::FULFILLMENTS[$order->fulfillment]) }}</dd>@endif
                         @if ($order->delivery_address)<dt>{{ __('Alamat') }}</dt><dd>{{ $order->delivery_address }}</dd>@endif
                     @endif
                     <dt>{{ __('Nota') }}</dt><dd>{{ $order->notes ?: '-' }}</dd>

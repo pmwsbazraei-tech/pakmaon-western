@@ -90,7 +90,7 @@ class Orders extends Component
     public function render()
     {
         return view('livewire.tempahan.orders', [
-            'orders' => $this->visibleOrders()->filtered($this->filters())->with('outlet')->latest('id')->paginate(25),
+            'orders' => $this->visibleOrders()->filtered($this->filters())->with('outlet', 'form')->latest('id')->paginate(25),
             'outlets' => $this->visibleOutlets(),
             'canDelete' => auth()->user()->canManageShop(),
             'forms' => OrderForm::where('user_id', $this->shopOwner()->id)->orderBy('title')->get(['id', 'title']),

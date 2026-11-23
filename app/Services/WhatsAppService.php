@@ -55,7 +55,7 @@ class WhatsAppService
             '{items}' => $items !== '' ? $items : '(Booking meja sahaja)',
             '{total}' => Money::format($order->total_cents),
             '{notes}' => $order->notes ?: '-',
-            '{fulfillment}' => Order::FULFILLMENTS[$order->fulfillment] ?? $order->fulfillment,
+            '{fulfillment}' => $order->showsFulfillment() ? (Order::FULFILLMENTS[$order->fulfillment] ?? $order->fulfillment) : '',
             '{address}' => $order->delivery_address ?: '-',
             '{payment_link}' => $paymentLine,
         ];

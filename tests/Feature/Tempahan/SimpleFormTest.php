@@ -37,6 +37,22 @@ class SimpleFormTest extends PmwTestCase
         $this->assertStringNotContainsString('Tarikh:', $msg);
     }
 
+    public function test_fulfillment_is_hidden_for_simple_form_orders(): void
+    {
+        $this->form()->update(['simple_form' => true]);
+        $simple = $this->placeOrder($this->purchasePayload(['order_no' => 'SMB-RINGKAS']));
+        $this->assertFalse($simple->fresh()->showsFulfillment());
+
+        $this->actingAs($this->owner)->get(route('tempahan.orders.show', $simple))->assertOk()->assertDontSee('Cara terima');
+        $this->get($simple->publicUrl())->assertOk()->assertDontSee('Cara terima');
+
+        // Borang penuh: pelanggan memilih, jadi cara terima dipaparkan
+        $this->form()->update(['simple_form' => false]);
+        $full = $this->placeOrder($this->purchasePayload(['order_no' => 'SMB-PENUH']));
+        $this->assertTrue($full->fresh()->showsFulfillment());
+        $this->actingAs($this->owner)->get(route('tempahan.orders.show', $full))->assertOk()->assertSee('Cara terima');
+    }
+
     public function test_simple_form_still_requires_core_fields(): void
     {
         $this->form()->update(['simple_form' => true]);

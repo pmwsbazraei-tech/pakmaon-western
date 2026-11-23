@@ -104,6 +104,15 @@ class Order extends Model
         return route('order.show', ['reference' => $this->reference, 't' => $this->public_token]);
     }
 
+    /**
+     * Cara terima hanya bermakna jika pelanggan memilihnya. Borang ringkas tiada pilihan itu
+     * (sistem merekod "pickup" secara lalai), jadi ia tidak dipaparkan.
+     */
+    public function showsFulfillment(): bool
+    {
+        return ! $this->isBooking() && ! $this->form?->simple_form;
+    }
+
     /** Rujukan untuk paparan: nombor order yang diisi pelanggan, atau rujukan sistem jika tiada. */
     public function displayReference(): string
     {

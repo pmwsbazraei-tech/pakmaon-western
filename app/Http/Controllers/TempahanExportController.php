@@ -13,7 +13,7 @@ class TempahanExportController extends Controller
     public function __invoke(Request $request): StreamedResponse
     {
         $query = Order::query()->visibleTo($request->user())->filtered($request->query())
-            ->with('outlet', 'items')->orderBy('id');
+            ->with('outlet', 'items', 'form')->orderBy('id');
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
@@ -24,7 +24,7 @@ class TempahanExportController extends Controller
                     $m = fn ($c) => number_format($c / 100, 2, '.', '');
                     fputcsv($out, [
                         $o->reference, $o->type, $o->created_at->format('Y-m-d H:i'), $o->outlet?->name, $o->customer_name,
-                        Phone::display($o->customer_phone), $o->booking_at?->format('Y-m-d H:i'), $o->guests, $o->fulfillment,
+                        Phone::display($o->customer_phone), $o->booking_at?->format('Y-m-d H:i'), $o->guests, $o->showsFulfillment() ? $o->fulfillment : '',
                         $o->items->map(fn ($i) => $i->quantity.'x '.$i->product_name.($i->variant_name ? " ({$i->variant_name})" : ''))->implode('; '),
                         $m($o->subtotal_cents), $m($o->discount_cents), $m($o->delivery_fee_cents), $m($o->total_cents),
                         $o->booking_status, $o->payment_status, $o->fulfillment_status, $o->customer_order_no, $m($o->deposit_cents), $m($o->balanceCents()),

@@ -87,7 +87,7 @@
                 <dt>Tarikh & masa</dt><dd>{{ $order->booking_at->translatedFormat('l, j F Y') }}, {{ $order->booking_at->format('g:i A') }}</dd>
                 <dt>Tetamu</dt><dd>{{ $order->guests }} orang</dd>
             @else
-                <dt>Cara terima</dt><dd>{{ Order::FULFILLMENTS[$order->fulfillment] }}</dd>
+                @if ($order->showsFulfillment())<dt>Cara terima</dt><dd>{{ Order::FULFILLMENTS[$order->fulfillment] }}</dd>@endif
                 @if ($order->delivery_address)<dt>Alamat</dt><dd>{{ $order->delivery_address }}</dd>@endif
             @endif
             @if ($order->notes)<dt>Nota</dt><dd>{{ $order->notes }}</dd>@endif
