@@ -32,21 +32,20 @@
         @endif
         <div class="table-wrap">
             <table class="tbl-sticky">
-                <thead><tr>@if ($canDelete)<th style="width:36px"><input type="checkbox" aria-label="{{ __('Pilih semua di halaman ini') }}" x-on:change="$wire.set('selected', $event.target.checked ? @js($orders->pluck('id')->map(fn ($id) => (string) $id)->values()) : [])" @checked($orders->isNotEmpty() && count($selected) === $orders->count())></th>@endif<th>{{ __('Rujukan') }}</th><th>{{ __('Pelanggan') }}</th><th>{{ __('Outlet') }}</th><th>{{ __('Jadual / cara') }}</th><th class="num">{{ __('Jumlah') }}</th><th>{{ __('Status') }}</th><th>{{ __('Dicipta') }}</th></tr></thead>
+                <thead><tr>@if ($canDelete)<th style="width:36px"><input type="checkbox" aria-label="{{ __('Pilih semua di halaman ini') }}" x-on:change="$wire.set('selected', $event.target.checked ? @js($orders->pluck('id')->map(fn ($id) => (string) $id)->values()) : [])" @checked($orders->isNotEmpty() && count($selected) === $orders->count())></th>@endif<th>{{ __('Rujukan') }}</th><th>{{ __('Pelanggan') }}</th><th>{{ __('Outlet') }}</th><th class="num">{{ __('Jumlah') }}</th><th>{{ __('Status') }}</th><th>{{ __('Dicipta') }}</th></tr></thead>
                 <tbody>
                     @forelse ($orders as $o)
                         <tr wire:key="o-{{ $o->id }}">
                             @if ($canDelete)<td><input type="checkbox" wire:model.live="selected" value="{{ $o->id }}" aria-label="{{ __('Pilih :ref', ['ref' => $o->displayReference()]) }}"></td>@endif
-                            <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->displayReference() }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? __('Booking') : __('Pembelian') }}@if ($o->customer_order_no) · {{ $o->reference }}@endif</div></td>
+                            <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->displayReference() }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? __('Booking') : __('Pembelian') }}@if ($o->booking_at) · {{ $o->booking_at->format('j/n g:i A') }} · {{ __(':count org', ['count' => $o->guests]) }}@endif @if ($o->customer_order_no) · {{ $o->reference }}@endif</div></td>
                             <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}</div></td>
                             <td>{{ $o->outlet?->name }}</td>
-                            <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.__(':count org', ['count' => $o->guests]) : ($o->showsFulfillment() ? __(Order::FULFILLMENTS[$o->fulfillment]) : '–') }}</td>
                             <td class="num">@sen($o->total_cents)@if ($o->deposit_cents && ! $o->isPaid())<div class="hint" style="margin:0;white-space:nowrap">{{ __('Deposit') }} @sen($o->deposit_cents) · {{ __('Baki') }} @sen($o->balanceCents())</div>@endif</td>
                             <td>@include('livewire.tempahan._status', ['o' => $o])</td>
                             <td style="white-space:nowrap;color:var(--muted)">{{ $o->created_at->format('j/n g:i A') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ $canDelete ? 8 : 7 }}" class="empty">{{ __('Tiada rekod.') }}</td></tr>
+                        <tr><td colspan="{{ $canDelete ? 7 : 6 }}" class="empty">{{ __('Tiada rekod.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
