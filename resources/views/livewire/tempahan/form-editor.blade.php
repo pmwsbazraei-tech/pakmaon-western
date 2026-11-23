@@ -3,6 +3,9 @@
         <div>
             <a href="{{ route('tempahan.forms') }}" wire:navigate class="hint" style="text-decoration:underline">← {{ __('Semua landing page') }}</a>
             <h1 style="margin-top:4px">{{ $form ? $form->title : __('Landing page baharu') }}</h1>
+            @if (! $form && $copiedFrom)
+                <p class="hint" style="margin:2px 0 0">{{ __('Salinan daripada ":title". Isi tajuk dan slug URL baharu, kemudian simpan. Status: Draft.', ['title' => $copiedFrom]) }}</p>
+            @endif
         </div>
         @if ($form)<a class="btn sec" href="{{ route('form.show', ['slug' => $form->slug, 'preview' => 1]) }}" target="_blank">{{ __('Preview') }}</a>@endif
     </div>

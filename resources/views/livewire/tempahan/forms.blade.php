@@ -26,6 +26,7 @@
                     </div>
                     <div style="display:flex;gap:8px">
                         <a class="btn sec" href="{{ route('form.show', ['slug' => $f->slug, 'preview' => 1]) }}" target="_blank">{{ __('Preview') }}</a>
+                        <a class="btn sec" href="{{ route('tempahan.forms.create', ['salin' => $f->id]) }}" wire:navigate title="{{ __('Salin semua tetapan ke landing page baharu') }}">{{ __('Salin') }}</a>
                         <a class="btn" href="{{ route('tempahan.forms.edit', $f) }}" wire:navigate>{{ __('Edit') }}</a>
                     </div>
                 </div>

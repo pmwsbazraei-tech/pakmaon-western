@@ -25,13 +25,24 @@ class FormEditor extends Component
 
     public array $productIds = [];
 
+    /** Tajuk landing page asal bila editor dibuka melalui butang Salin. */
+    public ?string $copiedFrom = null;
+
     public function mount(?OrderForm $form = null): void
     {
         if ($form?->exists) {
             abort_unless($form->user_id === $this->shopOwner()->id, 404);
             $this->form = $form;
         }
-        $m = $this->form ?? new OrderForm([
+
+        // Salin: pra-isi semua tetapan dari landing page asal; tajuk & slug dikosongkan, status draf
+        $source = null;
+        if (! $this->form && ($copyId = request()->integer('salin'))) {
+            $source = OrderForm::where('user_id', $this->shopOwner()->id)->findOrFail($copyId);
+            $this->copiedFrom = $source->title;
+        }
+
+        $m = $this->form ?? $source ?? new OrderForm([
             'status' => 'draft', 'purpose_booking' => true, 'purpose_purchase' => false, 'booking_mode' => 'preorder_required',
             'prices_include_sst' => true, 'sst_rate' => 6, 'allow_pickup' => true, 'allow_delivery' => false,
             'action_whatsapp' => true, 'action_online' => true, 'auto_confirm_on_payment' => false,
@@ -50,9 +61,16 @@ class FormEditor extends Component
             'auto_confirm_on_payment' => (bool) $m->auto_confirm_on_payment,
             'whatsapp_template' => $m->whatsapp_template ?: ($m->simple_form ? OrderForm::DEFAULT_SIMPLE_WHATSAPP_TEMPLATE : OrderForm::DEFAULT_WHATSAPP_TEMPLATE),
         ];
-        $this->outletIds = $this->form ? $this->form->outlets()->pluck('outlets.id')->map(fn ($i) => (string) $i)->all()
+        $base = $this->form ?? $source;
+        $this->outletIds = $base ? $base->outlets()->pluck('outlets.id')->map(fn ($i) => (string) $i)->all()
             : $this->visibleOutlets()->pluck('id')->map(fn ($i) => (string) $i)->all();
-        $this->productIds = $this->form ? $this->form->products()->pluck('products.id')->map(fn ($i) => (string) $i)->all() : [];
+        $this->productIds = $base ? $base->products()->pluck('products.id')->map(fn ($i) => (string) $i)->all() : [];
+
+        if ($source) {
+            $this->f['title'] = '';
+            $this->f['slug'] = '';
+            $this->f['status'] = 'draft';
+        }
     }
 
     public function save()
