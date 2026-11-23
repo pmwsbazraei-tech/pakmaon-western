@@ -6,7 +6,6 @@ use App\Livewire\Tempahan\Products;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
 class ProductOrderingTest extends PmwTestCase
@@ -28,22 +27,33 @@ class ProductOrderingTest extends PmwTestCase
 
         $this->assertSame(['Double Butter Kaya Toast', 'Roti Bakar Biasa', 'Set Talam Dua Muka Spaghetti Chicken'], $this->catalogOrder());
 
+        $set = ProductCategory::where('name', '!=', 'Roti & Toast')->where('user_id', $this->owner->id)->first();
+
         $c = Livewire::actingAs($this->owner)->test(Products::class);
-        $c->call('moveProduct', $extra->id, -1);          // Roti Bakar Biasa ke atas dalam kategori
-        $c->call('moveCategory', $roti->id, 1);           // Roti & Toast selepas Set Talam
+        $c->call('sortProducts', $roti->id, [$extra->id, $this->toast()->id]);   // Roti Bakar Biasa diseret ke atas
+        $c->call('sortCategories', [$set->id, $roti->id]);                        // Roti & Toast diseret ke bawah
         $c->assertOk()->assertSeeInOrder(['Set Talam', 'Roti &amp; Toast', 'Roti Bakar Biasa', 'Double Butter Kaya Toast'], false);
 
         $this->assertSame(['Set Talam Dua Muka Spaghetti Chicken', 'Roti Bakar Biasa', 'Double Butter Kaya Toast'], $this->catalogOrder());
     }
 
-    public function test_cannot_move_other_owners_product_and_edges_are_noop(): void
+    public function test_sorting_ignores_other_owners_products_and_other_categories(): void
     {
         $other = User::factory()->create();
-        $foreign = Product::create(['user_id' => $other->id, 'name' => 'Lain', 'price_cents' => 100]);
+        $foreign = Product::create(['user_id' => $other->id, 'name' => 'Lain', 'price_cents' => 100, 'sort' => 50]);
+        $roti = ProductCategory::where('name', 'Roti & Toast')->first();
 
-        $c = Livewire::actingAs($this->owner)->test(Products::class);
-        $c->call('moveProduct', $this->toast()->id, -1)->assertOk(); // sudah paling atas
-        $this->expectException(ModelNotFoundException::class);
-        $c->call('moveProduct', $foreign->id, 1);
+        Livewire::actingAs($this->owner)->test(Products::class)
+            ->call('sortProducts', $roti->id, [$foreign->id, $this->talam()->id, $this->toast()->id])->assertOk();
+
+        $this->assertSame(50, $foreign->fresh()->sort);              // produk orang lain tidak disentuh
+        $this->assertNotSame($roti->id, $this->talam()->fresh()->product_category_id); // tidak berpindah kategori
+        $this->assertSame(1, $this->toast()->fresh()->sort);
+    }
+
+    public function test_products_page_has_drag_handles_and_fold_controls(): void
+    {
+        $this->actingAs($this->owner)->get(route('tempahan.products'))->assertOk()
+            ->assertSee('drag-handle', false)->assertSee('Tutup semua')->assertDontSee('▲');
     }
 }

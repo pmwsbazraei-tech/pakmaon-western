@@ -390,12 +390,6 @@ body.sf{display:block;font-size:16px}
 @media(max-width:1100px){.od-split{grid-template-columns:minmax(0,1fr)}}
 
 /* Produk & Stok: susun kategori / produk */
-.tbl-sortable .sort-col{width:1%;white-space:nowrap}
-.tbl-sortable .reorder{display:inline-flex;gap:4px}
-.tbl-sortable .reorder .btn.sm{min-width:34px;min-height:32px;padding:4px 8px;line-height:1}
-.tbl-sortable .reorder .btn:disabled{opacity:.35;cursor:default}
-.tbl-sortable tr.cat-row td{background:var(--panel2);border-top:2px solid var(--line2);font-family:var(--font-head);text-transform:uppercase;letter-spacing:.02em}
-.tbl-sortable tr.cat-row td .hint{font-family:var(--font-body);text-transform:none;letter-spacing:0}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* Suis bahasa BM / EN dalam sidebar */
@@ -405,3 +399,41 @@ body.sf{display:block;font-size:16px}
 .langswitch a.on{background:var(--accent);color:var(--on-accent)}
 /* Sub tab menu (cth. Variant di bawah Produk & Stok) */
 .nav a.sub{padding-left:30px;font-size:15px}
+
+/* Senarai boleh diseret (Produk & Stok, Variant) dengan kumpulan boleh dibuka/tutup */
+.sortbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.foldall{display:flex;gap:6px}
+.sortgroups{display:grid;gap:12px}
+.sortgroup{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.sortgroup-head{display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.sortgroup-head .fold{flex:1;display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px 2px;cursor:pointer;text-align:left;color:var(--txt);min-width:0}
+.sortgroup-head .fold b{font-family:var(--font-head);text-transform:uppercase;letter-spacing:.03em;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sortgroup-head .actions{display:flex;gap:6px;flex-shrink:0}
+.chev{display:inline-block;width:20px;text-align:center;transition:transform .15s ease;color:var(--txt);font-size:18px;line-height:1}
+.chev.shut{transform:rotate(-90deg)}
+.drag-handle{display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;flex-shrink:0;border-radius:6px;color:var(--muted);font-size:18px;cursor:grab;user-select:none;touch-action:none}
+.drag-handle:hover{background:var(--panel2);color:var(--txt)}
+.drag-handle:active{cursor:grabbing}
+.drag-handle.off{visibility:hidden;cursor:default}
+.sortrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto 48px 104px;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);background:var(--panel)}
+.sortrows .sortrow:first-child{border-top:0}
+.sortrow .sr-main a{font-weight:700;text-decoration:underline}
+.sortrow .sr-price{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sortrow .sr-stock{text-align:center;color:var(--muted)}
+.sortrow .sr-status{text-align:right}
+.sortrow.empty-row{display:block;padding-left:50px}
+.drag-ghost{opacity:.35;background:var(--panel2)}
+.drag-chosen{box-shadow:0 6px 20px -8px rgba(0,0,0,.35)}
+@media(max-width:640px){
+  .sortrow{grid-template-columns:28px minmax(0,1fr) auto;row-gap:2px}
+  .sortrow .sr-stock{display:none}
+  .sortrow .sr-status{grid-column:2/-1;text-align:left}
+}
+.sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto auto}
+.sortrow .sr-actions{display:flex;gap:6px;justify-content:flex-end}
+@media(max-width:640px){
+  .sortgroup-head{flex-wrap:wrap}
+  .sortgroup-head .actions{width:100%;justify-content:flex-end}
+  .sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto}
+  .sortrow.opt-row .sr-actions{grid-column:2/-1;justify-content:flex-start}
+}

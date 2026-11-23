@@ -14,6 +14,7 @@
     },
     "dependencies": {
         "chart.js": "^4.4.1",
+        "sortablejs": "^1.15.6",
         "tesseract.js": "^5.1.1"
     }
 }

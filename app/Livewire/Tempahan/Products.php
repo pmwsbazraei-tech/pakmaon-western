@@ -19,31 +19,27 @@ class Products extends Component
     #[Url]
     public string $q = '';
 
-    /** Alih kategori ke atas (-1) atau ke bawah (+1). Susunan ini juga dipakai di landing page. */
-    public function moveCategory(int $id, int $dir): void
+    /** Susunan kategori selepas drag. Susunan ini juga dipakai di landing page. */
+    public function sortCategories(array $ids): void
     {
-        $this->swap(ProductCategory::where('user_id', $this->shopOwner()->id), $id, $dir);
+        $this->applyOrder(ProductCategory::where('user_id', $this->shopOwner()->id), $ids);
     }
 
-    /** Alih produk ke atas (-1) atau ke bawah (+1) dalam kategori yang sama. */
-    public function moveProduct(int $id, int $dir): void
+    /** Susunan produk dalam satu kategori selepas drag (0 = tanpa kategori). */
+    public function sortProducts(int $categoryId, array $ids): void
     {
-        $owner = $this->shopOwner();
-        $product = Product::where('user_id', $owner->id)->findOrFail($id);
-        $this->swap(Product::where('user_id', $owner->id)->where('product_category_id', $product->product_category_id), $id, $dir);
+        $this->applyOrder(
+            Product::where('user_id', $this->shopOwner()->id)->where('product_category_id', $categoryId ?: null),
+            $ids,
+        );
     }
 
-    private function swap(Builder $siblings, int $id, int $dir): void
+    /** Simpan susunan baharu; id yang bukan milik kumpulan ini diabaikan, yang tertinggal diletak di hujung. */
+    private function applyOrder(Builder $siblings, array $ids): void
     {
-        $ids = $siblings->orderBy('sort')->orderBy('id')->pluck('id')->values();
-        $i = $ids->search($id);
-        $j = $i === false ? false : $i + ($dir < 0 ? -1 : 1);
-        if ($j === false || $j < 0 || $j >= $ids->count()) {
-            return;
-        }
-
-        $order = $ids->all();
-        [$order[$i], $order[$j]] = [$order[$j], $order[$i]];
+        $existing = $siblings->orderBy('sort')->orderBy('id')->pluck('id');
+        $wanted = collect($ids)->map(fn ($i) => (int) $i)->filter(fn ($i) => $existing->contains($i))->unique();
+        $order = $wanted->merge($existing->diff($wanted))->values();
         $model = $siblings->getModel();
 
         DB::transaction(function () use ($order, $model) {

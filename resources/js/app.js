@@ -1,6 +1,7 @@
 import './bootstrap';
 
 import Chart from 'chart.js/auto';
+import Sortable from 'sortablejs';
 import Tesseract from 'tesseract.js';
 
 // Sediakan untuk komponen Alpine (carta & OCR resit)
@@ -28,6 +29,46 @@ window.RM = (n) =>
  * mematikan preview + OCR bila didaftar lewat melalui @script.
  */
 document.addEventListener('alpine:init', () => {
+  /*
+   * Susun dengan drag (SortableJS). Guna:
+   *   <div x-data="sortable('sortProducts', 5)"> <div data-sort-id="1"><span class="drag-handle">⠿</span>…</div> … </div>
+   * Bila dilepaskan, $wire[method](...args, [id, id, …]) dipanggil dengan susunan baharu.
+   */
+  window.Alpine.data('sortable', (method, ...args) => ({
+    init() {
+      Sortable.create(this.$el, {
+        handle: this.$el.dataset.handle || '.drag-handle',
+        draggable: '[data-sort-id]',
+        animation: 150,
+        ghostClass: 'drag-ghost',
+        chosenClass: 'drag-chosen',
+        onEnd: (e) => {
+          if (e.oldIndex === e.newIndex) return;
+          const ids = [...this.$el.children].filter((c) => c.dataset.sortId).map((c) => +c.dataset.sortId);
+          this.$wire.call(method, ...args, ids);
+        },
+      });
+    },
+  }));
+
+  /* Buka/tutup kumpulan (kategori / variant group); diingat dalam pelayar ini */
+  window.Alpine.data('collapsible', (key) => ({
+    open: true,
+    init() {
+      try {
+        this.open = localStorage.getItem('pmw-fold-' + key) !== '0';
+      } catch (e) {}
+      this.$watch('open', (v) => {
+        try {
+          localStorage.setItem('pmw-fold-' + key, v ? '1' : '0');
+        } catch (e) {}
+      });
+    },
+    toggle() {
+      this.open = !this.open;
+    },
+  }));
+
   window.Alpine.data('receiptOcr', () => ({
     preview: null,
     progress: '',

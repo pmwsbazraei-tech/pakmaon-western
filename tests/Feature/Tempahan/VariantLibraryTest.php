@@ -74,6 +74,17 @@ class VariantLibraryTest extends PmwTestCase
         $this->assertTrue($talam->is_hidden);
     }
 
+    public function test_drag_sorting_options_updates_product_order(): void
+    {
+        $talam = $this->talam();
+        $group = $talam->variantGroups()->firstOrFail();
+        $ids = $group->activeVariants()->pluck('id')->all();
+
+        Livewire::actingAs($this->owner)->test(Variants::class)->call('sortOptions', $group->id, array_reverse($ids));
+
+        $this->assertSame(['Crispy Chicken Thigh', 'Chicken Grill', 'Chicken Crispy Breast'], $talam->activeVariants()->pluck('name')->all());
+    }
+
     public function test_untick_group_requires_price(): void
     {
         Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $this->talam()])

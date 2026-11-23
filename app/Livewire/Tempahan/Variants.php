@@ -84,12 +84,10 @@ class Variants extends Component
         $this->dispatch('toast', message: __('Group dipadam.'));
     }
 
-    public function moveGroup(int $id, int $dir): void
+    /** Susunan group selepas drag. */
+    public function sortGroups(array $ids): void
     {
-        $ids = $this->groups()->pluck('id')->values();
-        if (! $this->swapIds($ids, $id, $dir)) {
-            return;
-        }
+        $ids = $this->ordered($this->groups()->pluck('id'), $ids);
         DB::transaction(function () use ($ids) {
             foreach ($ids as $i => $gid) {
                 VariantGroup::whereKey($gid)->update(['sort' => $i]);
@@ -169,13 +167,11 @@ class Variants extends Component
         $this->dispatch('toast', message: __('Pilihan dipadam.'));
     }
 
-    public function moveOption(int $groupId, int $optionId, int $dir): void
+    /** Susunan pilihan dalam satu group selepas drag. */
+    public function sortOptions(int $groupId, array $ids): void
     {
         $g = $this->findGroup($groupId);
-        $ids = $g->activeVariants()->pluck('id')->values();
-        if (! $this->swapIds($ids, $optionId, $dir)) {
-            return;
-        }
+        $ids = $this->ordered($g->activeVariants()->pluck('id'), $ids);
         DB::transaction(function () use ($g, $ids) {
             foreach ($ids as $i => $vid) {
                 Variant::whereKey($vid)->update(['sort' => $i]);
@@ -186,16 +182,12 @@ class Variants extends Component
 
     // ---- Bantuan ----
 
-    private function swapIds($ids, int $id, int $dir): bool
+    /** Susunan baharu: hanya id yang wujud dalam kumpulan; yang tertinggal diletak di hujung. */
+    private function ordered($existing, array $ids)
     {
-        $pos = $ids->search($id);
-        $to = $pos === false ? -1 : $pos + $dir;
-        if ($pos === false || $to < 0 || $to >= $ids->count()) {
-            return false;
-        }
-        [$ids[$pos], $ids[$to]] = [$ids[$to], $ids[$pos]];
+        $wanted = collect($ids)->map(fn ($i) => (int) $i)->filter(fn ($i) => $existing->contains($i))->unique();
 
-        return true;
+        return $wanted->merge($existing->diff($wanted))->values();
     }
 
     private function groups()
