@@ -27,6 +27,7 @@
         $bookingNav = array_merge($bookingNav, [
             ['tempahan.forms',    '⧉', 'Landing Page'],
             ['tempahan.products', '◫', 'Produk & Stok'],
+            ['tempahan.variants', '↳', 'Variant'],
             ['tempahan.outlets',  '⌂', 'Tetapan Outlet'],
             ['tempahan.staff',    '☷', 'Akaun Staf'],
         ]);
@@ -76,7 +77,7 @@
             @foreach ($bookingNav as [$route, $ico, $label])
                 <a href="{{ route($route) }}" wire:navigate
                    @click="sidebarOpen = false"
-                   @class(['active' => request()->routeIs($route.'*')])>
+                   @class(['active' => request()->routeIs($route.'*'), 'sub' => $ico === '↳'])>
                     <span class="ico">{{ $ico }}</span><span class="lbl">{{ __($label) }}</span>
                 </a>
             @endforeach

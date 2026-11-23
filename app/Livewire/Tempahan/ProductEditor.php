@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Variant;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,7 @@ class ProductEditor extends Component
 
     public array $p = [];
 
-    public array $variants = [];
+    public array $variantIds = [];
 
     public array $unavailable = [];
 
@@ -48,10 +49,10 @@ class ProductEditor extends Component
             'stock' => $m->stock !== null ? (string) $m->stock : '',
             'is_hidden' => (bool) $m->is_hidden,
         ];
-        $this->variants = $this->product ? $this->product->variants()->where('is_active', true)->get()->map(fn ($v) => [
-            'id' => $v->id, 'name' => $v->name, 'sku' => $v->sku ?? '', 'price' => $c($v->price_cents),
-            'promo_price' => $c($v->promo_price_cents), 'stock' => $v->stock !== null ? (string) $v->stock : '',
-        ])->all() : [];
+        // Variant yang ditick (id dalam senarai Variant)
+        $this->variantIds = $this->product
+            ? $this->product->variants()->where('is_active', true)->whereNotNull('variant_id')->pluck('variant_id')->map(fn ($i) => (string) $i)->all()
+            : [];
         $this->unavailable = $this->product
             ? DB::table('outlet_product')->where('product_id', $this->product->id)->where('is_available', false)->pluck('outlet_id')->map(fn ($i) => (string) $i)->all()
             : [];
@@ -67,17 +68,6 @@ class ProductEditor extends Component
     {
         $this->photo = null;
         $this->p['image_url'] = '';
-    }
-
-    public function addVariant(): void
-    {
-        $this->variants[] = ['id' => null, 'name' => '', 'sku' => '', 'price' => '', 'promo_price' => '', 'stock' => ''];
-    }
-
-    public function removeVariant(int $i): void
-    {
-        unset($this->variants[$i]);
-        $this->variants = array_values($this->variants);
     }
 
     public function save()
@@ -97,20 +87,15 @@ class ProductEditor extends Component
             'p.price' => ['nullable', 'numeric', 'min:0'],
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
-            'variants.*.name' => ['nullable', 'string', 'max:120'],
-            'variants.*.price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.promo_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.stock' => ['nullable', 'integer', 'min:0'],
+            'variantIds.*' => [Rule::in($this->library()->pluck('id')->map(fn ($i) => (string) $i)->all())],
             'unavailable.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
         ], [], ['p.name' => __('nama'), 'p.price' => __('harga')]);
 
-        $variants = collect($this->variants)->filter(fn ($v) => trim($v['name'] ?? '') !== '')->values();
+        // Ikut susunan senarai Variant
+        $variants = $this->library()->whereIn('id', array_map('intval', $this->variantIds))->get();
         $hasVariants = $variants->isNotEmpty();
         if (! $hasVariants && $this->p['price'] === '') {
-            return $this->addError('p.price', __('Isi harga, atau tambah sekurang-kurangnya satu variasi.'));
-        }
-        if ($variants->contains(fn ($v) => ($v['price'] ?? '') === '')) {
-            return $this->addError('variants', __('Setiap variasi perlu ada harga.'));
+            return $this->addError('p.price', __('Isi harga, atau tick sekurang-kurangnya satu variant.'));
         }
 
         // Gambar dimuat naik menggantikan URL gambar
@@ -149,20 +134,17 @@ class ProductEditor extends Component
             $product->save();
             $this->logStock($product->id, null, $oldStock, $product->stock);
 
+            // Pautan produk ↔ variant: nama/harga disalin dari senarai Variant; tiada stok variant
             $keep = [];
-            foreach ($variants as $i => $v) {
-                $variant = ! empty($v['id']) ? $product->variants()->find($v['id']) : null;
-                $old = $variant?->stock;
-                $variant ??= $product->variants()->make();
-                $variant->fill([
-                    'name' => $v['name'], 'sku' => $nul($v['sku'] ?? ''), 'price_cents' => Money::toCents($v['price']),
-                    'promo_price_cents' => Money::toCents($v['promo_price'] ?? ''), 'stock' => $nul($v['stock'] ?? ''),
-                    'max_per_order' => null, 'is_active' => true, 'sort' => $i,
+            foreach ($variants as $v) {
+                $link = $product->variants()->firstOrNew(['variant_id' => $v->id]);
+                $link->fill([
+                    'name' => $v->name, 'sku' => $v->sku, 'price_cents' => $v->price_cents, 'promo_price_cents' => $v->promo_price_cents,
+                    'stock' => null, 'max_per_order' => null, 'is_active' => true, 'sort' => $v->sort,
                 ])->save();
-                $this->logStock($product->id, $variant->id, $old, $variant->stock);
-                $keep[] = $variant->id;
+                $keep[] = $link->id;
             }
-            // Variasi dibuang dinyahaktifkan (bukan dipadam) supaya sejarah pesanan kekal
+            // Variant yang tidak ditick dinyahaktifkan (bukan dipadam) supaya sejarah pesanan kekal
             $product->variants()->whereNotIn('id', $keep)->update(['is_active' => false]);
 
             DB::table('outlet_product')->where('product_id', $product->id)->delete();
@@ -204,6 +186,13 @@ class ProductEditor extends Component
             'categories' => ProductCategory::where('user_id', $owner->id)->orderBy('sort')->get(),
             'outlets' => $owner->outlets()->orderBy('name')->get(),
             'menus' => Menu::whereIn('outlet_id', $owner->outlets()->pluck('id'))->with('outlet')->orderBy('name')->get(),
+            'library' => $this->library()->get(),
         ]);
+    }
+
+    /** Senarai Variant aktif milik kedai ini. */
+    private function library()
+    {
+        return Variant::where('user_id', $this->shopOwner()->id)->where('is_active', true)->orderBy('sort')->orderBy('id');
     }
 }

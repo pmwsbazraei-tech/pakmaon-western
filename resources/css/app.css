@@ -402,3 +402,5 @@ body.sf{display:block;font-size:16px}
 .langswitch a{flex:1;text-align:center;padding:5px 0;border-radius:calc(var(--radius-sm) - 2px);font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:.08em;color:#efe6d3;text-decoration:none}
 .langswitch a:hover{color:#fff}
 .langswitch a.on{background:var(--accent);color:var(--on-accent)}
+/* Sub tab menu (cth. Variant di bawah Produk & Stok) */
+.nav a.sub{padding-left:30px;font-size:15px}

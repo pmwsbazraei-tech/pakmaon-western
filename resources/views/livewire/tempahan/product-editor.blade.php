@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        @if (count($variants) === 0)
+        @if (count($variantIds) === 0)
             <div class="card">
                 <h2 class="sec" style="margin-top:0">{{ __('Harga & stok (tanpa variasi)') }}</h2>
                 <div class="row">
@@ -64,23 +64,23 @@
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Variasi') }}</h2>
-            <div class="hint" style="margin-top:0;margin-bottom:10px">{{ __('Setiap variasi ada harga, SKU dan stok sendiri. Kosongkan stok untuk tiada had.') }}</div>
-            @error('variants')<div class="auth-error">{{ $message }}</div>@enderror
-            @foreach ($variants as $i => $v)
-                <div wire:key="v-{{ $i }}" style="background:var(--panel2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px">
-                    <div class="row">
-                        <div style="flex:2"><label>{{ __('Nama') }}</label><input wire:model="variants.{{ $i }}.name"></div>
-                        <div><label>SKU</label><input wire:model="variants.{{ $i }}.sku"></div>
-                        <div><label>{{ __('Harga (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="variants.{{ $i }}.price"></div>
-                    </div>
-                    <div class="row" style="margin-top:8px">
-                        <div><label>{{ __('Promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="variants.{{ $i }}.promo_price"></div>
-                        <div><label>{{ __('Stok') }}</label><input type="number" min="0" wire:model="variants.{{ $i }}.stock"></div>
-                        <div style="flex:0"><span class="del" wire:click="removeVariant({{ $i }})" title="{{ __('Buang variasi') }}">✕</span></div>
-                    </div>
+            <div class="hint" style="margin-top:0;margin-bottom:10px">{!! __('Tick variant dari :link. Harga variant ditetapkan di sana.', ['link' => '<a href="'.e(route('tempahan.variants')).'" wire:navigate>'.e(__('senarai Variant')).'</a>']) !!}</div>
+            @error('variantIds.*')<div class="auth-error">{{ $message }}</div>@enderror
+            @if ($library->isEmpty())
+                <div class="empty">{{ __('Belum ada variant.') }} <a href="{{ route('tempahan.variants') }}" wire:navigate>+ {{ __('Tambah variant') }}</a></div>
+            @else
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+                    @foreach ($library as $v)
+                        <label class="chk" wire:key="lv-{{ $v->id }}" style="justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel2);margin:0">
+                            <span><input type="checkbox" value="{{ $v->id }}" wire:model.live="variantIds"> {{ $v->name }}</span>
+                            <span class="hint" style="margin:0;white-space:nowrap">@sen($v->promo_price_cents ?? $v->price_cents)</span>
+                        </label>
+                    @endforeach
                 </div>
-            @endforeach
-            <button type="button" class="btn sec sm" wire:click="addVariant">+ {{ __('Tambah variasi') }}</button>
+                @if (count($variantIds))
+                    <p class="hint">{{ __('Produk ini dijual ikut variant yang ditick; harga produk diabaikan.') }}</p>
+                @endif
+            @endif
         </div>
 
         <div class="card">

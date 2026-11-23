@@ -74,6 +74,7 @@ Route::middleware(['auth', 'outlet:staff'])->prefix('tempahan')->name('tempahan.
         Route::get('produk', Tempahan\Products::class)->name('products');
         Route::get('produk/baharu', Tempahan\ProductEditor::class)->name('products.create');
         Route::get('produk/{product}', Tempahan\ProductEditor::class)->name('products.edit');
+        Route::get('variant', Tempahan\Variants::class)->name('variants');
         Route::get('outlet', Tempahan\OutletSettings::class)->name('outlets');
         Route::get('staf', Tempahan\StaffAccounts::class)->name('staff');
     });

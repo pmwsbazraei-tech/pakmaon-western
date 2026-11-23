@@ -19,6 +19,12 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /** Variant asal dalam senarai Variant (null untuk rekod lama). */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(Variant::class);
+    }
+
     public function effectivePrice(): int
     {
         return $this->promo_price_cents ?? $this->price_cents;

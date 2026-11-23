@@ -7,6 +7,7 @@ use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
+use App\Models\Variant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -57,7 +58,8 @@ class TempahanDemoSeeder extends Seeder
             'sku' => 'PMW-TALAM-SPG', 'description' => 'Set kongsi spaghetti dengan pilihan ayam.', 'has_variants' => true, 'sort' => 1,
         ]);
         foreach ([['Chicken Crispy Breast', 5830, 'PMW-TALAM-SPG-CB'], ['Chicken Grill', 6255, 'PMW-TALAM-SPG-CG'], ['Crispy Chicken Thigh', 6470, 'PMW-TALAM-SPG-CT']] as $i => [$n, $p, $sku]) {
-            $talam->variants()->create(['name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
+            $lib = Variant::create(['user_id' => $owner->id, 'name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
+            $talam->variants()->create(['variant_id' => $lib->id, 'name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
         }
 
         $notice = 'Makanan pre-order disediakan 5–10 minit sebelum waktu yang ditetapkan. Jika anda lewat dan makanan menjadi sejuk, penggantian atau pemanasan semula tertakluk kepada polisi kedai mengikut jenis hidangan.';
