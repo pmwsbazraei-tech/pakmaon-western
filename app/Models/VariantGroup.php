@@ -16,12 +16,18 @@ class VariantGroup extends Model
         return ['is_active' => 'boolean', 'is_required' => 'boolean', 'max_select' => 'integer'];
     }
 
-    /** Maksimum pilihan sebenar: tidak melebihi bilangan pilihan aktif yang ada (sekurang-kurangnya 1). */
+    /**
+     * Maksimum pilihan sebenar. Optional: boleh pilih semua pilihan yang ada.
+     * Required: ikut tetapan, tidak melebihi bilangan pilihan aktif (sekurang-kurangnya 1).
+     */
     public function effectiveMax(?int $optionCount = null): int
     {
-        $count = $optionCount ?? $this->activeVariants()->count();
+        $count = max(1, $optionCount ?? $this->activeVariants()->count());
+        if (! $this->is_required) {
+            return $count;
+        }
 
-        return max(1, min((int) $this->max_select ?: 1, max(1, $count)));
+        return max(1, min((int) $this->max_select ?: 1, $count));
     }
 
     /** Penerangan peraturan untuk pelanggan, cth. "Wajib · pilih 1" / "Pilihan · sehingga 3". */

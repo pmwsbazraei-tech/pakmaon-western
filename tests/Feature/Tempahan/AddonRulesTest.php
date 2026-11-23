@@ -44,6 +44,9 @@ class AddonRulesTest extends PmwTestCase
 
         $order = Order::where('reference', $res->json('reference'))->first() ?? Order::latest('id')->first();
         $this->assertSame(530 + 180 + 120, $order->items->first()->unit_price_cents);
+
+        // Optional: boleh pilih semua pilihan walaupun max_select lama lebih kecil
+        $this->order([$this->opt('Cheezy'), $this->opt('Blackpepper'), $this->opt('Mushroom')])->assertSuccessful();
     }
 
     public function test_required_group_must_have_a_choice(): void

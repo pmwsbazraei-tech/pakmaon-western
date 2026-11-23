@@ -78,7 +78,8 @@
                                 <option value="0" @selected(! $g->is_required)>{{ __('Optional (boleh langkau)') }}</option>
                             </select>
                         </label>
-                        <label>
+                        {{-- Optional: pelanggan boleh pilih semua pilihan, jadi maksimum tidak perlu ditetapkan --}}
+                        <label @if (! $g->is_required) style="display:none" @endif>
                             <span>{{ __('Maksimum pilihan') }}</span>
                             <select x-on:change="$wire.setMax({{ $g->id }}, +$event.target.value)" @disabled($optCount <= 1)>
                                 @for ($n = 1; $n <= max(1, $optCount); $n++)
