@@ -1,6 +1,6 @@
 @extends('layouts.shop')
 @section('title', $form->title)
-@section('description', $form->description ?: 'Tempah meja dan pre-order menu Pak Maon Western.')
+@section('description', $form->description ?: __('Tempah meja dan pre-order menu Pak Maon Western.'))
 @section('robots', $preview ? 'noindex' : 'index,follow')
 
 @section('content')
@@ -26,12 +26,15 @@
     <header class="sf-head">
         <div class="sf-wrap">
             @include('shop._brand', ['sub' => $form->title])
-            <button class="sf-iconbtn" type="button" @click="share()" aria-label="Kongsi pautan">↗</button>
+            <div class="sf-headr">
+                @include('shop._lang')
+                <button class="sf-iconbtn" type="button" @click="share()" aria-label="{{ __('Kongsi pautan') }}">↗</button>
+            </div>
         </div>
     </header>
 
     @if ($preview)
-        <div class="sf-wrap"><div class="sf-alert info">Mod preview pemilik. Status page: <b>{{ $form->status }}</b>.</div></div>
+        <div class="sf-wrap"><div class="sf-alert info">{{ __('Mod preview pemilik. Status page:') }} <b>{{ $form->status }}</b>.</div></div>
     @endif
 
     {{-- ================= KATALOG ================= --}}
@@ -49,26 +52,26 @@
         @endforeach
 
         @if (count($outlets) === 0)
-            <div class="sf-alert warn">Tiada cawangan menerima tempahan buat masa ini. Sila cuba lagi kemudian.</div>
+            <div class="sf-alert warn">{{ __('Tiada cawangan menerima tempahan buat masa ini. Sila cuba lagi kemudian.') }}</div>
         @endif
 
         <template x-if="purposes.length > 1">
-            <div class="sf-purposes" role="radiogroup" aria-label="Pilih tujuan">
+            <div class="sf-purposes" role="radiogroup" aria-label="{{ __('Pilih tujuan') }}">
                 <button type="button" class="sf-purpose" :class="{ on: purpose === 'booking' }" @click="setPurpose('booking')" role="radio" :aria-checked="purpose === 'booking'">
                     <span class="ic" aria-hidden="true">🍽️</span>
-                    <h3>Tempah Meja &amp; Pre-order</h3>
-                    <span class="m">Pilih cawangan, tarikh dan masa. Makanan disediakan sebelum anda tiba.</span>
+                    <h3>{{ __('Tempah Meja & Pre-order') }}</h3>
+                    <span class="m">{{ __('Pilih cawangan, tarikh dan masa. Makanan disediakan sebelum anda tiba.') }}</span>
                 </button>
                 <button type="button" class="sf-purpose" :class="{ on: purpose === 'purchase' }" @click="setPurpose('purchase')" role="radio" :aria-checked="purpose === 'purchase'">
                     <span class="ic" aria-hidden="true">🛍️</span>
-                    <h3>Beli untuk Pickup{{ $form->allow_delivery ? ' / Delivery' : '' }}</h3>
-                    <span class="m">Pesan dan bayar online, ambil di cawangan{{ $form->allow_delivery ? ' atau hantar ke rumah' : '' }}.</span>
+                    <h3>{{ __('Beli untuk Pickup') }}{{ $form->allow_delivery ? ' / Delivery' : '' }}</h3>
+                    <span class="m">{{ $form->allow_delivery ? __('Pesan dan bayar online, ambil di cawangan atau hantar ke rumah.') : __('Pesan dan bayar online, ambil di cawangan.') }}</span>
                 </button>
             </div>
         </template>
 
         <div x-show="purpose">
-            <nav class="sf-tabs" aria-label="Kategori menu">
+            <nav class="sf-tabs" aria-label="{{ __('Kategori menu') }}">
                 <template x-for="(items, cat) in catalog" :key="cat">
                     <a class="sf-tab" :href="'#cat-' + slugify(cat)" x-text="cat"></a>
                 </template>
@@ -90,13 +93,13 @@
                                 <template x-if="!p.has_variants">
                                     <div class="sf-between">
                                         <span class="sf-price"><span x-text="rm(p.price)"></span><s x-show="p.regular_price && p.regular_price > p.price" x-text="rm(p.regular_price)"></s></span>
-                                        <span x-show="p.sold_out" class="sf-soldout">Habis</span>
+                                        <span x-show="p.sold_out" class="sf-soldout">{{ __('Habis') }}</span>
                                         <div x-show="!p.sold_out">
-                                            <button type="button" class="btn sm" x-show="qtyOf(p.id, []) === 0" @click="add(p, [])">Tambah</button>
+                                            <button type="button" class="btn sm" x-show="qtyOf(p.id, []) === 0" @click="add(p, [])">{{ __('Tambah') }}</button>
                                             <div class="sf-qty" x-show="qtyOf(p.id, []) > 0">
-                                                <button type="button" class="sf-qbtn" @click="decKey(key(p.id, []))" :aria-label="'Kurang ' + p.name">−</button>
+                                                <button type="button" class="sf-qbtn" @click="decKey(key(p.id, []))" :aria-label="@js(__('Kurang :name')).replace(':name', p.name)">−</button>
                                                 <b x-text="qtyOf(p.id, [])"></b>
-                                                <button type="button" class="sf-qbtn" @click="add(p, [])" :aria-label="'Tambah ' + p.name">+</button>
+                                                <button type="button" class="sf-qbtn" @click="add(p, [])" :aria-label="@js(__('Tambah :name')).replace(':name', p.name)">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -105,11 +108,11 @@
                                 {{-- Produk dengan add-on: buka pemilih --}}
                                 <template x-if="p.has_variants">
                                     <div class="sf-between">
-                                        <span class="sf-price"><span x-show="p.from_price > p.price || p.price === 0">dari </span><span x-text="rm(p.from_price)"></span></span>
-                                        <span x-show="p.sold_out" class="sf-soldout">Habis</span>
+                                        <span class="sf-price"><span x-show="p.from_price > p.price || p.price === 0">{{ __('dari') }} </span><span x-text="rm(p.from_price)"></span></span>
+                                        <span x-show="p.sold_out" class="sf-soldout">{{ __('Habis') }}</span>
                                         <div x-show="!p.sold_out" style="display:flex;align-items:center;gap:8px">
-                                            <span x-show="qtyOfProduct(p.id) > 0" class="chip" x-text="qtyOfProduct(p.id) + ' dalam cart'"></span>
-                                            <button type="button" class="btn sm" @click="openPicker(p)">Pilih</button>
+                                            <span x-show="qtyOfProduct(p.id) > 0" class="chip" x-text="@js(__(':count dalam cart')).replace(':count', qtyOfProduct(p.id))"></span>
+                                            <button type="button" class="btn sm" @click="openPicker(p)">{{ __('Pilih') }}</button>
                                         </div>
                                     </div>
                                 </template>
@@ -126,21 +129,21 @@
         <div class="sf-wrap">
             <span class="sf-count" x-text="count"></span>
             <div class="sf-grow">
-                <div style="font-size:13px;color:var(--muted)" x-text="count > 0 ? count + ' item' : 'Tiada menu dipilih'"></div>
-                <div class="sf-price" x-text="count > 0 ? rm(estimate) : 'Booking meja sahaja'"></div>
+                <div style="font-size:13px;color:var(--muted)" x-text="count > 0 ? @js(__(':count item')).replace(':count', count) : @js(__('Tiada menu dipilih'))"></div>
+                <div class="sf-price" x-text="count > 0 ? rm(estimate) : @js(__('Booking meja sahaja'))"></div>
             </div>
-            <button type="button" class="btn" @click="goCheckout()">Proceed</button>
+            <button type="button" class="btn" @click="goCheckout()">{{ __('Proceed') }}</button>
         </div>
     </div>
 
     {{-- ================= CHECKOUT ================= --}}
     <main class="sf-wrap" x-show="step === 'checkout'" style="padding-top:12px">
-        <button type="button" class="btn sec sm" @click="step = 'menu'; window.scrollTo(0, 0)">← Kembali ke menu</button>
+        <button type="button" class="btn sec sm" @click="step = 'menu'; window.scrollTo(0, 0)">{{ __('← Kembali ke menu') }}</button>
 
-        <div class="sf-step"><span class="n">1</span><h2 x-text="purpose === 'booking' ? 'Pre-order anda' : 'Cart anda'"></h2></div>
+        <div class="sf-step"><span class="n">1</span><h2 x-text="purpose === 'booking' ? @js(__('Pre-order anda')) : @js(__('Cart anda'))"></h2></div>
         <div class="card">
             <template x-if="cart.length === 0">
-                <p style="color:var(--muted)">Tiada menu dipilih. <span x-show="canProceedEmpty">Anda boleh teruskan dengan booking meja sahaja.</span></p>
+                <p style="color:var(--muted)">{{ __('Tiada menu dipilih.') }} <span x-show="canProceedEmpty">{{ __('Anda boleh teruskan dengan booking meja sahaja.') }}</span></p>
             </template>
             <template x-for="l in cart" :key="l.key">
                 <div class="sf-line">
@@ -148,51 +151,51 @@
                     <div class="sf-price" style="text-align:right" x-text="rm(l.price * l.qty)"></div>
                     <div class="act">
                         <div class="sf-qty">
-                            <button type="button" class="sf-qbtn" @click="decKey(l.key)" aria-label="Kurang">−</button>
+                            <button type="button" class="sf-qbtn" @click="decKey(l.key)" aria-label="{{ __('Kurang') }}">−</button>
                             <b x-text="l.qty"></b>
-                            <button type="button" class="sf-qbtn" @click="inc(l)" aria-label="Tambah">+</button>
+                            <button type="button" class="sf-qbtn" @click="inc(l)" aria-label="{{ __('Tambah') }}">+</button>
                         </div>
-                        <button type="button" class="sf-linkdel" @click="remove(l.key)">Buang</button>
+                        <button type="button" class="sf-linkdel" @click="remove(l.key)">{{ __('Buang') }}</button>
                     </div>
                 </div>
             </template>
             <template x-if="quote && quote.unavailable.length">
-                <div class="sf-alert warn">Tiada di cawangan ini: <b x-text="quote.unavailable.join(', ')"></b>. Sila buang atau pilih cawangan lain.</div>
+                <div class="sf-alert warn">{{ __('Tiada di cawangan ini:') }} <b x-text="quote.unavailable.join(', ')"></b>. {{ __('Sila buang atau pilih cawangan lain.') }}</div>
             </template>
             <template x-for="e in (quote ? quote.errors : [])"><div class="sf-alert bad" x-text="e"></div></template>
         </div>
 
-        <div class="sf-step"><span class="n">2</span><h2>Maklumat anda</h2></div>
+        <div class="sf-step"><span class="n">2</span><h2>{{ __('Maklumat anda') }}</h2></div>
         <div class="card sf-stack">
-            <div class="sf-field"><label for="sf-name">Nama <span class="req">*</span></label>
+            <div class="sf-field"><label for="sf-name">{{ __('Nama') }} <span class="req">*</span></label>
                 <input id="sf-name" x-model.trim="d.name" autocomplete="name" maxlength="100">
                 <div class="sf-err" x-text="err.name"></div></div>
-            <div class="sf-field"><label for="sf-phone">Nombor telefon <span class="req">*</span></label>
+            <div class="sf-field"><label for="sf-phone">{{ __('Nombor telefon') }} <span class="req">*</span></label>
                 <input id="sf-phone" x-model.trim="d.phone" @blur="formatPhone()" inputmode="tel" autocomplete="tel" placeholder="012-345 6789">
                 <div class="sf-err" x-text="err.phone || err.phone_normalized"></div></div>
-            <div class="sf-field"><label for="sf-orderno">Nombor order <span class="req">*</span></label>
+            <div class="sf-field"><label for="sf-orderno">{{ __('Nombor order') }} <span class="req">*</span></label>
                 <input id="sf-orderno" x-model.trim="d.order_no" maxlength="50" autocomplete="off">
                 <div class="sf-err" x-text="err.order_no"></div></div>
             <template x-if="simpleForm">
-                <div class="sf-field"><label for="sf-outlet-s">Cawangan <span class="req">*</span></label>
+                <div class="sf-field"><label for="sf-outlet-s">{{ __('Cawangan') }} <span class="req">*</span></label>
                     <select id="sf-outlet-s" x-model.number="d.outlet_id" @change="onOutletChange()">
-                        <option value="">Pilih cawangan</option>
+                        <option value="">{{ __('Pilih cawangan') }}</option>
                         <template x-for="b in availableOutlets" :key="b.id"><option :value="b.id" x-text="b.name" :selected="b.id === d.outlet_id"></option></template>
                     </select>
                     <div class="sf-err" x-text="err.outlet_id"></div>
                     <div class="sf-alert info" x-show="outletNote" x-text="outletNote" style="margin-top:8px"></div></div>
             </template>
-            <div class="sf-field"><label for="sf-email">Emel <span style="color:var(--muted);font-weight:400">(pilihan, untuk resit)</span></label>
+            <div class="sf-field"><label for="sf-email">{{ __('Emel') }} <span style="color:var(--muted);font-weight:400">{{ __('(pilihan, untuk resit)') }}</span></label>
                 <input id="sf-email" type="email" x-model.trim="d.email" autocomplete="email"></div>
-            <label class="sf-check"><input type="checkbox" x-model="d.remember"> <span>Ingat maklumat saya pada peranti ini</span></label>
+            <label class="sf-check"><input type="checkbox" x-model="d.remember"> <span>{{ __('Ingat maklumat saya pada peranti ini') }}</span></label>
         </div>
 
         <template x-if="!simpleForm"><div>
-        <div class="sf-step"><span class="n">3</span><h2 x-text="purpose === 'booking' ? 'Cawangan, tarikh & masa' : 'Cawangan & cara terima'"></h2></div>
+        <div class="sf-step"><span class="n">3</span><h2 x-text="purpose === 'booking' ? @js(__('Cawangan, tarikh & masa')) : @js(__('Cawangan & cara terima'))"></h2></div>
         <div class="card sf-stack">
-            <div class="sf-field"><label for="sf-outlet">Cawangan <span class="req">*</span></label>
+            <div class="sf-field"><label for="sf-outlet">{{ __('Cawangan') }} <span class="req">*</span></label>
                 <select id="sf-outlet" x-model.number="d.outlet_id" @change="onOutletChange()">
-                    <option value="">Pilih cawangan</option>
+                    <option value="">{{ __('Pilih cawangan') }}</option>
                     <template x-for="b in availableOutlets" :key="b.id"><option :value="b.id" x-text="b.name" :selected="b.id === d.outlet_id"></option></template>
                 </select>
                 <div class="sf-err" x-text="err.outlet_id"></div></div>
@@ -201,20 +204,20 @@
             <template x-if="purpose === 'booking'">
                 <div class="sf-stack">
                     <div class="sf-2">
-                        <div class="sf-field"><label for="sf-date">Tarikh <span class="req">*</span></label>
+                        <div class="sf-field"><label for="sf-date">{{ __('Tarikh') }} <span class="req">*</span></label>
                             <input id="sf-date" type="date" x-model="d.date" :min="today" :max="maxDate" @change="loadSlots()"></div>
-                        <div class="sf-field"><label for="sf-guests">Bilangan tetamu <span class="req">*</span></label>
+                        <div class="sf-field"><label for="sf-guests">{{ __('Bilangan tetamu') }} <span class="req">*</span></label>
                             <input id="sf-guests" type="number" min="1" :max="outlet ? outlet.max_guests : 50" x-model.number="d.guests" inputmode="numeric"></div>
                     </div>
                     <div class="sf-err" x-text="err.booking_date || err.guests"></div>
                     <div class="sf-field">
-                        <label>Masa <span class="req">*</span></label>
-                        <p class="hint" x-show="!d.outlet_id || !d.date">Pilih cawangan dan tarikh untuk melihat masa yang tersedia.</p>
-                        <p class="hint" x-show="slotsLoading">Memuatkan masa…</p>
+                        <label>{{ __('Masa') }} <span class="req">*</span></label>
+                        <p class="hint" x-show="!d.outlet_id || !d.date">{{ __('Pilih cawangan dan tarikh untuk melihat masa yang tersedia.') }}</p>
+                        <p class="hint" x-show="slotsLoading">{{ __('Memuatkan masa…') }}</p>
                         <div class="sf-alert warn" x-show="slotsReason" x-text="slotsReason"></div>
                         <div class="sf-slots" x-show="slots.length">
                             <template x-for="s in slots" :key="s.time">
-                                <button type="button" class="sf-slot" :class="{ on: d.time === s.time }" :disabled="!s.available || (d.guests && s.remaining < d.guests)" @click="d.time = s.time" x-text="s.time" :title="s.available ? s.remaining + ' tempat lagi' : 'Tidak tersedia'"></button>
+                                <button type="button" class="sf-slot" :class="{ on: d.time === s.time }" :disabled="!s.available || (d.guests && s.remaining < d.guests)" @click="d.time = s.time" x-text="s.time" :title="s.available ? @js(__(':count tempat lagi')).replace(':count', s.remaining) : @js(__('Tidak tersedia'))"></button>
                             </template>
                         </div>
                         <div class="sf-err" x-text="err.booking_time"></div>
@@ -227,39 +230,39 @@
 
             <template x-if="purpose === 'purchase'">
                 <div class="sf-stack">
-                    <div class="sf-field"><label>Cara terima <span class="req">*</span></label>
+                    <div class="sf-field"><label>{{ __('Cara terima') }} <span class="req">*</span></label>
                         <div class="sf-choices">
-                            <button type="button" class="sf-choice" x-show="allowPickup" :class="{ on: d.fulfillment === 'pickup' }" @click="d.fulfillment = 'pickup'; requote()">Pickup di cawangan</button>
-                            <button type="button" class="sf-choice" x-show="allowDelivery" :class="{ on: d.fulfillment === 'delivery' }" @click="d.fulfillment = 'delivery'; requote()">Delivery</button>
+                            <button type="button" class="sf-choice" x-show="allowPickup" :class="{ on: d.fulfillment === 'pickup' }" @click="d.fulfillment = 'pickup'; requote()">{{ __('Pickup di cawangan') }}</button>
+                            <button type="button" class="sf-choice" x-show="allowDelivery" :class="{ on: d.fulfillment === 'delivery' }" @click="d.fulfillment = 'delivery'; requote()">{{ __('Delivery') }}</button>
                         </div>
                         <div class="sf-err" x-text="err.fulfillment"></div></div>
-                    <p class="hint" x-show="d.fulfillment === 'pickup' && outlet">Lokasi pickup: <b x-text="outlet ? outlet.name : ''"></b><span x-show="outlet && outlet.address" x-text="outlet ? ', ' + outlet.address : ''"></span></p>
-                    <div class="sf-field" x-show="d.fulfillment === 'delivery'"><label for="sf-addr">Alamat penghantaran <span class="req">*</span></label>
+                    <p class="hint" x-show="d.fulfillment === 'pickup' && outlet">{{ __('Lokasi pickup:') }} <b x-text="outlet ? outlet.name : ''"></b><span x-show="outlet && outlet.address" x-text="outlet ? ', ' + outlet.address : ''"></span></p>
+                    <div class="sf-field" x-show="d.fulfillment === 'delivery'"><label for="sf-addr">{{ __('Alamat penghantaran') }} <span class="req">*</span></label>
                         <textarea id="sf-addr" rows="3" x-model.trim="d.address" autocomplete="street-address"></textarea>
                         <div class="sf-err" x-text="err.delivery_address"></div></div>
                 </div>
             </template>
 
-            <div class="sf-field"><label for="sf-notes">Nota <span style="color:var(--muted);font-weight:400">(pilihan)</span></label>
-                <textarea id="sf-notes" rows="2" x-model.trim="d.notes" maxlength="500" placeholder="Contoh: kerusi bayi, tanpa sayur"></textarea></div>
+            <div class="sf-field"><label for="sf-notes">{{ __('Nota') }} <span style="color:var(--muted);font-weight:400">{{ __('(pilihan)') }}</span></label>
+                <textarea id="sf-notes" rows="2" x-model.trim="d.notes" maxlength="500" placeholder="{{ __('Contoh: kerusi bayi, tanpa sayur') }}"></textarea></div>
         </div>
         </div></template>
 
-        <div class="sf-step"><span class="n" x-text="simpleForm ? 3 : 4">4</span><h2>Ringkasan</h2></div>
+        <div class="sf-step"><span class="n" x-text="simpleForm ? 3 : 4">4</span><h2>{{ __('Ringkasan') }}</h2></div>
         <div class="card">
             <div class="sf-totals" x-show="quote">
-                <div class="sf-between"><span>Subtotal</span><span x-text="quote ? quote.subtotal : ''"></span></div>
-                <div class="sf-between" x-show="quote && quote.discount"><span>Diskaun</span><span x-text="quote ? '-' + quote.discount : ''"></span></div>
-                <div class="sf-between" x-show="quote && quote.delivery"><span>Caj penghantaran</span><span x-text="quote ? quote.delivery : ''"></span></div>
+                <div class="sf-between"><span>{{ __('Subtotal') }}</span><span x-text="quote ? quote.subtotal : ''"></span></div>
+                <div class="sf-between" x-show="quote && quote.discount"><span>{{ __('Diskaun') }}</span><span x-text="quote ? '-' + quote.discount : ''"></span></div>
+                <div class="sf-between" x-show="quote && quote.delivery"><span>{{ __('Caj penghantaran') }}</span><span x-text="quote ? quote.delivery : ''"></span></div>
                 <div class="sf-between" x-show="quote && quote.sst_added"><span>SST</span><span x-text="quote ? quote.sst_added : ''"></span></div>
-                <div class="sf-between" x-show="quote && quote.rounding"><span>Rounding</span><span x-text="quote ? quote.rounding : ''"></span></div>
-                <div class="sf-between grand"><span>Jumlah</span><span x-text="quote ? quote.total : ''"></span></div>
+                <div class="sf-between" x-show="quote && quote.rounding"><span>{{ __('Rounding') }}</span><span x-text="quote ? quote.rounding : ''"></span></div>
+                <div class="sf-between grand"><span>{{ __('Jumlah') }}</span><span x-text="quote ? quote.total : ''"></span></div>
                 <div class="hint" x-show="quote && quote.sst_note" x-text="quote ? quote.sst_note : ''"></div>
             </div>
             <div class="sf-alert bad" x-show="err._general" x-text="err._general"></div>
             <div class="sf-alert bad" x-show="err.items" x-text="err.items"></div>
             <button type="button" class="btn block" style="margin-top:16px" @click="submit()" :disabled="submitting">
-                <span x-text="submitting ? 'Sedang diproses…' : 'Proceed'"></span>
+                <span x-text="submitting ? @js(__('Sedang diproses…')) : @js(__('Proceed'))"></span>
             </button>
             <p class="hint" style="text-align:center" x-text="proceedHint"></p>
         </div>
@@ -272,9 +275,9 @@
                 <div class="sf-between" style="align-items:flex-start">
                     <div>
                         <h2 style="font-size:19px;font-weight:800;margin:0" x-text="picker.p.name"></h2>
-                        <div class="sf-price" style="font-size:14px" x-show="picker.p.price > 0" x-text="'Harga asas ' + rm(picker.p.price)"></div>
+                        <div class="sf-price" style="font-size:14px" x-show="picker.p.price > 0" x-text="@js(__('Harga asas :price')).replace(':price', rm(picker.p.price))"></div>
                     </div>
-                    <button type="button" class="sf-linkdel" @click="picker = null" aria-label="Tutup">✕</button>
+                    <button type="button" class="sf-linkdel" @click="picker = null" aria-label="{{ __('Tutup tetingkap') }}">✕</button>
                 </div>
 
                 <div class="sf-picker-body">
@@ -290,21 +293,21 @@
                                            :checked="picked(g, o)" :disabled="!picked(g, o) && atMax(g) && g.max > 1"
                                            @change="pick(g, o)">
                                     <span class="sf-grow" x-text="o.name"></span>
-                                    <span class="sf-price" x-text="o.price > 0 ? '+' + rm(o.price) : 'Percuma'"></span>
+                                    <span class="sf-price" x-text="o.price > 0 ? '+' + rm(o.price) : @js(__('Percuma'))"></span>
                                 </label>
                             </template>
-                            <div class="sf-err" x-show="picker.tried && g.required && !(picker.sel[g.id] || []).length" x-text="'Sila pilih ' + g.name + '.'"></div>
+                            <div class="sf-err" x-show="picker.tried && g.required && !(picker.sel[g.id] || []).length" x-text="@js(__('Sila pilih :name.')).replace(':name', g.name)"></div>
                         </fieldset>
                     </template>
                 </div>
 
                 <div class="sf-between" style="margin-top:12px">
                     <div class="sf-qty">
-                        <button type="button" class="sf-qbtn" @click="picker.qty = Math.max(1, picker.qty - 1)" aria-label="Kurang">−</button>
+                        <button type="button" class="sf-qbtn" @click="picker.qty = Math.max(1, picker.qty - 1)" aria-label="{{ __('Kurang') }}">−</button>
                         <b x-text="picker.qty"></b>
-                        <button type="button" class="sf-qbtn" @click="picker.qty++" aria-label="Tambah">+</button>
+                        <button type="button" class="sf-qbtn" @click="picker.qty++" aria-label="{{ __('Tambah') }}">+</button>
                     </div>
-                    <button type="button" class="btn" @click="confirmPicker()" x-text="'Tambah · ' + rm(pickerUnit * picker.qty)"></button>
+                    <button type="button" class="btn" @click="confirmPicker()" x-text="@js(__('Tambah · :price')).replace(':price', rm(pickerUnit * picker.qty))"></button>
                 </div>
             </div>
         </template>
@@ -312,9 +315,9 @@
 
     <div class="sf-modal-back" x-show="showWelcome" x-transition.opacity @click.self="closeWelcome()">
         <div class="card sf-modal sf-stack" role="dialog" aria-modal="true">
-            <h2 style="font-size:19px;font-weight:800">Selamat datang</h2>
+            <h2 style="font-size:19px;font-weight:800">{{ __('Selamat datang') }}</h2>
             <p style="white-space:pre-line" x-text="welcome"></p>
-            <button class="btn block" type="button" @click="closeWelcome()">Mula pilih menu</button>
+            <button class="btn block" type="button" @click="closeWelcome()">{{ __('Mula pilih menu') }}</button>
         </div>
     </div>
 
@@ -371,9 +374,9 @@ function pmwShop(cfg) {
         get estimate() { return this.cart.reduce((s, l) => s + l.price * l.qty, 0); },
         get canProceedEmpty() { return this.purpose === 'booking' && this.tableOnly; },
         get proceedHint() {
-            if (this.actionWhatsapp && this.actionOnline) return 'Seterusnya anda boleh hantar ke WhatsApp cawangan atau Bayar Online.';
-            if (this.actionOnline) return 'Anda akan dibawa ke halaman bayaran yang selamat.';
-            return 'Seterusnya anda akan hantar butiran ke WhatsApp cawangan.';
+            if (this.actionWhatsapp && this.actionOnline) return @js(__('Seterusnya anda boleh hantar ke WhatsApp cawangan atau Bayar Online.'));
+            if (this.actionOnline) return @js(__('Anda akan dibawa ke halaman bayaran yang selamat.'));
+            return @js(__('Seterusnya anda akan hantar butiran ke WhatsApp cawangan.'));
         },
 
         setPurpose(p) { this.purpose = p; store.set('pmw_purpose_' + this.slug, p); this.d.time = ''; },
@@ -396,7 +399,7 @@ function pmwShop(cfg) {
                 variant: chosen.map(o => o.name).join(', ') || null,
                 price: p.price + chosen.reduce((s, o) => s + o.price, 0), qty,
             });
-            this.flash('Ditambah ke cart');
+            this.flash(@js(__('Ditambah ke cart')));
             this.requote();
         },
         inc(l) { l.qty++; this.requote(); },
@@ -456,8 +459,8 @@ function pmwShop(cfg) {
             this.d.time = ''; this.slots = []; this.slotsReason = '';
             await this.fetchQuote();
             this.outletNote = this.quote && this.quote.unavailable.length
-                ? 'Cawangan ditukar. Sesetengah item tiada di cawangan ini, sila semak cart.'
-                : (this.d.outlet_id ? (this.simpleForm ? 'Cawangan ditukar. Harga telah disemak semula.' : 'Cawangan ditukar. Harga dan masa telah disemak semula.') : '');
+                ? @js(__('Cawangan ditukar. Sesetengah item tiada di cawangan ini, sila semak cart.'))
+                : (this.d.outlet_id ? (this.simpleForm ? @js(__('Cawangan ditukar. Harga telah disemak semula.')) : @js(__('Cawangan ditukar. Harga dan masa telah disemak semula.'))) : '');
             if (this.purpose === 'booking' && this.d.date) this.loadSlots();
         },
         async loadSlots() {
@@ -469,7 +472,7 @@ function pmwShop(cfg) {
                 u.searchParams.set('outlet_id', this.d.outlet_id); u.searchParams.set('date', this.d.date);
                 const j = await (await fetch(u, { headers: { Accept: 'application/json' } })).json();
                 this.slots = j.slots || [];
-                this.slotsReason = j.open ? (this.slots.some(s => s.available) ? '' : 'Tiada slot kosong pada tarikh ini.') : j.reason;
+                this.slotsReason = j.open ? (this.slots.some(s => s.available) ? '' : @js(__('Tiada slot kosong pada tarikh ini.'))) : j.reason;
                 if (this.d.time && !this.slotFits(this.d.time)) this.d.time = '';
             } finally { this.slotsLoading = false; }
         },
@@ -487,25 +490,25 @@ function pmwShop(cfg) {
         },
         validateLocal() {
             const e = {};
-            if (!this.d.name) e.name = 'Sila isi nama.';
-            if (!this.d.order_no) e.order_no = 'Sila isi nombor order.';
-            if (!this.d.phone) e.phone = 'Sila isi nombor telefon.';
-            if (!this.d.outlet_id) e.outlet_id = 'Sila pilih cawangan.';
+            if (!this.d.name) e.name = @js(__('Sila isi nama.'));
+            if (!this.d.order_no) e.order_no = @js(__('Sila isi nombor order.'));
+            if (!this.d.phone) e.phone = @js(__('Sila isi nombor telefon.'));
+            if (!this.d.outlet_id) e.outlet_id = @js(__('Sila pilih cawangan.'));
             if (this.purpose === 'booking') {
-                if (!this.d.date) e.booking_date = 'Sila pilih tarikh.';
-                if (!this.d.guests || this.d.guests < 1) e.guests = 'Sila isi bilangan tetamu.';
-                if (!this.d.time) e.booking_time = 'Sila pilih masa.';
+                if (!this.d.date) e.booking_date = @js(__('Sila pilih tarikh.'));
+                if (!this.d.guests || this.d.guests < 1) e.guests = @js(__('Sila isi bilangan tetamu.'));
+                if (!this.d.time) e.booking_time = @js(__('Sila pilih masa.'));
             } else if (!this.simpleForm) {
-                if (!this.d.fulfillment) e.fulfillment = 'Sila pilih pickup atau delivery.';
-                if (this.d.fulfillment === 'delivery' && !this.d.address) e.delivery_address = 'Sila isi alamat penghantaran.';
+                if (!this.d.fulfillment) e.fulfillment = @js(__('Sila pilih pickup atau delivery.'));
+                if (this.d.fulfillment === 'delivery' && !this.d.address) e.delivery_address = @js(__('Sila isi alamat penghantaran.'));
             }
-            if (this.count === 0 && !this.canProceedEmpty) e.items = 'Sila pilih sekurang-kurangnya satu item.';
+            if (this.count === 0 && !this.canProceedEmpty) e.items = @js(__('Sila pilih sekurang-kurangnya satu item.'));
             return e;
         },
         async submit() {
             if (this.submitting) return;
             this.err = this.validateLocal();
-            if (Object.keys(this.err).length) { this.flash('Sila lengkapkan maklumat yang ditanda.'); return; }
+            if (Object.keys(this.err).length) { this.flash(@js(__('Sila lengkapkan maklumat yang ditanda.'))); return; }
             this.submitting = true;
             try {
                 const res = await this.post(this.urls.store, {
@@ -522,7 +525,7 @@ function pmwShop(cfg) {
                     this.fetchQuote();
                     return;
                 }
-                if (!res.ok) { this.err = { _general: res.status === 429 ? 'Terlalu banyak cubaan. Sila tunggu sebentar.' : 'Maaf, berlaku ralat. Sila cuba lagi.' }; return; }
+                if (!res.ok) { this.err = { _general: res.status === 429 ? @js(__('Terlalu banyak cubaan. Sila tunggu sebentar.')) : @js(__('Maaf, berlaku ralat. Sila cuba lagi.')) }; return; }
 
                 if (this.d.remember) store.set('pmw_details', { name: this.d.name, phone: this.d.phone, email: this.d.email });
                 else store.del('pmw_details');
@@ -540,7 +543,7 @@ function pmwShop(cfg) {
                 if (this.actionWhatsapp && !this.actionOnline) { location.href = j.redirect.replace('?', '/whatsapp?'); return; }
                 location.href = j.redirect;
             } catch (e) {
-                this.err = { _general: 'Sambungan terputus. Sila cuba lagi; pesanan anda tidak akan berganda.' };
+                this.err = { _general: @js(__('Sambungan terputus. Sila cuba lagi; pesanan anda tidak akan berganda.')) };
             } finally { this.submitting = false; }
         },
         items() { return this.cart.map(l => ({ product_id: l.product_id, options: l.options || [], quantity: l.qty })); },
@@ -550,7 +553,7 @@ function pmwShop(cfg) {
         async share() {
             const data = { title: document.title, url: location.href.split('?')[0] };
             try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { return; }
-            try { await navigator.clipboard.writeText(data.url); this.flash('Pautan disalin'); } catch (e) { prompt('Salin pautan ini:', data.url); }
+            try { await navigator.clipboard.writeText(data.url); this.flash(@js(__('Pautan disalin'))); } catch (e) { prompt(@js(__('Salin pautan ini:')), data.url); }
         },
         closeWelcome() { this.showWelcome = false; store.set('pmw_welcome_' + this.slug, true); },
         flash(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 1800); },

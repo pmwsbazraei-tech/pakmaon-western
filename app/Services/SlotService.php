@@ -22,21 +22,21 @@ class SlotService
         $now = CarbonImmutable::now($tz);
 
         if (! $outlet->accepts_orders || ! $outlet->booking_enabled) {
-            return ['open' => false, 'reason' => 'Cawangan ini tidak menerima booking buat masa ini.', 'slots' => []];
+            return ['open' => false, 'reason' => __('Cawangan ini tidak menerima booking buat masa ini.'), 'slots' => []];
         }
         if ($day->lt($now->startOfDay())) {
-            return ['open' => false, 'reason' => 'Tarikh sudah berlalu.', 'slots' => []];
+            return ['open' => false, 'reason' => __('Tarikh sudah berlalu.'), 'slots' => []];
         }
         if ($day->gt($now->startOfDay()->addDays($outlet->advance_days))) {
-            return ['open' => false, 'reason' => "Booking hanya dibuka {$outlet->advance_days} hari ke hadapan.", 'slots' => []];
+            return ['open' => false, 'reason' => __('Booking hanya dibuka :days hari ke hadapan.', ['days' => $outlet->advance_days]), 'slots' => []];
         }
         if ($outlet->closures()->whereDate('date', $day->toDateString())->exists()) {
-            return ['open' => false, 'reason' => 'Cawangan tutup pada tarikh ini.', 'slots' => []];
+            return ['open' => false, 'reason' => __('Cawangan tutup pada tarikh ini.'), 'slots' => []];
         }
 
         $hour = $outlet->hours()->where('weekday', $day->dayOfWeek)->first();
         if (! $hour || $hour->is_closed || ! $hour->opens_at || ! $hour->closes_at) {
-            return ['open' => false, 'reason' => 'Cawangan tutup pada hari ini.', 'slots' => []];
+            return ['open' => false, 'reason' => __('Cawangan tutup pada hari ini.'), 'slots' => []];
         }
 
         $start = $day->setTimeFromTimeString($hour->opens_at);
@@ -67,10 +67,10 @@ class SlotService
     public function validate(Outlet $outlet, CarbonImmutable $at, int $guests, ?int $ignoreOrderId = null): ?string
     {
         if ($guests < 1) {
-            return 'Sila nyatakan bilangan tetamu.';
+            return __('Sila nyatakan bilangan tetamu.');
         }
         if ($guests > $outlet->max_guests_per_booking) {
-            return "Maksimum {$outlet->max_guests_per_booking} tetamu bagi satu booking. Hubungi cawangan untuk kumpulan besar.";
+            return __('Maksimum :max tetamu bagi satu booking. Hubungi cawangan untuk kumpulan besar.', ['max' => $outlet->max_guests_per_booking]);
         }
 
         $result = $this->slotsFor($outlet, $at->toDateString(), $ignoreOrderId);
@@ -80,13 +80,13 @@ class SlotService
 
         $slot = collect($result['slots'])->firstWhere('time', $at->format('H:i'));
         if (! $slot) {
-            return 'Masa yang dipilih bukan slot yang sah untuk cawangan ini.';
+            return __('Masa yang dipilih bukan slot yang sah untuk cawangan ini.');
         }
         if (! $slot['available']) {
-            return $slot['remaining'] > 0 ? 'Slot ini sudah terlalu hampir. Sila pilih masa lain.' : 'Slot ini sudah penuh. Sila pilih masa lain.';
+            return $slot['remaining'] > 0 ? __('Slot ini sudah terlalu hampir. Sila pilih masa lain.') : __('Slot ini sudah penuh. Sila pilih masa lain.');
         }
         if ($guests > $slot['remaining']) {
-            return "Slot ini hanya ada tempat untuk {$slot['remaining']} tetamu lagi.";
+            return __('Slot ini hanya ada tempat untuk :count tetamu lagi.', ['count' => $slot['remaining']]);
         }
 
         return null;

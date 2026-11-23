@@ -38,7 +38,7 @@ class FormController extends Controller
             ->reject(fn ($p) => $p->has_variants && $p->activeVariants->isEmpty())
             ->sortBy(fn ($p) => sprintf('%09d-%09d-%09d-%09d',
                 $p->category ? $p->category->sort : 999999999, $p->product_category_id ?? 999999999, $p->sort, $p->id))
-            ->groupBy(fn ($p) => $p->category?->name ?? 'Lain-lain')
+            ->groupBy(fn ($p) => $p->category?->name ?? __('Lain-lain'))
             ->map(fn ($items) => $items->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -126,10 +126,10 @@ class FormController extends Controller
             'items.*.options.*' => ['integer'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
         ], [
-            'phone_normalized.required' => 'Nombor telefon tidak sah. Contoh: 012-345 6789.',
-            'order_no.required' => 'Sila isi nombor order.',
-            'outlet_id.required' => 'Sila pilih cawangan.',
-            'outlet_id.in' => 'Cawangan tidak sah untuk page ini.',
+            'phone_normalized.required' => __('Nombor telefon tidak sah. Contoh: 012-345 6789.'),
+            'order_no.required' => __('Sila isi nombor order.'),
+            'outlet_id.required' => __('Sila pilih cawangan.'),
+            'outlet_id.in' => __('Cawangan tidak sah untuk page ini.'),
         ]);
 
         $order = $orders->create($form, [
@@ -180,10 +180,10 @@ class FormController extends Controller
 
                 return [
                     'id' => (int) $groupId,
-                    'name' => $group?->name ?? 'Pilihan',
+                    'name' => $group?->name ?? __('Pilihan'),
                     'required' => $group ? $group->is_required : true,
                     'max' => $group ? $group->effectiveMax($options->count()) : 1,
-                    'rule' => $group ? $group->ruleLabel($options->count()) : 'Wajib · pilih 1',
+                    'rule' => $group ? $group->ruleLabel($options->count()) : __('Wajib · pilih 1'),
                     'options' => $options->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice()])->values()->all(),
                 ];
             })->values();
@@ -206,7 +206,7 @@ class FormController extends Controller
             'discount' => $q['discount_cents'] ? Money::format($q['discount_cents']) : null,
             'delivery' => $q['delivery_fee_cents'] ? Money::format($q['delivery_fee_cents']) : null,
             'sst_added' => $q['sst_added_cents'] ? Money::format($q['sst_added_cents']) : null,
-            'sst_note' => $form->prices_include_sst ? 'Harga sudah termasuk SST '.rtrim(rtrim((string) $form->sst_rate, '0'), '.').'%' : null,
+            'sst_note' => $form->prices_include_sst ? __('Harga sudah termasuk SST :rate%', ['rate' => rtrim(rtrim((string) $form->sst_rate, '0'), '.')]) : null,
             'rounding' => $q['rounding_cents'] ? Money::format($q['rounding_cents']) : null,
             'total' => Money::format($q['total_cents']),
             'total_cents' => $q['total_cents'],

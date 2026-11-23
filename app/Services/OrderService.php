@@ -48,7 +48,7 @@ class OrderService
 
             $hasItems = count($quote['lines']) > 0;
             if (! $hasItems && (! $isBooking || ! $form->allowsTableOnly())) {
-                $errors['items'] = $isBooking ? 'Sila pilih sekurang-kurangnya satu menu untuk pre-order.' : 'Cart anda kosong.';
+                $errors['items'] = $isBooking ? __('Sila pilih sekurang-kurangnya satu menu untuk pre-order.') : __('Cart anda kosong.');
             }
 
             $bookingAt = null;
@@ -172,12 +172,12 @@ class OrderService
 
         if ($model->stock !== null && $model->stock < $line['quantity']) {
             $label = $line['product_name'].($line['variant_name'] ? " ({$line['variant_name']})" : '');
-            throw ValidationException::withMessages(['items' => "{$label} baru sahaja habis atau stok tidak mencukupi. Sila kemas kini cart."]);
+            throw ValidationException::withMessages(['items' => __(':item baru sahaja habis atau stok tidak mencukupi. Sila kemas kini cart.', ['item' => $label])]);
         }
         // Kemas kini bersyarat: selamat walaupun pangkalan data tidak menyokong kunci baris
         $affected = $model->newQuery()->whereKey($model->id)->where('stock', '>=', $line['quantity'])->decrement('stock', $line['quantity']);
         if ($affected === 0) {
-            throw ValidationException::withMessages(['items' => 'Stok tidak mencukupi. Sila kemas kini cart.']);
+            throw ValidationException::withMessages(['items' => __('Stok tidak mencukupi. Sila kemas kini cart.')]);
         }
     }
 

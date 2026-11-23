@@ -55,7 +55,7 @@ class PricingService
             /** @var Product|null $product */
             $product = $products->get($line['product_id']);
             if (! $product || $product->is_hidden || ! in_array($product->id, $allowedIds, true)) {
-                $errors[] = 'Satu item dalam cart tidak lagi tersedia dan telah dibuang.';
+                $errors[] = __('Satu item dalam cart tidak lagi tersedia dan telah dibuang.');
 
                 continue;
             }
@@ -64,7 +64,7 @@ class PricingService
             $available = $product->activeVariants->reject(fn ($v) => in_array($v->id, $hiddenVariants, true))->keyBy('id');
             $chosen = collect($line['options'])->map(fn ($id) => $available->get($id));
             if ($chosen->contains(null)) {
-                $errors[] = 'Satu item dalam cart tidak lagi tersedia dan telah dibuang.';
+                $errors[] = __('Satu item dalam cart tidak lagi tersedia dan telah dibuang.');
 
                 continue;
             }
@@ -76,13 +76,13 @@ class PricingService
                 $picked = $chosen->filter(fn ($v) => ($v->variant?->variant_group_id ?? 0) === $groupId)->count();
                 $required = $group ? $group->is_required : true;
                 $max = $group ? $group->effectiveMax($options->count()) : 1;
-                $name = $group?->name ?? 'pilihan';
+                $name = $group?->name ?? __('pilihan');
                 if ($required && $picked === 0) {
-                    $ruleError = "Sila pilih {$name} untuk {$product->name}.";
+                    $ruleError = __('Sila pilih :group untuk :product.', ['group' => $name, 'product' => $product->name]);
                     break;
                 }
                 if ($picked > $max) {
-                    $ruleError = "{$product->name}: pilih maksimum {$max} {$name}.";
+                    $ruleError = __(':product: pilih maksimum :max :group.', ['product' => $product->name, 'max' => $max, 'group' => $name]);
                     break;
                 }
             }
@@ -107,12 +107,12 @@ class PricingService
 
             $qty = $line['quantity'];
             if ($stock !== null && $stock <= 0) {
-                $errors[] = "{$label} sudah habis stok.";
+                $errors[] = __(':item sudah habis stok.', ['item' => $label]);
 
                 continue;
             }
             if ($stock !== null && $qty > $stock) {
-                $errors[] = "{$label}: hanya {$stock} lagi dalam stok.";
+                $errors[] = __(':item: hanya :count lagi dalam stok.', ['item' => $label, 'count' => $stock]);
                 $qty = $stock;
             }
             $priced[] = [
@@ -157,10 +157,10 @@ class PricingService
         $rounding = $total - $beforeRounding;
 
         if ($subtotal > 0 && $form->min_order_cents && $subtotal < $form->min_order_cents) {
-            $errors[] = 'Belian minimum ialah '.Money::format($form->min_order_cents).'.';
+            $errors[] = __('Belian minimum ialah :amount.', ['amount' => Money::format($form->min_order_cents)]);
         }
         if ($form->max_order_cents && $subtotal > $form->max_order_cents) {
-            $errors[] = 'Belian maksimum ialah '.Money::format($form->max_order_cents).'.';
+            $errors[] = __('Belian maksimum ialah :amount.', ['amount' => Money::format($form->max_order_cents)]);
         }
 
         return [

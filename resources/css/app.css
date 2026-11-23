@@ -457,3 +457,9 @@ body.sf{display:block;font-size:16px}
 .sf-popt input{width:auto;margin:0;accent-color:var(--accent)}
 .sf-popt.on{border-color:var(--accent);background:var(--panel)}
 .sf-popt.off{opacity:.45;cursor:not-allowed}
+/* Suis bahasa halaman pelanggan */
+.sf-head .sf-wrap > .sf-headr{display:flex;align-items:center;gap:8px;flex:none}
+.sf-lang{display:flex;border:1.5px solid var(--txt);border-radius:99px;overflow:hidden;flex:none}
+.sf-lang a{padding:7px 11px;font:700 13px var(--font-head);letter-spacing:.06em;color:var(--txt);text-decoration:none;min-width:40px;text-align:center}
+.sf-lang a.on{background:var(--txt);color:var(--panel)}
+.sf-lang a:not(.on):hover{background:var(--panel2)}

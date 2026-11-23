@@ -61,7 +61,7 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->with('error', 'Gateway pembayaran tidak dapat dihubungi. Sila cuba lagi sebentar.');
+            return back()->with('error', __('Gateway pembayaran tidak dapat dihubungi. Sila cuba lagi sebentar.'));
         }
 
         return $url ? redirect()->away($url) : redirect($order->publicUrl());
