@@ -4,6 +4,10 @@
             <a href="{{ route('tempahan.products') }}" wire:navigate class="hint" style="text-decoration:underline">← {{ __('Semua produk') }}</a>
             <h1 style="margin-top:4px">{{ $product ? $product->name : __('Produk baharu') }}</h1>
         </div>
+        @if ($product)
+            {{-- Selepas produk disimpan: terus cipta produk seterusnya --}}
+            <a class="btn" href="{{ route('tempahan.products.create') }}" wire:navigate>+ {{ __('Cipta produk baharu') }}</a>
+        @endif
     </div>
 
     <form wire:submit="save" style="display:grid;gap:14px">
@@ -134,6 +138,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
             <button class="btn" type="submit" wire:loading.attr="disabled">{{ __('Simpan produk') }}</button>
             @if ($product)
+                <a class="btn sec" href="{{ route('tempahan.products.create') }}" wire:navigate>+ {{ __('Cipta produk baharu') }}</a>
                 <button class="btn danger" type="button"
                         x-on:click="confirmTwice(@js(__('Padam produk ":name"? Ia akan dibuang dari semua landing page. Rekod pesanan lama tidak terjejas.', ['name' => $product->name]))) && $wire.deleteProduct()">{{ __('Padam produk') }}</button>
             @endif

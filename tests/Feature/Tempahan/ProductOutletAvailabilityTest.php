@@ -57,6 +57,11 @@ class ProductOutletAvailabilityTest extends PmwTestCase
 
         $fries = Product::where('name', 'Fries Baru')->firstOrFail();
         $this->assertTrue($form->products()->whereKey($fries->id)->exists());
+
+        // Selepas disimpan: butang cipta produk baharu dipaparkan; borang baharu tiada butang itu
+        $this->actingAs($this->owner)->get(route('tempahan.products.edit', $fries))->assertOk()
+            ->assertSee('Cipta produk baharu')->assertSee(route('tempahan.products.create'), false);
+        $this->actingAs($this->owner)->get(route('tempahan.products.create'))->assertOk()->assertDontSee('Cipta produk baharu');
     }
 
     public function test_untick_on_landing_page_is_kept_until_outlet_is_newly_ticked(): void
