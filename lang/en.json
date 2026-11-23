@@ -377,7 +377,7 @@
     "Tiada rekod yang perlu tindakan.": "No records need action.",
     "Tiada rekod.": "No records.",
     "Tiada staf.": "No staff.",
-    "Tick outlet yang menjual produk ini.": "Tick the outlets that sell this product.",
+    "Tick outlet yang menjual produk ini. Bila outlet baru ditick, produk ini terus ditick di landing page outlet tersebut (boleh di-untick di editor landing page, cth. bila habis stok).": "Tick the outlets that sell this product. When an outlet is newly ticked, this product is automatically ticked on that outlet’s landing pages (you can untick it in the landing page editor, e.g. when out of stock).",
     "Tick sekurang-kurangnya satu variant untuk: :names": "Tick at least one variant for: :names",
     "Tick variant group dari :link. Semua pilihan dalam group itu akan dipaparkan kepada pelanggan.": "Tick variant groups from the :link. Every option in those groups is shown to customers.",
     "Tidak Hadir": "No-show",

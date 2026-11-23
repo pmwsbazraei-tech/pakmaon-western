@@ -117,7 +117,7 @@
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Ketersediaan outlet') }}</h2>
-            <div class="hint" style="margin-top:0;margin-bottom:8px">{{ __('Tick outlet yang menjual produk ini.') }}</div>
+            <div class="hint" style="margin-top:0;margin-bottom:8px">{{ __('Tick outlet yang menjual produk ini. Bila outlet baru ditick, produk ini terus ditick di landing page outlet tersebut (boleh di-untick di editor landing page, cth. bila habis stok).') }}</div>
             @php $allOutletIds = $outlets->pluck('id')->map(fn ($i) => (string) $i)->values(); @endphp
             <label class="chk" style="margin-bottom:8px;font-weight:700"
                    x-data="{ all: @js($allOutletIds) }">

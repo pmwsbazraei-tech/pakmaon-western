@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tempahan;
 
 use App\Livewire\Tempahan\ProductEditor;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
@@ -44,6 +45,42 @@ class ProductOutletAvailabilityTest extends PmwTestCase
         $this->assertNull($item->product_id);
         $this->assertSame('Double Butter Kaya Toast', $item->product_name);
         $this->actingAs($this->owner)->get(route('tempahan.orders.show', $order))->assertOk();
+    }
+
+    public function test_new_product_is_auto_ticked_on_landing_pages_of_its_outlets(): void
+    {
+        $form = $this->form(); // melayan beberapa outlet
+        $this->assertTrue($form->outlets()->exists());
+
+        Livewire::actingAs($this->owner)->test(ProductEditor::class)
+            ->set('p.name', 'Fries Baru')->set('p.price', '4.00')->call('save')->assertHasNoErrors();
+
+        $fries = Product::where('name', 'Fries Baru')->firstOrFail();
+        $this->assertTrue($form->products()->whereKey($fries->id)->exists());
+    }
+
+    public function test_untick_on_landing_page_is_kept_until_outlet_is_newly_ticked(): void
+    {
+        $form = $this->form();
+        $toast = $this->toast();
+        $formOutlet = (string) $form->outlets()->first()->id;
+        $all = $this->owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all();
+
+        // Untick produk di landing page (cth. habis stok)
+        $form->products()->detach($toast->id);
+
+        // Simpan produk tanpa ubah outlet: kekal tidak ditick
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $toast])->call('save')->assertHasNoErrors();
+        $this->assertFalse($form->products()->whereKey($toast->id)->exists());
+
+        // Untick outlet itu, kemudian tick semula → produk ditick semula di landing page
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $toast->fresh()])
+            ->set('availableOutlets', array_values(array_diff($all, [$formOutlet])))->call('save')->assertHasNoErrors();
+        $this->assertFalse($form->products()->whereKey($toast->id)->exists());
+
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $toast->fresh()])
+            ->set('availableOutlets', $all)->call('save')->assertHasNoErrors();
+        $this->assertTrue($form->products()->whereKey($toast->id)->exists());
     }
 
     public function test_editor_has_select_all_control(): void

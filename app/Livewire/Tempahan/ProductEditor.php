@@ -4,6 +4,7 @@ namespace App\Livewire\Tempahan;
 
 use App\Livewire\Concerns\InteractsWithShop;
 use App\Models\Menu;
+use App\Models\OrderForm;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -87,6 +88,21 @@ class ProductEditor extends Component
         return $this->redirectRoute('tempahan.products', navigate: true);
     }
 
+    /** Tick produk pada landing page kedai ini yang melayan mana-mana outlet yang diberi. */
+    private function addToLandingPages(Product $product, array $outletIds): void
+    {
+        if ($outletIds === []) {
+            return;
+        }
+        $forms = OrderForm::where('user_id', $product->user_id)
+            ->whereHas('outlets', fn ($q) => $q->whereIn('outlets.id', $outletIds))
+            ->whereDoesntHave('products', fn ($q) => $q->whereKey($product->id))
+            ->get();
+        foreach ($forms as $form) {
+            $form->products()->attach($product->id, ['sort' => (DB::table('order_form_product')->where('order_form_id', $form->id)->max('sort') ?? -1) + 1]);
+        }
+    }
+
     /** Buang gambar (pratonton baharu atau gambar sedia ada). */
     public function removePhoto(): void
     {
@@ -161,11 +177,21 @@ class ProductEditor extends Component
             $product->variantGroups()->sync($groupIds);
             $product->syncVariantLinks();
 
+            // Outlet yang menjual produk ini sebelum disimpan (produk baharu: tiada)
+            $allOutlets = $owner->outlets()->pluck('id')->map(fn ($i) => (int) $i);
+            $wasAvailable = $this->product
+                ? $allOutlets->diff(DB::table('outlet_product')->where('product_id', $product->id)->where('is_available', false)->pluck('outlet_id')->map(fn ($i) => (int) $i))
+                : collect();
+
             DB::table('outlet_product')->where('product_id', $product->id)->delete();
-            $unavailable = $owner->outlets()->pluck('id')->diff(array_map('intval', $this->availableOutlets));
-            foreach ($unavailable as $oid) {
+            $nowAvailable = $allOutlets->intersect(array_map('intval', $this->availableOutlets));
+            foreach ($allOutlets->diff($nowAvailable) as $oid) {
                 DB::table('outlet_product')->insert(['outlet_id' => (int) $oid, 'product_id' => $product->id, 'is_available' => false]);
             }
+
+            // Outlet yang baru ditick: tick produk ini secara automatik di landing page outlet tersebut.
+            // Hanya untuk outlet baharu, supaya produk yang sengaja di-untick di landing page (cth. habis stok) tidak ditick semula.
+            $this->addToLandingPages($product, $nowAvailable->diff($wasAvailable)->values()->all());
 
             return $product;
         });
