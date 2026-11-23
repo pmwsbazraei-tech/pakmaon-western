@@ -33,7 +33,7 @@
                     <div style="flex:1;min-width:220px">
                         <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp">
                         <div wire:loading wire:target="photo" class="hint">{{ __('Memuat naik…') }}</div>
-                        <p class="hint" style="margin:4px 0 0">{{ __('JPG, PNG atau WEBP, maksimum 4MB. Gambar dipaparkan kepada pelanggan selepas anda simpan.') }}</p>
+                        <p class="hint" style="margin:4px 0 0">{{ __('JPG, PNG atau WEBP, maksimum 10MB. Gambar dipaparkan kepada pelanggan selepas anda simpan.') }}</p>
                         @if ($preview)
                             <button type="button" class="btn danger sm" style="margin-top:6px" wire:click="removePhoto">{{ __('Buang gambar') }}</button>
                         @endif

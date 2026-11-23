@@ -45,6 +45,10 @@ class ProductImageUploadTest extends PmwTestCase
         $product = Product::where('name', 'Double Butter Kaya Toast')->firstOrFail();
 
         Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $product])
+            ->set('photo', UploadedFile::fake()->create('besar.jpg', 9 * 1024, 'image/jpeg'))
+            ->assertHasNoErrors('photo')
+            ->set('photo', UploadedFile::fake()->create('terlalu-besar.jpg', 11 * 1024, 'image/jpeg'))
+            ->assertHasErrors('photo')
             ->set('photo', UploadedFile::fake()->create('virus.pdf', 10, 'application/pdf'))
             ->assertHasErrors('photo');
 

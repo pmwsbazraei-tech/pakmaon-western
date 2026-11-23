@@ -60,7 +60,7 @@ class ProductEditor extends Component
 
     public function updatedPhoto(): void
     {
-        $this->validateOnly('photo', ['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']], [], ['photo' => __('gambar')]);
+        $this->validateOnly('photo', ['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']], [], ['photo' => __('gambar')]);
     }
 
     /** Buang gambar (pratonton baharu atau gambar sedia ada). */
@@ -83,7 +83,7 @@ class ProductEditor extends Component
                     $fail(__('URL gambar tidak sah.'));
                 }
             }],
-            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'p.price' => ['nullable', 'numeric', 'min:0'],
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
