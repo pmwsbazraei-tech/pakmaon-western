@@ -31,7 +31,8 @@ class ProductEditor extends Component
 
     public array $groupIds = [];
 
-    public array $unavailable = [];
+    /** Outlet yang menjual produk ini (ditick). Disimpan sebagai senarai outlet yang TIDAK menjual. */
+    public array $availableOutlets = [];
 
     public function mount(?Product $product = null): void
     {
@@ -53,9 +54,12 @@ class ProductEditor extends Component
         $this->groupIds = $this->product
             ? $this->product->variantGroups()->where('is_active', true)->pluck('variant_groups.id')->map(fn ($i) => (string) $i)->all()
             : [];
-        $this->unavailable = $this->product
-            ? DB::table('outlet_product')->where('product_id', $this->product->id)->where('is_available', false)->pluck('outlet_id')->map(fn ($i) => (string) $i)->all()
+        $unavailable = $this->product
+            ? DB::table('outlet_product')->where('product_id', $this->product->id)->where('is_available', false)->pluck('outlet_id')->all()
             : [];
+        // Produk baharu: dijual di semua outlet
+        $this->availableOutlets = $this->shopOwner()->outlets()->pluck('id')
+            ->reject(fn ($id) => in_array($id, $unavailable))->map(fn ($i) => (string) $i)->values()->all();
     }
 
     public function updatedPhoto(): void
@@ -88,7 +92,7 @@ class ProductEditor extends Component
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
             'groupIds.*' => [Rule::in($this->library()->pluck('id')->map(fn ($i) => (string) $i)->all())],
-            'unavailable.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
+            'availableOutlets.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
         ], [], ['p.name' => __('nama'), 'p.price' => __('harga')]);
 
         $groupIds = array_values(array_unique(array_map('intval', $this->groupIds)));
@@ -138,7 +142,8 @@ class ProductEditor extends Component
             $product->syncVariantLinks();
 
             DB::table('outlet_product')->where('product_id', $product->id)->delete();
-            foreach ($this->unavailable as $oid) {
+            $unavailable = $owner->outlets()->pluck('id')->diff(array_map('intval', $this->availableOutlets));
+            foreach ($unavailable as $oid) {
                 DB::table('outlet_product')->insert(['outlet_id' => (int) $oid, 'product_id' => $product->id, 'is_available' => false]);
             }
 

@@ -117,8 +117,18 @@
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Ketersediaan outlet') }}</h2>
-            <div class="hint" style="margin-top:0;margin-bottom:8px">{{ __('Tanda outlet yang tidak menjual produk ini.') }}</div>
-            <div style="display:flex;gap:14px;flex-wrap:wrap">@foreach ($outlets as $b)<label class="chk"><input type="checkbox" value="{{ $b->id }}" wire:model="unavailable"> {{ $b->name }}</label>@endforeach</div>
+            <div class="hint" style="margin-top:0;margin-bottom:8px">{{ __('Tick outlet yang menjual produk ini.') }}</div>
+            @php $allOutletIds = $outlets->pluck('id')->map(fn ($i) => (string) $i)->values(); @endphp
+            <label class="chk" style="margin-bottom:8px;font-weight:700"
+                   x-data="{ all: @js($allOutletIds) }">
+                <input type="checkbox"
+                       x-bind:checked="all.every(id => $wire.availableOutlets.includes(id))"                       x-on:change="$wire.availableOutlets = $event.target.checked ? [...all] : []">
+                {{ __('Pilih semua outlet') }}
+            </label>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;padding-left:4px">@foreach ($outlets as $b)<label class="chk"><input type="checkbox" value="{{ $b->id }}" wire:model="availableOutlets"> {{ $b->name }}</label>@endforeach</div>
+            @if ($outlets->isNotEmpty())
+                <p class="hint" x-show="$wire.availableOutlets.length === 0" x-cloak style="color:var(--red)">{{ __('Tiada outlet ditick: produk ini tidak dijual di mana-mana outlet.') }}</p>
+            @endif
         </div>
 
         <div><button class="btn" type="submit" wire:loading.attr="disabled">{{ __('Simpan produk') }}</button></div>
