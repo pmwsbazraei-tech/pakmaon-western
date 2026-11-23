@@ -437,3 +437,8 @@ body.sf{display:block;font-size:16px}
   .sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto}
   .sortrow.opt-row .sr-actions{grid-column:2/-1;justify-content:flex-start}
 }
+/* Editor landing page: senarai produk ikut kategori, variant di bawah produk */
+.fe-cat{font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--muted);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px dashed var(--line2)}
+.fe-cat:first-of-type{margin-top:4px}
+.fe-prod{margin-bottom:6px}
+.fe-variants{margin:4px 0 8px 30px;padding:6px 10px;border-left:2px solid var(--line2);display:flex;flex-direction:column;gap:2px}

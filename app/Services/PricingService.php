@@ -27,6 +27,7 @@ class PricingService
         $priced = [];
 
         $allowedIds = $form->products()->pluck('products.id')->all();
+        $hiddenVariants = $form->exists ? $form->hiddenVariantIds() : [];
         $outletUnavailable = $outlet ? $outlet->unavailableProductIds() : [];
 
         // Gabungkan baris yang sama (produk + variasi)
@@ -57,6 +58,11 @@ class PricingService
             if ($product->has_variants) {
                 /** @var ProductVariant|null $variant */
                 $variant = $product->activeVariants->firstWhere('id', $line['variant_id']);
+                if ($variant && in_array($variant->id, $hiddenVariants, true)) {
+                    $errors[] = 'Satu item dalam cart tidak lagi tersedia dan telah dibuang.';
+
+                    continue;
+                }
                 if (! $variant) {
                     $errors[] = "Sila pilih variasi untuk {$product->name}.";
 

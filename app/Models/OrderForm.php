@@ -50,6 +50,18 @@ class OrderForm extends Model
         return $this->belongsToMany(Product::class)->withPivot('sort')->orderByPivot('sort');
     }
 
+    /** Variant produk yang tidak ditick (tidak dipaparkan) pada landing page ini. */
+    public function hiddenVariants(): BelongsToMany
+    {
+        return $this->belongsToMany(ProductVariant::class, 'order_form_hidden_variants');
+    }
+
+    /** @return list<int> */
+    public function hiddenVariantIds(): array
+    {
+        return $this->hiddenVariants()->pluck('product_variants.id')->map(fn ($i) => (int) $i)->all();
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

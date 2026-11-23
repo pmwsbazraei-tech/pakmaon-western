@@ -48,8 +48,27 @@
         <div class="card" id="products">
             <h2 class="sec" style="margin-top:0">Products</h2>
             <div class="hint" style="margin-top:0;margin-bottom:10px">{!! __('Tanda produk yang dipaparkan. Urus harga, variasi dan stok di :link.', ['link' => '<a href="'.e(route('tempahan.products')).'" wire:navigate style="text-decoration:underline">'.e(__('Produk & Stok')).'</a>']) !!}</div>
-            @forelse ($products as $p)
-                <label class="chk" style="margin-bottom:6px"><input type="checkbox" value="{{ $p->id }}" wire:model="productIds"> {{ $p->name }} <span class="hint" style="margin:0">· {{ $p->category?->name ?? __('Tiada kategori') }}@if ($p->is_hidden) · {{ __('tersembunyi') }} @endif</span></label>
+            @error('productIds')<div class="auth-error" style="margin-bottom:8px">{{ $message }}</div>@enderror
+            @forelse ($productGroups as $catName => $items)
+                <div class="fe-cat">{{ $catName }}</div>
+                @foreach ($items as $p)
+                    <div class="fe-prod" wire:key="fp-{{ $p->id }}">
+                        <label class="chk"><input type="checkbox" value="{{ $p->id }}" wire:model="productIds"> {{ $p->name }}@if ($p->is_hidden) <span class="hint" style="margin:0">· {{ __('tersembunyi') }}</span>@endif</label>
+                        @if ($p->has_variants && $p->activeVariants->isNotEmpty())
+                            {{-- Variant: hanya bila produk ditick --}}
+                            <div class="fe-variants" x-show="$wire.productIds.includes('{{ $p->id }}')" x-cloak>
+                                @foreach ($p->activeVariants->groupBy(fn ($v) => $v->variant?->group?->name ?? '') as $groupName => $vs)
+                                    @if ($groupName !== '' && $p->activeVariants->pluck('variant.group.name')->unique()->count() > 1)
+                                        <div class="hint" style="margin:4px 0 2px;font-weight:700">{{ $groupName }}</div>
+                                    @endif
+                                    @foreach ($vs as $v)
+                                        <label class="chk"><input type="checkbox" value="{{ $v->id }}" wire:model="shownVariantIds"> {{ $v->name }} <span class="hint" style="margin:0">· @sen($v->effectivePrice())</span></label>
+                                    @endforeach
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
             @empty
                 <div class="empty">{{ __('Belum ada produk.') }}</div>
             @endforelse
