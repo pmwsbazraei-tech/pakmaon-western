@@ -67,10 +67,11 @@ class BookingRulesTest extends PmwTestCase
         $this->assertSame(1, $this->toast()->fresh()->stock);
     }
 
-    public function test_purchase_limit_per_order(): void
+    public function test_old_purchase_limit_is_ignored(): void
     {
-        $this->toast()->update(['max_per_order' => 2]);
-        $this->postJson(route('form.store', 'pak-maon-western'), $this->purchasePayload())
-            ->assertStatus(422)->assertJsonValidationErrors('items');
+        // Had belian sudah dibuang; nilai lama dalam DB tidak lagi menyekat pesanan
+        $this->toast()->update(['max_per_order' => 1]);
+        $this->postJson(route('form.store', 'pak-maon-western'), $this->purchasePayload()) // kuantiti 3
+            ->assertSuccessful();
     }
 }

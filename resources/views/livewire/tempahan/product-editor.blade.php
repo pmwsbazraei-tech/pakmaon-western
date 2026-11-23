@@ -46,10 +46,8 @@
                 </details>
                 @error('p.image_url')<div class="auth-error">{{ $message }}</div>@enderror
             </div>
-            <div class="row" style="margin-top:12px">
-                <div><label>{{ __('Susunan') }}</label><input type="number" wire:model="p.sort"></div>
-                <div><label>{{ __('Had belian / pesanan') }}</label><input type="number" min="1" wire:model="p.max_per_order" placeholder="{{ __('Tiada had') }}"></div>
-                <div><label class="chk" style="margin-top:24px"><input type="checkbox" wire:model="p.is_hidden"> {{ __('Sembunyikan produk') }}</label></div>
+            <div style="margin-top:12px">
+                <label class="chk"><input type="checkbox" wire:model="p.is_hidden"> {{ __('Sembunyikan produk') }}</label>
             </div>
         </div>
 
@@ -66,7 +64,7 @@
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Variasi') }}</h2>
-            <div class="hint" style="margin-top:0;margin-bottom:10px">{{ __('Setiap variasi ada harga, SKU, stok dan had belian sendiri. Kosongkan stok untuk tiada had.') }}</div>
+            <div class="hint" style="margin-top:0;margin-bottom:10px">{{ __('Setiap variasi ada harga, SKU dan stok sendiri. Kosongkan stok untuk tiada had.') }}</div>
             @error('variants')<div class="auth-error">{{ $message }}</div>@enderror
             @foreach ($variants as $i => $v)
                 <div wire:key="v-{{ $i }}" style="background:var(--panel2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px">
@@ -78,7 +76,6 @@
                     <div class="row" style="margin-top:8px">
                         <div><label>{{ __('Promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="variants.{{ $i }}.promo_price"></div>
                         <div><label>{{ __('Stok') }}</label><input type="number" min="0" wire:model="variants.{{ $i }}.stock"></div>
-                        <div><label>{{ __('Had / pesanan') }}</label><input type="number" min="1" wire:model="variants.{{ $i }}.max_per_order"></div>
                         <div style="flex:0"><span class="del" wire:click="removeVariant({{ $i }})" title="{{ __('Buang variasi') }}">✕</span></div>
                     </div>
                 </div>

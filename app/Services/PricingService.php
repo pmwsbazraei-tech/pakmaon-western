@@ -64,11 +64,9 @@ class PricingService
                 }
                 $unit = $variant->effectivePrice();
                 $stock = $variant->stock;
-                $max = $variant->max_per_order ?? $product->max_per_order;
             } else {
                 $unit = $product->effectivePrice() ?? 0;
                 $stock = $product->stock;
-                $max = $product->max_per_order;
             }
 
             $label = $product->name.($variant ? " ({$variant->name})" : '');
@@ -89,11 +87,6 @@ class PricingService
                 $errors[] = "{$label}: hanya {$stock} lagi dalam stok.";
                 $qty = $stock;
             }
-            if ($max !== null && $qty > $max) {
-                $errors[] = "{$label}: had belian {$max} bagi setiap pesanan.";
-                $qty = $max;
-            }
-
             $priced[] = [
                 'product_id' => $product->id,
                 'variant_id' => $variant?->id,

@@ -96,7 +96,7 @@
                                             <div class="sf-qty" x-show="qtyOf(p.id, null) > 0">
                                                 <button type="button" class="sf-qbtn" @click="dec(p.id, null)" :aria-label="'Kurang ' + p.name">−</button>
                                                 <b x-text="qtyOf(p.id, null)"></b>
-                                                <button type="button" class="sf-qbtn" @click="add(p, null)" :disabled="p.max && qtyOf(p.id, null) >= p.max" :aria-label="'Tambah ' + p.name">+</button>
+                                                <button type="button" class="sf-qbtn" @click="add(p, null)" :aria-label="'Tambah ' + p.name">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -123,7 +123,7 @@
                                             <div class="sf-qty" x-show="qtyOf(p.id, v.id) > 0">
                                                 <button type="button" class="sf-qbtn" @click="dec(p.id, v.id)" :aria-label="'Kurang ' + v.name">−</button>
                                                 <b x-text="qtyOf(p.id, v.id)"></b>
-                                                <button type="button" class="sf-qbtn" @click="add(p, v)" :disabled="v.max && qtyOf(p.id, v.id) >= v.max" :aria-label="'Tambah ' + v.name">+</button>
+                                                <button type="button" class="sf-qbtn" @click="add(p, v)" :aria-label="'Tambah ' + v.name">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -165,7 +165,7 @@
                         <div class="sf-qty">
                             <button type="button" class="sf-qbtn" @click="dec(l.product_id, l.variant_id)" aria-label="Kurang">−</button>
                             <b x-text="l.qty"></b>
-                            <button type="button" class="sf-qbtn" @click="inc(l)" :disabled="l.max && l.qty >= l.max" aria-label="Tambah">+</button>
+                            <button type="button" class="sf-qbtn" @click="inc(l)" aria-label="Tambah">+</button>
                         </div>
                         <button type="button" class="sf-linkdel" @click="remove(l.key)">Buang</button>
                     </div>
@@ -355,13 +355,12 @@ function pmwShop(cfg) {
         add(p, v) {
             const k = this.key(p.id, v ? v.id : null);
             const l = this.cart.find(l => l.key === k);
-            const max = v ? (v.max || p.max) : p.max;
-            if (l) { if (!max || l.qty < max) l.qty++; }
-            else this.cart.push({ key: k, product_id: p.id, variant_id: v ? v.id : null, name: p.name, variant: v ? v.name : null, price: v ? v.price : p.price, qty: 1, max: max || null });
+            if (l) l.qty++;
+            else this.cart.push({ key: k, product_id: p.id, variant_id: v ? v.id : null, name: p.name, variant: v ? v.name : null, price: v ? v.price : p.price, qty: 1 });
             this.flash('Ditambah ke cart');
             this.requote();
         },
-        inc(l) { if (!l.max || l.qty < l.max) l.qty++; this.requote(); },
+        inc(l) { l.qty++; this.requote(); },
         dec(pid, vid) {
             const k = this.key(pid, vid);
             const l = this.cart.find(l => l.key === k);

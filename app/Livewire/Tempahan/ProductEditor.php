@@ -45,13 +45,12 @@ class ProductEditor extends Component
             'name' => $m->name ?? '', 'sku' => $m->sku ?? '', 'product_category_id' => (string) ($m->product_category_id ?? ''),
             'new_category' => '', 'description' => $m->description ?? '', 'image_url' => $m->image_url ?? '',
             'menu_id' => (string) ($m->menu_id ?? ''), 'price' => $c($m->price_cents), 'promo_price' => $c($m->promo_price_cents),
-            'stock' => $m->stock !== null ? (string) $m->stock : '', 'max_per_order' => (string) ($m->max_per_order ?? ''),
-            'sort' => (string) ($m->sort ?? 0), 'is_hidden' => (bool) $m->is_hidden,
+            'stock' => $m->stock !== null ? (string) $m->stock : '',
+            'is_hidden' => (bool) $m->is_hidden,
         ];
         $this->variants = $this->product ? $this->product->variants()->where('is_active', true)->get()->map(fn ($v) => [
             'id' => $v->id, 'name' => $v->name, 'sku' => $v->sku ?? '', 'price' => $c($v->price_cents),
             'promo_price' => $c($v->promo_price_cents), 'stock' => $v->stock !== null ? (string) $v->stock : '',
-            'max_per_order' => (string) ($v->max_per_order ?? ''),
         ])->all() : [];
         $this->unavailable = $this->product
             ? DB::table('outlet_product')->where('product_id', $this->product->id)->where('is_available', false)->pluck('outlet_id')->map(fn ($i) => (string) $i)->all()
@@ -72,7 +71,7 @@ class ProductEditor extends Component
 
     public function addVariant(): void
     {
-        $this->variants[] = ['id' => null, 'name' => '', 'sku' => '', 'price' => '', 'promo_price' => '', 'stock' => '', 'max_per_order' => ''];
+        $this->variants[] = ['id' => null, 'name' => '', 'sku' => '', 'price' => '', 'promo_price' => '', 'stock' => ''];
     }
 
     public function removeVariant(int $i): void
@@ -98,13 +97,10 @@ class ProductEditor extends Component
             'p.price' => ['nullable', 'numeric', 'min:0'],
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
-            'p.max_per_order' => ['nullable', 'integer', 'min:1'],
-            'p.sort' => ['nullable', 'integer'],
             'variants.*.name' => ['nullable', 'string', 'max:120'],
             'variants.*.price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.promo_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock' => ['nullable', 'integer', 'min:0'],
-            'variants.*.max_per_order' => ['nullable', 'integer', 'min:1'],
             'unavailable.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
         ], [], ['p.name' => __('nama'), 'p.price' => __('harga')]);
 
@@ -143,9 +139,14 @@ class ProductEditor extends Component
                 'price_cents' => $hasVariants ? null : Money::toCents($this->p['price']),
                 'promo_price_cents' => $hasVariants ? null : Money::toCents($this->p['promo_price']),
                 'stock' => $hasVariants ? null : $nul($this->p['stock']),
-                'max_per_order' => $nul($this->p['max_per_order']), 'sort' => (int) ($this->p['sort'] ?: 0),
+                'max_per_order' => null, // had belian dibuang dari sistem
                 'is_hidden' => (bool) $this->p['is_hidden'],
-            ])->save();
+            ]);
+            // Susunan diurus dengan anak panah di senarai Produk & Stok; produk baharu diletak di hujung kategori
+            if (! $product->exists || $product->isDirty('product_category_id')) {
+                $product->sort = (Product::where('user_id', $owner->id)->where('product_category_id', $categoryId)->whereKeyNot($product->id ?? 0)->max('sort') ?? 0) + 1;
+            }
+            $product->save();
             $this->logStock($product->id, null, $oldStock, $product->stock);
 
             $keep = [];
@@ -156,7 +157,7 @@ class ProductEditor extends Component
                 $variant->fill([
                     'name' => $v['name'], 'sku' => $nul($v['sku'] ?? ''), 'price_cents' => Money::toCents($v['price']),
                     'promo_price_cents' => Money::toCents($v['promo_price'] ?? ''), 'stock' => $nul($v['stock'] ?? ''),
-                    'max_per_order' => $nul($v['max_per_order'] ?? ''), 'is_active' => true, 'sort' => $i,
+                    'max_per_order' => null, 'is_active' => true, 'sort' => $i,
                 ])->save();
                 $this->logStock($product->id, $variant->id, $old, $variant->stock);
                 $keep[] = $variant->id;

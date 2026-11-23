@@ -41,10 +41,9 @@ class FormController extends Controller
                 'regular_price' => $p->has_variants ? null : $p->price_cents,
                 'from_price' => $p->has_variants ? $p->activeVariants->min(fn ($v) => $v->effectivePrice()) : null,
                 'sold_out' => $p->isSoldOut(),
-                'max' => $p->max_per_order,
                 'variants' => $p->activeVariants->map(fn ($v) => [
                     'id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice(), 'regular_price' => $v->price_cents,
-                    'sold_out' => $v->stock !== null && $v->stock <= 0, 'max' => $v->max_per_order,
+                    'sold_out' => $v->stock !== null && $v->stock <= 0,
                 ])->values(),
             ])->values());
 
