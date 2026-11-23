@@ -31,12 +31,24 @@
                         @endif
                     </div>
                     <div style="flex:1;min-width:220px"
-                         x-data="{ uploading: false, progress: 0, failed: false }"
-                         x-on:livewire-upload-start="uploading = true; progress = 0; failed = false"
-                         x-on:livewire-upload-progress="progress = $event.detail.progress"
-                         x-on:livewire-upload-finish="uploading = false; progress = 100"
-                         x-on:livewire-upload-cancel="uploading = false"
-                         x-on:livewire-upload-error="uploading = false; failed = true">
+                         x-data="{
+                            uploading: false, progress: 0, failed: false, lastMove: 0, timer: null,
+                            start() { this.uploading = true; this.progress = 0; this.failed = false; this.lastMove = Date.now(); this.watch(); },
+                            moved(p) { if (p !== this.progress) { this.progress = p; this.lastMove = Date.now(); } },
+                            stop(ok) { this.uploading = false; this.failed = !ok; clearInterval(this.timer); },
+                            {{-- Pelayan kadang-kadang menolak fail besar tanpa respons (cth. had 413); jangan biar bar tersangkut --}}
+                            watch() {
+                                clearInterval(this.timer);
+                                this.timer = setInterval(() => {
+                                    if (this.uploading && Date.now() - this.lastMove > 20000) { $wire.cancelUpload('photo'); this.stop(false); }
+                                }, 2000);
+                            },
+                         }"
+                         x-on:livewire-upload-start="start()"
+                         x-on:livewire-upload-progress="moved($event.detail.progress)"
+                         x-on:livewire-upload-finish="progress = 100; stop(true)"
+                         x-on:livewire-upload-cancel="uploading = false; clearInterval(timer)"
+                         x-on:livewire-upload-error="stop(false)">
                         <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" x-bind:disabled="uploading">
                         {{-- Bar kemajuan muat naik --}}
                         <div x-show="uploading" x-cloak style="margin-top:8px" role="progressbar" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="progress">
@@ -47,7 +59,7 @@
                                 <div style="height:100%;background:var(--accent);border-radius:99px;transition:width .2s ease" x-bind:style="{ width: progress + '%' }"></div>
                             </div>
                         </div>
-                        <div x-show="failed" x-cloak class="auth-error">{{ __('Muat naik gagal. Pastikan saiz fail tidak melebihi 10MB dan cuba lagi.') }}</div>
+                        <div x-show="failed" x-cloak class="auth-error">{{ __('Muat naik gagal atau terhenti. Fail mungkin melebihi had saiz pelayan; cuba gambar yang lebih kecil.') }}</div>
                         <p class="hint" style="margin:4px 0 0">{{ __('JPG, PNG atau WEBP, maksimum 10MB. Gambar dipaparkan kepada pelanggan selepas anda simpan.') }}</p>
                         @if ($preview)
                             <button type="button" class="btn danger sm" style="margin-top:6px" wire:click="removePhoto">{{ __('Buang gambar') }}</button>

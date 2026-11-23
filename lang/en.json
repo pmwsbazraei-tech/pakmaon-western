@@ -193,7 +193,7 @@
     "Mesej WhatsApp": "WhatsApp message",
     "Mesej popup (kosong = tiada popup)": "Popup message (empty = no popup)",
     "Mesej semasa maintenance": "Maintenance message",
-    "Muat naik gagal. Pastikan saiz fail tidak melebihi 10MB dan cuba lagi.": "Upload failed. Make sure the file is no larger than 10MB and try again.",
+    "Muat naik gagal atau terhenti. Fail mungkin melebihi had saiz pelayan; cuba gambar yang lebih kecil.": "Upload failed or stalled. The file may exceed the server size limit; try a smaller image.",
     "Nama": "Name",
     "Nama group": "Group name",
     "Nama, nombor telefon (format Malaysia) dan nombor order wajib. Emel pilihan. Pelanggan boleh pilih \"Ingat maklumat saya\" pada peranti sendiri.": "Name, phone number (Malaysian format) and order number are required. Email is optional. Customers can choose \"Remember my details\" on their own device.",
