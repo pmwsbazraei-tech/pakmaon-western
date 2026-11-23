@@ -22,7 +22,7 @@
             <h2 class="sec" style="margin-top:0">{{ __('Perlu tindakan') }} <span class="badge {{ $needsAction->count() ? 'warn' : 'ok' }}">{{ $needsAction->count() }}</span></h2>
             @forelse ($needsAction as $o)
                 <a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="display:block;padding:11px 0;border-bottom:1px solid var(--line)">
-                    <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ $o->reference }}</b><span class="hint" style="margin:0">{{ $o->outlet?->name }}</span></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ $o->displayReference() }}</b><span class="hint" style="margin:0">{{ $o->outlet?->name }}</span></div>
                     <div style="font-size:13px">{{ $o->customer_name }} · {{ $o->booking_at ? $o->booking_at->format('j M, g:i A').' · '.__(':count tetamu', ['count' => $o->guests]) : __('Pesanan produk') }}</div>
                     <div style="margin-top:5px">@include('livewire.tempahan._status', ['o' => $o])</div>
                 </a>
@@ -35,7 +35,7 @@
             @forelse ($upcoming as $o)
                 <a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="display:block;padding:11px 0;border-bottom:1px solid var(--line)">
                     <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ $o->booking_at->translatedFormat('D j M, g:i A') }}</b><span class="hint" style="margin:0">{{ __(':count tetamu', ['count' => $o->guests]) }}</span></div>
-                    <div style="font-size:13px">{{ $o->customer_name }} · {{ $o->outlet?->name }} · {{ $o->reference }}</div>
+                    <div style="font-size:13px">{{ $o->customer_name }} · {{ $o->outlet?->name }} · {{ $o->displayReference() }}</div>
                 </a>
             @empty
                 <div class="empty zero">{{ __('Tiada booking akan datang.') }}</div>

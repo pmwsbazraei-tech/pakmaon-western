@@ -24,7 +24,7 @@
                     <div style="display:grid;gap:10px">
                         @foreach ($list as $o)
                             <div class="bk-item {{ $o->booking_status === 'confirmed' ? 'ok' : ($o->booking_status === 'cancelled' ? 'bad' : 'warn') }}">
-                                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate><b style="text-decoration:underline">{{ $o->customer_name }}</b></a><span class="hint" style="margin:0">{{ $o->reference }} · {{ __(':count tetamu', ['count' => $o->guests]) }}</span></div>
+                                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate><b style="text-decoration:underline">{{ $o->customer_name }}</b></a><span class="hint" style="margin:0">{{ $o->displayReference() }} · {{ __(':count tetamu', ['count' => $o->guests]) }}</span></div>
                                 <div style="margin:4px 0">@include('livewire.tempahan._status', ['o' => $o])</div>
                                 @forelse ($o->items as $i)
                                     <div style="font-size:13px">{{ $i->quantity }} × {{ $i->product_name }}@if ($i->variant_name) ({{ $i->variant_name }})@endif</div>

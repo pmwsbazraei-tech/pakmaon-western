@@ -7,7 +7,7 @@
 
     <div class="card" style="margin-bottom:14px">
         <div class="row">
-            <div style="flex:2"><label>{{ __('Cari') }}</label><input wire:model.live.debounce.400ms="q" placeholder="{{ __('Rujukan, nama, telefon') }}"></div>
+            <div style="flex:2"><label>{{ __('Cari') }}</label><input wire:model.live.debounce.400ms="q" placeholder="{{ __('No. order, rujukan, nama, telefon') }}"></div>
             <div><label>{{ __('Jenis') }}</label><select wire:model.live="type"><option value="">{{ __('Semua') }}</option><option value="booking">{{ __('Booking') }}</option><option value="purchase">{{ __('Pembelian') }}</option></select></div>
             <div><label>{{ __('Outlet') }}</label><select wire:model.live="outlet"><option value="">{{ __('Semua') }}</option>@foreach ($outlets as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach</select></div>
             <div><label>{{ __('Landing page') }}</label><select wire:model.live="form"><option value="">{{ __('Semua') }}</option>@foreach ($forms as $f)<option value="{{ $f->id }}">{{ $f->title }}</option>@endforeach</select></div>
@@ -36,9 +36,9 @@
                 <tbody>
                     @forelse ($orders as $o)
                         <tr wire:key="o-{{ $o->id }}">
-                            @if ($canDelete)<td><input type="checkbox" wire:model.live="selected" value="{{ $o->id }}" aria-label="{{ __('Pilih :ref', ['ref' => $o->reference]) }}"></td>@endif
-                            <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->reference }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? __('Booking') : __('Pembelian') }}</div></td>
-                            <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}@if ($o->customer_order_no) · {{ __('No. order') }} {{ $o->customer_order_no }}@endif</div></td>
+                            @if ($canDelete)<td><input type="checkbox" wire:model.live="selected" value="{{ $o->id }}" aria-label="{{ __('Pilih :ref', ['ref' => $o->displayReference()]) }}"></td>@endif
+                            <td><a href="{{ route('tempahan.orders.show', $o) }}" wire:navigate style="font-weight:700;text-decoration:underline">{{ $o->displayReference() }}</a><div class="hint" style="margin:0">{{ $o->isBooking() ? __('Booking') : __('Pembelian') }}@if ($o->customer_order_no) · {{ $o->reference }}@endif</div></td>
+                            <td>{{ $o->customer_name }}<div class="hint" style="margin:0">{{ Phone::display($o->customer_phone) }}</div></td>
                             <td>{{ $o->outlet?->name }}</td>
                             <td style="white-space:nowrap">{{ $o->booking_at ? $o->booking_at->format('j/n/Y g:i A').' · '.__(':count org', ['count' => $o->guests]) : __(Order::FULFILLMENTS[$o->fulfillment]) }}</td>
                             <td class="num">@sen($o->total_cents)@if ($o->deposit_cents && ! $o->isPaid())<div class="hint" style="margin:0;white-space:nowrap">{{ __('Deposit') }} @sen($o->deposit_cents) · {{ __('Baki') }} @sen($o->balanceCents())</div>@endif</td>

@@ -104,6 +104,12 @@ class Order extends Model
         return route('order.show', ['reference' => $this->reference, 't' => $this->public_token]);
     }
 
+    /** Rujukan untuk paparan: nombor order yang diisi pelanggan, atau rujukan sistem jika tiada. */
+    public function displayReference(): string
+    {
+        return filled($this->customer_order_no) ? $this->customer_order_no : $this->reference;
+    }
+
     /** Baki yang perlu dibayar (0 jika sudah dibayar penuh). */
     public function balanceCents(): int
     {
@@ -138,7 +144,7 @@ class Order extends Model
                 $term = trim($f['q']);
                 $digits = preg_replace('/\D/', '', $term);
                 $q->where(function ($w) use ($term, $digits) {
-                    $w->where('reference', 'like', "%{$term}%")->orWhere('customer_name', 'like', "%{$term}%");
+                    $w->where('reference', 'like', "%{$term}%")->orWhere('customer_order_no', 'like', "%{$term}%")->orWhere('customer_name', 'like', "%{$term}%");
                     if (strlen($digits) >= 4) {
                         $w->orWhere('customer_phone', 'like', '%'.ltrim($digits, '0').'%');
                     }

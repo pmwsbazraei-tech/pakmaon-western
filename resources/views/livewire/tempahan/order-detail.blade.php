@@ -3,7 +3,8 @@
     <div class="pagehead">
         <div>
             <a href="{{ route('tempahan.orders') }}" wire:navigate class="hint" style="text-decoration:underline">← {{ __('Semua pesanan') }}</a>
-            <h1 style="margin-top:4px">{{ $order->reference }}</h1>
+            <h1 style="margin-top:4px">{{ $order->displayReference() }}</h1>
+            @if ($order->customer_order_no)<div class="hint" style="margin:0">{{ __('Rujukan sistem') }}: {{ $order->reference }}</div>@endif
             <div style="margin-top:6px">@include('livewire.tempahan._status', ['o' => $order])</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -162,7 +163,7 @@
                     @else
                         <p class="hint" style="margin-top:0">{{ __('Buang rekod ini secara kekal (contoh: pesanan ujian atau spam). Stok akan dipulangkan.') }}</p>
                         <button class="btn danger sm" wire:click="deleteOrder"
-                                wire:confirm="{{ __('Padam pesanan :ref secara kekal? Tindakan ini tak boleh dibatalkan.', ['ref' => $order->reference]) }}">{{ __('Padam pesanan') }}</button>
+                                wire:confirm="{{ __('Padam pesanan :ref secara kekal? Tindakan ini tak boleh dibatalkan.', ['ref' => $order->displayReference()]) }}">{{ __('Padam pesanan') }}</button>
                     @endif
                 </div>
             @endif
