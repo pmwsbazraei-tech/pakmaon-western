@@ -9,15 +9,20 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /** Produk jualan online: harga, promosi, SKU, stok, had belian, variasi, ketersediaan outlet. */
 #[Layout('layouts.app')]
 class ProductEditor extends Component
 {
-    use InteractsWithShop;
+    use InteractsWithShop, WithFileUploads;
+
+    /** Gambar produk yang dimuat naik (disimpan ke storage, dipapar di halaman pelanggan). */
+    public $photo = null;
 
     public ?Product $product = null;
 
@@ -53,6 +58,18 @@ class ProductEditor extends Component
             : [];
     }
 
+    public function updatedPhoto(): void
+    {
+        $this->validateOnly('photo', ['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']], [], ['photo' => __('gambar')]);
+    }
+
+    /** Buang gambar (pratonton baharu atau gambar sedia ada). */
+    public function removePhoto(): void
+    {
+        $this->photo = null;
+        $this->p['image_url'] = '';
+    }
+
     public function addVariant(): void
     {
         $this->variants[] = ['id' => null, 'name' => '', 'sku' => '', 'price' => '', 'promo_price' => '', 'stock' => '', 'max_per_order' => ''];
@@ -72,7 +89,12 @@ class ProductEditor extends Component
             'p.sku' => ['nullable', 'string', 'max:60', Rule::unique('products', 'sku')->where('user_id', $owner->id)->ignore($this->product?->id)],
             'p.product_category_id' => ['nullable', Rule::in(ProductCategory::where('user_id', $owner->id)->pluck('id')->map(fn ($i) => (string) $i)->all())],
             'p.menu_id' => ['nullable', Rule::in(Menu::whereIn('outlet_id', $owner->outlets()->pluck('id'))->pluck('id')->map(fn ($i) => (string) $i)->all())],
-            'p.image_url' => ['nullable', 'url', 'max:500'],
+            'p.image_url' => ['nullable', 'max:500', function ($attr, $value, $fail) {
+                if (! str_starts_with($value, Product::UPLOAD_PREFIX) && ! filter_var($value, FILTER_VALIDATE_URL)) {
+                    $fail(__('URL gambar tidak sah.'));
+                }
+            }],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'p.price' => ['nullable', 'numeric', 'min:0'],
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
@@ -93,6 +115,13 @@ class ProductEditor extends Component
         }
         if ($variants->contains(fn ($v) => ($v['price'] ?? '') === '')) {
             return $this->addError('variants', __('Setiap variasi perlu ada harga.'));
+        }
+
+        // Gambar dimuat naik menggantikan URL gambar
+        $oldImage = $this->product?->image_url;
+        if ($this->photo) {
+            $this->p['image_url'] = Product::UPLOAD_PREFIX.basename($this->photo->store('products', 'public'));
+            $this->photo = null;
         }
 
         $product = DB::transaction(function () use ($owner, $variants, $hasVariants) {
@@ -142,6 +171,11 @@ class ProductEditor extends Component
 
             return $product;
         });
+
+        // Padam fail gambar lama yang telah diganti / dibuang
+        if ($oldImage && $oldImage !== $product->image_url && str_starts_with($oldImage, Product::UPLOAD_PREFIX)) {
+            Storage::disk('public')->delete('products/'.basename($oldImage));
+        }
 
         if (! $this->product) {
             return $this->redirectRoute('tempahan.products.edit', $product, navigate: true);

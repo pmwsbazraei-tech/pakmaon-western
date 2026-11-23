@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Produk jualan online (katalog landing page), milik pemilik dan dikongsi semua outletnya. */
 class Product extends Model
 {
+    /** Gambar yang dimuat naik disimpan sebagai /media/products/{fail}, dihidang oleh laluan product.image. */
+    public const UPLOAD_PREFIX = '/media/products/';
+
     protected $guarded = ['id'];
 
     protected $casts = ['has_variants' => 'boolean', 'is_hidden' => 'boolean'];

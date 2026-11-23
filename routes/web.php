@@ -18,6 +18,7 @@ use App\Livewire\Settings;
 use App\Livewire\StaffManager;
 use App\Livewire\Tempahan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
 
@@ -87,6 +88,14 @@ Route::get('p/{slug}', [Shop\FormController::class, 'show'])->name('form.show');
 Route::post('p/{slug}/quote', [Shop\FormController::class, 'quote'])->middleware('throttle:120,1')->name('form.quote');
 Route::get('p/{slug}/slots', [Shop\FormController::class, 'slots'])->middleware('throttle:120,1')->name('form.slots');
 Route::post('p/{slug}/orders', [Shop\FormController::class, 'store'])->middleware('throttle:20,1')->name('form.store');
+
+// Gambar produk yang dimuat naik (tanpa perlu storage:link)
+Route::get('media/products/{file}', function (string $file) {
+    $disk = Storage::disk('public');
+    abort_unless($disk->exists('products/'.$file), 404);
+
+    return $disk->response('products/'.$file, null, ['Cache-Control' => 'public, max-age=2592000']);
+})->where('file', '[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)')->name('product.image');
 
 // Status pesanan pelanggan (dilindungi token rawak dalam URL)
 Route::get('o/{reference}', [Shop\OrderController::class, 'show'])->name('order.show');

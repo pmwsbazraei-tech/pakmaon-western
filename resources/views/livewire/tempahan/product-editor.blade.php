@@ -19,7 +19,33 @@
                 <div><label>{{ __('Pautan Menu Food Cost (pilihan)') }}</label><select wire:model="p.menu_id"><option value="">{{ __('Tiada') }}</option>@foreach ($menus as $m)<option value="{{ $m->id }}">{{ $m->name }} ({{ $m->outlet->name }})</option>@endforeach</select></div>
             </div>
             <div style="margin-top:12px"><label>{{ __('Penerangan') }}</label><textarea wire:model="p.description" rows="2"></textarea></div>
-            <div style="margin-top:12px"><label>{{ __('URL gambar') }}</label><input wire:model="p.image_url" placeholder="https://">@error('p.image_url')<div class="auth-error">{{ $message }}</div>@enderror</div>
+            <div style="margin-top:12px">
+                <label>{{ __('Gambar produk') }}</label>
+                @php $preview = $photo && method_exists($photo, 'temporaryUrl') && ! $errors->has('photo') ? $photo->temporaryUrl() : ($p['image_url'] ?: null); @endphp
+                <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+                    <div style="width:96px;height:96px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--panel2);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        @if ($preview)
+                            <img src="{{ $preview }}" alt="" style="width:100%;height:100%;object-fit:cover">
+                        @else
+                            <span class="hint" style="margin:0">{{ __('Tiada gambar') }}</span>
+                        @endif
+                    </div>
+                    <div style="flex:1;min-width:220px">
+                        <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp">
+                        <div wire:loading wire:target="photo" class="hint">{{ __('Memuat naik…') }}</div>
+                        <p class="hint" style="margin:4px 0 0">{{ __('JPG, PNG atau WEBP, maksimum 4MB. Gambar dipaparkan kepada pelanggan selepas anda simpan.') }}</p>
+                        @if ($preview)
+                            <button type="button" class="btn danger sm" style="margin-top:6px" wire:click="removePhoto">{{ __('Buang gambar') }}</button>
+                        @endif
+                        @error('photo')<div class="auth-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <details style="margin-top:8px" @if ($p['image_url'] && ! str_starts_with($p['image_url'], \App\Models\Product::UPLOAD_PREFIX)) open @endif>
+                    <summary class="hint" style="cursor:pointer">{{ __('Atau guna URL gambar') }}</summary>
+                    <input wire:model.blur="p.image_url" placeholder="https://" style="margin-top:6px">
+                </details>
+                @error('p.image_url')<div class="auth-error">{{ $message }}</div>@enderror
+            </div>
             <div class="row" style="margin-top:12px">
                 <div><label>{{ __('Susunan') }}</label><input type="number" wire:model="p.sort"></div>
                 <div><label>{{ __('Had belian / pesanan') }}</label><input type="number" min="1" wire:model="p.max_per_order" placeholder="{{ __('Tiada had') }}"></div>
