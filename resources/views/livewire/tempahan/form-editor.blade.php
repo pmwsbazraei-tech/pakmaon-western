@@ -9,7 +9,7 @@
 
     <nav class="sec-tabs">
         @foreach (['overview' => 'Overview', 'options' => 'Options', 'products' => 'Products', 'purchasing' => 'Purchasing & SST', 'fulfillment' => 'Pickup/Delivery', 'slots' => 'Date & Time', 'details' => 'Customer Details', 'whatsapp' => 'WhatsApp Message', 'payment' => 'Payment Gateway', 'popup' => 'Welcome Popup', 'maintenance' => 'Maintenance'] as $id => $label)
-            <a href="#{{ $id }}">{{ $label }}</a>
+            <a href="#{{ $id }}" @if ($id === 'fulfillment') x-show="$wire.f.purpose_purchase && ! $wire.f.simple_form" @endif>{{ $label }}</a>
         @endforeach
     </nav>
 
@@ -63,7 +63,8 @@
             <div class="hint">{{ __('Kupon diskaun: Fasa 2.') }}</div>
         </div>
 
-        <div class="card" id="fulfillment">
+        {{-- Hanya relevan untuk pembelian produk (borang ringkas sentiasa pickup) --}}
+        <div class="card" id="fulfillment" x-show="$wire.f.purpose_purchase && ! $wire.f.simple_form" x-cloak>
             <h2 class="sec" style="margin-top:0">{{ __('Pickup / Delivery (pembelian produk)') }}</h2>
             <label class="chk"><input type="checkbox" wire:model="f.allow_pickup"> {{ __('Benarkan pickup di outlet') }}</label>
             <label class="chk" style="margin-top:8px"><input type="checkbox" wire:model="f.allow_delivery"> {{ __('Benarkan delivery (alamat diminta)') }}</label>
