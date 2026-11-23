@@ -30,9 +30,24 @@
                             <span class="hint" style="margin:0">{{ __('Tiada gambar') }}</span>
                         @endif
                     </div>
-                    <div style="flex:1;min-width:220px">
-                        <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp">
-                        <div wire:loading wire:target="photo" class="hint">{{ __('Memuat naik…') }}</div>
+                    <div style="flex:1;min-width:220px"
+                         x-data="{ uploading: false, progress: 0, failed: false }"
+                         x-on:livewire-upload-start="uploading = true; progress = 0; failed = false"
+                         x-on:livewire-upload-progress="progress = $event.detail.progress"
+                         x-on:livewire-upload-finish="uploading = false; progress = 100"
+                         x-on:livewire-upload-cancel="uploading = false"
+                         x-on:livewire-upload-error="uploading = false; failed = true">
+                        <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" x-bind:disabled="uploading">
+                        {{-- Bar kemajuan muat naik --}}
+                        <div x-show="uploading" x-cloak style="margin-top:8px" role="progressbar" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="progress">
+                            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+                                <span>{{ __('Memuat naik…') }}</span><b x-text="progress + '%'"></b>
+                            </div>
+                            <div style="height:8px;border-radius:99px;background:var(--line);overflow:hidden">
+                                <div style="height:100%;background:var(--accent);border-radius:99px;transition:width .2s ease" x-bind:style="{ width: progress + '%' }"></div>
+                            </div>
+                        </div>
+                        <div x-show="failed" x-cloak class="auth-error">{{ __('Muat naik gagal. Pastikan saiz fail tidak melebihi 10MB dan cuba lagi.') }}</div>
                         <p class="hint" style="margin:4px 0 0">{{ __('JPG, PNG atau WEBP, maksimum 10MB. Gambar dipaparkan kepada pelanggan selepas anda simpan.') }}</p>
                         @if ($preview)
                             <button type="button" class="btn danger sm" style="margin-top:6px" wire:click="removePhoto">{{ __('Buang gambar') }}</button>
