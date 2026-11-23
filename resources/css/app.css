@@ -442,3 +442,6 @@ body.sf{display:block;font-size:16px}
 .fe-cat:first-of-type{margin-top:4px}
 .fe-prod{margin-bottom:6px}
 .fe-variants{margin:4px 0 8px 30px;padding:6px 10px;border-left:2px solid var(--line2);display:flex;flex-direction:column;gap:2px}
+.linked-products{padding:10px 14px 10px 50px;background:var(--panel);border-bottom:1px solid var(--line)}
+.linked-products ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.linked-products a{font-weight:700;text-decoration:underline}

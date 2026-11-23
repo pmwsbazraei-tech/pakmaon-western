@@ -104,7 +104,9 @@ class VariantLibraryTest extends PmwTestCase
 
     public function test_variants_page_shows_groups_and_is_in_sidebar(): void
     {
-        $this->actingAs($this->owner)->get(route('tempahan.variants'))->assertOk()->assertSee('Pilihan Ayam')->assertSee('Chicken Grill');
+        $this->actingAs($this->owner)->get(route('tempahan.variants'))->assertOk()->assertSee('Pilihan Ayam')->assertSee('Chicken Grill')
+            // Butang lihat produk + pautan ke produk yang menggunakan group
+            ->assertSee('Lihat produk (1)')->assertSee(route('tempahan.products.edit', $this->talam()), false);
         $this->actingAs($this->owner)->get(route('dashboard'))->assertSee(route('tempahan.variants'), false);
     }
 }

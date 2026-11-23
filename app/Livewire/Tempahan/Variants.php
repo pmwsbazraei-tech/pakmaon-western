@@ -203,7 +203,7 @@ class Variants extends Component
     public function render()
     {
         return view('livewire.tempahan.variants', [
-            'groups' => $this->groups()->with('activeVariants')->withCount('products')->get(),
+            'groups' => $this->groups()->with(['activeVariants', 'products' => fn ($q) => $q->with('category')->orderBy('name')])->withCount('products')->get(),
         ]);
     }
 }

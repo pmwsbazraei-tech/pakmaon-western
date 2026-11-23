@@ -31,19 +31,41 @@
         @foreach ($groups as $g)
             <section class="sortgroup" wire:key="g-{{ $g->id }}" data-sort-id="{{ $g->id }}"
                      x-data="collapsible('vg-{{ $g->id }}')" x-on:pmw-fold-all.window="open = $event.detail">
+                <div x-data="{ showProducts: false }">
                 <header class="sortgroup-head">
                     <span class="drag-handle group-handle" title="{{ __('Seret untuk susun') }}" aria-label="{{ __('Seret :name', ['name' => $g->name]) }}">⠿</span>
                     <button type="button" class="fold" x-on:click="toggle()" x-bind:aria-expanded="open">
                         <span class="chev" x-bind:class="{ 'shut': !open }">▾</span>
                         <b>{{ $g->name }}</b>
-                        <span class="hint" style="margin:0">{{ __(':options pilihan · digunakan oleh :count produk', ['options' => $g->activeVariants->count(), 'count' => $g->products_count]) }}</span>
+                        <span class="hint" style="margin:0;white-space:nowrap">{{ __(':count pilihan', ['count' => $g->activeVariants->count()]) }}</span>
                     </button>
                     <div class="actions">
+                        <button type="button" class="btn sec sm" x-on:click="showProducts = ! showProducts" x-bind:aria-expanded="showProducts">
+                            {{ __('Lihat produk (:count)', ['count' => $g->products_count]) }}
+                        </button>
                         <button type="button" class="btn sec sm" wire:click="editGroup({{ $g->id }})">{{ __('Namakan semula') }}</button>
                         <button type="button" class="btn danger sm"
                                 x-on:click="confirmTwice(@js($g->products_count ? __('Padam group :name? Ia akan dibuang dari :count produk.', ['name' => $g->name, 'count' => $g->products_count]) : __('Padam group :name?', ['name' => $g->name]))) && $wire.deleteGroup({{ $g->id }})">{{ __('Padam') }}</button>
                     </div>
                 </header>
+
+                {{-- Produk yang menanda group ini --}}
+                <div class="linked-products" x-show="showProducts" x-collapse.duration.150ms x-cloak>
+                    @if ($g->products->isEmpty())
+                        <span class="hint" style="margin:0">{{ __('Belum ada produk menggunakan group ini. Tick group ini di editor produk.') }}</span>
+                    @else
+                        <b style="font-size:13px">{{ __('Produk yang menggunakan :name:', ['name' => $g->name]) }}</b>
+                        <ul>
+                            @foreach ($g->products as $p)
+                                <li>
+                                    <a href="{{ route('tempahan.products.edit', $p) }}" wire:navigate>{{ $p->name }}</a>
+                                    <span class="hint" style="margin:0">· {{ $p->category?->name ?? __('Tanpa kategori') }}@if ($p->is_hidden) · {{ __('tersembunyi') }}@endif</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+                </div>
 
                 <div x-show="open" x-collapse.duration.150ms>
                     <div class="sortrows" x-data="sortable('sortOptions', {{ $g->id }})">
