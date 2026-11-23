@@ -7,7 +7,7 @@ use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
-use App\Models\Variant;
+use App\Models\VariantGroup;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -57,10 +57,12 @@ class TempahanDemoSeeder extends Seeder
             'user_id' => $owner->id, 'product_category_id' => $set->id, 'name' => 'Set Talam Dua Muka Spaghetti Chicken',
             'sku' => 'PMW-TALAM-SPG', 'description' => 'Set kongsi spaghetti dengan pilihan ayam.', 'has_variants' => true, 'sort' => 1,
         ]);
+        $ayam = VariantGroup::create(['user_id' => $owner->id, 'name' => 'Pilihan Ayam', 'sort' => 0]);
         foreach ([['Chicken Crispy Breast', 5830, 'PMW-TALAM-SPG-CB'], ['Chicken Grill', 6255, 'PMW-TALAM-SPG-CG'], ['Crispy Chicken Thigh', 6470, 'PMW-TALAM-SPG-CT']] as $i => [$n, $p, $sku]) {
-            $lib = Variant::create(['user_id' => $owner->id, 'name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
-            $talam->variants()->create(['variant_id' => $lib->id, 'name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
+            $ayam->variants()->create(['name' => $n, 'price_cents' => $p, 'sku' => $sku, 'sort' => $i]);
         }
+        $talam->variantGroups()->attach($ayam->id);
+        $talam->syncVariantLinks();
 
         $notice = 'Makanan pre-order disediakan 5–10 minit sebelum waktu yang ditetapkan. Jika anda lewat dan makanan menjadi sejuk, penggantian atau pemanasan semula tertakluk kepada polisi kedai mengikut jenis hidangan.';
         $base = [

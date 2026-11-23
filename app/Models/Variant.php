@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** Variant dalam senarai dikongsi (nama + harga), boleh ditick pada banyak produk. */
+/** Satu pilihan dalam variant group (nama + harga). */
 class Variant extends Model
 {
     protected $guarded = ['id'];
@@ -15,18 +16,14 @@ class Variant extends Model
         return ['is_active' => 'boolean'];
     }
 
-    /** Baris pautan produk ↔ variant. */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(VariantGroup::class, 'variant_group_id');
+    }
+
+    /** Baris pautan produk ↔ pilihan. */
     public function productVariants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
-    }
-
-    /** Salin nama/harga terkini ke semua produk yang menggunakan variant ini. */
-    public function syncToProducts(): void
-    {
-        $this->productVariants()->update([
-            'name' => $this->name, 'sku' => $this->sku, 'price_cents' => $this->price_cents,
-            'promo_price_cents' => $this->promo_price_cents, 'sort' => $this->sort,
-        ]);
     }
 }

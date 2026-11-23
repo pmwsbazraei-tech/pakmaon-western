@@ -6,17 +6,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Senarai Variant dikongsi: satu variant (nama + harga) boleh ditick pada banyak produk.
- * product_variants kekal sebagai pautan produk ↔ variant (dirujuk oleh pesanan lama),
- * dengan nama/harga disalin dari senarai Variant.
+ * Variant group dikongsi: satu group (cth. "Chicken") ada beberapa pilihan (Chicken 1, Chicken 2…)
+ * dengan harga masing-masing. Produk menanda group; semua pilihan dalam group itu jadi variant produk.
+ * product_variants kekal sebagai pautan produk ↔ pilihan (dirujuk oleh pesanan lama).
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('variants', function (Blueprint $table) {
+        Schema::create('variant_groups', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->unsignedInteger('sort')->default(0);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('variants', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('variant_group_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('sku')->nullable();
             $table->unsignedInteger('price_cents');
@@ -26,31 +35,36 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('product_variant_group', function (Blueprint $table) {
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('variant_group_id')->constrained()->cascadeOnDelete();
+            $table->primary(['product_id', 'variant_group_id']);
+        });
+
         Schema::table('product_variants', function (Blueprint $table) {
             $table->foreignId('variant_id')->nullable()->after('product_id')->constrained()->nullOnDelete();
         });
 
-        // Pindah variasi sedia ada ke senarai Variant: satu entri bagi setiap (pemilik, nama, harga, promo)
-        $rows = DB::table('product_variants')->join('products', 'products.id', '=', 'product_variants.product_id')
-            ->where('product_variants.is_active', true)
-            ->orderBy('product_variants.product_id')->orderBy('product_variants.sort')
-            ->get(['product_variants.*', 'products.user_id']);
+        // Pindah variasi sedia ada: satu group bagi setiap produk (nama group = nama produk)
+        $products = DB::table('products')->whereIn('id', DB::table('product_variants')->where('is_active', true)->select('product_id'))
+            ->orderBy('user_id')->orderBy('id')->get(['id', 'user_id', 'name']);
+        foreach ($products as $i => $p) {
+            $groupId = DB::table('variant_groups')->insertGetId([
+                'user_id' => $p->user_id, 'name' => $p->name, 'sort' => $i, 'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('product_variant_group')->insert(['product_id' => $p->id, 'variant_group_id' => $groupId]);
 
-        $made = [];
-        $names = [];
-        foreach ($rows as $r) {
-            $key = $r->user_id.'|'.mb_strtolower(trim($r->name)).'|'.$r->price_cents.'|'.($r->promo_price_cents ?? '');
-            if (! isset($made[$key])) {
-                $nameKey = $r->user_id.'|'.mb_strtolower(trim($r->name));
-                $name = isset($names[$nameKey]) ? trim($r->name).' (RM'.number_format($r->price_cents / 100, 2).')' : trim($r->name);
-                $names[$nameKey] = true;
-                $made[$key] = DB::table('variants')->insertGetId([
-                    'user_id' => $r->user_id, 'name' => $name, 'sku' => $r->sku, 'price_cents' => $r->price_cents,
-                    'promo_price_cents' => $r->promo_price_cents, 'sort' => count($made), 'is_active' => true,
+            $rows = DB::table('product_variants')->where('product_id', $p->id)->where('is_active', true)->orderBy('sort')->orderBy('id')->get();
+            foreach ($rows as $j => $r) {
+                $variantId = DB::table('variants')->insertGetId([
+                    'variant_group_id' => $groupId, 'name' => $r->name, 'sku' => $r->sku, 'price_cents' => $r->price_cents,
+                    'promo_price_cents' => $r->promo_price_cents, 'sort' => $j, 'is_active' => true,
                     'created_at' => now(), 'updated_at' => now(),
                 ]);
+                DB::table('product_variants')->where('id', $r->id)
+                    ->update(['variant_id' => $variantId, 'sort' => $i * 1000 + $j, 'stock' => null, 'max_per_order' => null]);
             }
-            DB::table('product_variants')->where('id', $r->id)->update(['variant_id' => $made[$key], 'stock' => null, 'max_per_order' => null]);
         }
     }
 
@@ -59,6 +73,8 @@ return new class extends Migration
         Schema::table('product_variants', function (Blueprint $table) {
             $table->dropConstrainedForeignId('variant_id');
         });
+        Schema::dropIfExists('product_variant_group');
         Schema::dropIfExists('variants');
+        Schema::dropIfExists('variant_groups');
     }
 };

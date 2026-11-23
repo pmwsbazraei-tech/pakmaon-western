@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        @if (count($variantIds) === 0)
+        @if (count($groupIds) === 0)
             <div class="card">
                 <h2 class="sec" style="margin-top:0">{{ __('Harga & stok (tanpa variasi)') }}</h2>
                 <div class="row">
@@ -64,21 +64,26 @@
 
         <div class="card">
             <h2 class="sec" style="margin-top:0">{{ __('Variasi') }}</h2>
-            <div class="hint" style="margin-top:0;margin-bottom:10px">{!! __('Tick variant dari :link. Harga variant ditetapkan di sana.', ['link' => '<a href="'.e(route('tempahan.variants')).'" wire:navigate>'.e(__('senarai Variant')).'</a>']) !!}</div>
-            @error('variantIds.*')<div class="auth-error">{{ $message }}</div>@enderror
+            <div class="hint" style="margin-top:0;margin-bottom:10px">{!! __('Tick variant group dari :link. Semua pilihan dalam group itu akan dipaparkan kepada pelanggan.', ['link' => '<a href="'.e(route('tempahan.variants')).'" wire:navigate>'.e(__('halaman Variant')).'</a>']) !!}</div>
+            @error('groupIds.*')<div class="auth-error">{{ $message }}</div>@enderror
             @if ($library->isEmpty())
-                <div class="empty">{{ __('Belum ada variant.') }} <a href="{{ route('tempahan.variants') }}" wire:navigate>+ {{ __('Tambah variant') }}</a></div>
+                <div class="empty">{{ __('Belum ada variant group.') }} <a href="{{ route('tempahan.variants') }}" wire:navigate>+ {{ __('Tambah group') }}</a></div>
             @else
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
-                    @foreach ($library as $v)
-                        <label class="chk" wire:key="lv-{{ $v->id }}" style="justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel2);margin:0">
-                            <span><input type="checkbox" value="{{ $v->id }}" wire:model.live="variantIds"> {{ $v->name }}</span>
-                            <span class="hint" style="margin:0;white-space:nowrap">@sen($v->promo_price_cents ?? $v->price_cents)</span>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px">
+                    @foreach ($library as $g)
+                        <label wire:key="lg-{{ $g->id }}" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel2);margin:0;cursor:pointer">
+                            <input type="checkbox" value="{{ $g->id }}" wire:model.live="groupIds" style="margin-top:3px;width:auto;flex:0 0 auto">
+                            <span>
+                                <b>{{ $g->name }}</b>
+                                <span class="hint" style="margin:2px 0 0;display:block">
+                                    @forelse ($g->activeVariants as $v){{ $v->name }} (@sen($v->promo_price_cents ?? $v->price_cents))@if (! $loop->last), @endif @empty{{ __('Tiada pilihan lagi') }}@endforelse
+                                </span>
+                            </span>
                         </label>
                     @endforeach
                 </div>
-                @if (count($variantIds))
-                    <p class="hint">{{ __('Produk ini dijual ikut variant yang ditick; harga produk diabaikan.') }}</p>
+                @if (count($groupIds))
+                    <p class="hint">{{ __('Produk ini dijual ikut pilihan dalam group yang ditick; harga produk diabaikan.') }}</p>
                 @endif
             @endif
         </div>

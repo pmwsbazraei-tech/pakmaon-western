@@ -24,7 +24,7 @@ class FormController extends Controller
             return response()->view('shop.maintenance', ['form' => $form], 503);
         }
 
-        $form->load(['outlets' => fn ($q) => $q->where('accepts_orders', true), 'products' => fn ($q) => $q->where('is_hidden', false)->with('activeVariants', 'category')]);
+        $form->load(['outlets' => fn ($q) => $q->where('accepts_orders', true), 'products' => fn ($q) => $q->where('is_hidden', false)->with('activeVariants.variant.group', 'category')]);
 
         // Susunan ikut Produk & Stok: kategori (sort), kemudian produk (sort); tanpa kategori di hujung
         $catalog = $form->products
@@ -42,7 +42,7 @@ class FormController extends Controller
                 'from_price' => $p->has_variants ? $p->activeVariants->min(fn ($v) => $v->effectivePrice()) : null,
                 'sold_out' => $p->isSoldOut(),
                 'variants' => $p->activeVariants->map(fn ($v) => [
-                    'id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice(), 'regular_price' => $v->price_cents,
+                    'id' => $v->id, 'name' => $v->name, 'group' => $v->variant?->group?->name, 'price' => $v->effectivePrice(), 'regular_price' => $v->price_cents,
                     'sold_out' => $v->stock !== null && $v->stock <= 0,
                 ])->values(),
             ])->values());

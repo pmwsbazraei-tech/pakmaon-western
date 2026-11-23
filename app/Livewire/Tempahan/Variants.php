@@ -3,136 +3,215 @@
 namespace App\Livewire\Tempahan;
 
 use App\Livewire\Concerns\InteractsWithShop;
-use App\Models\Product;
 use App\Models\Variant;
+use App\Models\VariantGroup;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Senarai Variant dikongsi: nama + harga ditetapkan di sini, kemudian ditick pada produk.
- * Perubahan harga terus dipakai oleh semua produk yang menggunakan variant itu.
+ * Variant group dikongsi. Contoh: group "Chicken" dengan pilihan Chicken 1 / Chicken 2 / Chicken 3.
+ * Produk menanda group; perubahan pada group/pilihan terus dipakai oleh semua produk berkenaan.
  */
 #[Layout('layouts.app')]
 class Variants extends Component
 {
     use InteractsWithShop;
 
-    /** Borang tambah / sunting. editingId null = variant baharu. */
-    public ?int $editingId = null;
+    /** Borang group: id null = group baharu. */
+    public ?int $groupId = null;
 
-    public array $f = ['name' => '', 'sku' => '', 'price' => '', 'promo_price' => ''];
+    public string $groupName = '';
 
-    public function edit(int $id): void
+    /** Borang pilihan: dalam group mana, dan id pilihan (null = baharu). */
+    public ?int $optGroupId = null;
+
+    public ?int $optId = null;
+
+    public array $o = ['name' => '', 'sku' => '', 'price' => '', 'promo_price' => ''];
+
+    // ---- Group ----
+
+    public function editGroup(int $id): void
     {
-        $v = $this->find($id);
-        $this->editingId = $v->id;
-        $this->f = [
-            'name' => $v->name, 'sku' => $v->sku ?? '',
-            'price' => number_format($v->price_cents / 100, 2, '.', ''),
-            'promo_price' => $v->promo_price_cents !== null ? number_format($v->promo_price_cents / 100, 2, '.', '') : '',
-        ];
+        $g = $this->findGroup($id);
+        $this->groupId = $g->id;
+        $this->groupName = $g->name;
         $this->resetValidation();
     }
 
-    public function cancelEdit(): void
+    public function cancelGroup(): void
     {
-        $this->reset('editingId', 'f');
+        $this->reset('groupId', 'groupName');
         $this->resetValidation();
     }
 
-    public function save(): void
+    public function saveGroup(): void
     {
+        $this->validate(['groupName' => ['required', 'string', 'max:120']], [], ['groupName' => __('nama group')]);
         $owner = $this->shopOwner();
-        $this->validate([
-            'f.name' => ['required', 'string', 'max:120'],
-            'f.sku' => ['nullable', 'string', 'max:60'],
-            'f.price' => ['required', 'numeric', 'min:0'],
-            'f.promo_price' => ['nullable', 'numeric', 'min:0', 'lt:f.price'],
-        ], [], ['f.name' => __('nama'), 'f.price' => __('harga'), 'f.promo_price' => __('harga promosi')]);
 
-        $data = [
-            'name' => trim($this->f['name']), 'sku' => trim($this->f['sku']) ?: null,
-            'price_cents' => Money::toCents($this->f['price']),
-            'promo_price_cents' => $this->f['promo_price'] === '' ? null : Money::toCents($this->f['promo_price']),
-        ];
-
-        DB::transaction(function () use ($owner, $data) {
-            if ($this->editingId) {
-                $v = $this->find($this->editingId);
-                $v->update($data);
-                $v->syncToProducts();
-            } else {
-                Variant::create($data + ['user_id' => $owner->id, 'sort' => (Variant::where('user_id', $owner->id)->max('sort') ?? -1) + 1]);
-            }
-        });
-
-        $this->dispatch('toast', message: $this->editingId ? __('Variant dikemas kini.') : __('Variant ditambah.'));
-        $this->cancelEdit();
-    }
-
-    /** Padam variant: dibuang dari semua produk. Produk yang tiada variant lagi disembunyikan. */
-    public function delete(int $id): void
-    {
-        $v = $this->find($id);
-        $hidden = DB::transaction(function () use ($v) {
-            $productIds = $v->productVariants()->where('is_active', true)->pluck('product_id');
-            $v->productVariants()->update(['is_active' => false]);
-            $v->update(['is_active' => false]);
-
-            $empty = Product::whereIn('id', $productIds)->where('has_variants', true)
-                ->whereDoesntHave('variants', fn ($q) => $q->where('is_active', true))->get();
-            foreach ($empty as $p) {
-                $p->update(['is_hidden' => true]);
-            }
-
-            return $empty->pluck('name');
-        });
-
-        if ($this->editingId === $id) {
-            $this->cancelEdit();
+        if ($this->groupId) {
+            $this->findGroup($this->groupId)->update(['name' => trim($this->groupName)]);
+            $this->dispatch('toast', message: __('Group dikemas kini.'));
+        } else {
+            $g = VariantGroup::create([
+                'user_id' => $owner->id, 'name' => trim($this->groupName),
+                'sort' => (VariantGroup::where('user_id', $owner->id)->max('sort') ?? -1) + 1,
+            ]);
+            $this->openOption($g->id); // terus tambah pilihan pertama
+            $this->dispatch('toast', message: __('Group ditambah. Sekarang tambah pilihan.'));
         }
-        $this->dispatch('toast', message: $hidden->isEmpty()
-            ? __('Variant dipadam.')
-            : __('Variant dipadam. Produk tanpa variant disembunyikan: :names', ['names' => $hidden->join(', ')]));
+        $this->cancelGroup();
     }
 
-    /** Alih variant ke atas (-1) atau ke bawah (+1); susunan dipakai di halaman pelanggan. */
-    public function move(int $id, int $dir): void
+    /** Padam group: dibuang dari semua produk. */
+    public function deleteGroup(int $id): void
     {
-        $ids = $this->query()->pluck('id')->values();
-        $pos = $ids->search($id);
-        $to = $pos === false ? false : $pos + $dir;
-        if ($to === false || $to < 0 || $to >= $ids->count()) {
+        $g = $this->findGroup($id);
+        DB::transaction(function () use ($g) {
+            $g->update(['is_active' => false]);
+            $products = $g->products()->get();
+            $g->products()->detach();
+            foreach ($products as $p) {
+                $p->syncVariantLinks();
+            }
+        });
+        if ($this->optGroupId === $id) {
+            $this->cancelOption();
+        }
+        $this->dispatch('toast', message: __('Group dipadam.'));
+    }
+
+    public function moveGroup(int $id, int $dir): void
+    {
+        $ids = $this->groups()->pluck('id')->values();
+        if (! $this->swapIds($ids, $id, $dir)) {
             return;
         }
-        [$ids[$pos], $ids[$to]] = [$ids[$to], $ids[$pos]];
         DB::transaction(function () use ($ids) {
-            foreach ($ids as $i => $vid) {
-                $v = Variant::find($vid);
-                $v->update(['sort' => $i]);
-                $v->syncToProducts();
+            foreach ($ids as $i => $gid) {
+                VariantGroup::whereKey($gid)->update(['sort' => $i]);
+            }
+            foreach (VariantGroup::whereIn('id', $ids)->get() as $g) {
+                $g->syncProducts();
             }
         });
     }
 
-    private function query()
+    // ---- Pilihan dalam group ----
+
+    public function openOption(int $groupId, ?int $optionId = null): void
     {
-        return Variant::where('user_id', $this->shopOwner()->id)->where('is_active', true)->orderBy('sort')->orderBy('id');
+        $g = $this->findGroup($groupId);
+        $this->optGroupId = $g->id;
+        $this->optId = null;
+        $this->o = ['name' => '', 'sku' => '', 'price' => '', 'promo_price' => ''];
+        if ($optionId) {
+            $v = $g->activeVariants()->whereKey($optionId)->firstOrFail();
+            $this->optId = $v->id;
+            $this->o = [
+                'name' => $v->name, 'sku' => $v->sku ?? '',
+                'price' => number_format($v->price_cents / 100, 2, '.', ''),
+                'promo_price' => $v->promo_price_cents !== null ? number_format($v->promo_price_cents / 100, 2, '.', '') : '',
+            ];
+        }
+        $this->resetValidation();
     }
 
-    private function find(int $id): Variant
+    public function cancelOption(): void
     {
-        return $this->query()->whereKey($id)->firstOrFail();
+        $this->reset('optGroupId', 'optId', 'o');
+        $this->resetValidation();
+    }
+
+    public function saveOption(): void
+    {
+        $g = $this->findGroup((int) $this->optGroupId);
+        $this->validate([
+            'o.name' => ['required', 'string', 'max:120'],
+            'o.sku' => ['nullable', 'string', 'max:60'],
+            'o.price' => ['required', 'numeric', 'min:0'],
+            'o.promo_price' => ['nullable', 'numeric', 'min:0', 'lt:o.price'],
+        ], [], ['o.name' => __('nama'), 'o.price' => __('harga'), 'o.promo_price' => __('harga promosi')]);
+
+        $data = [
+            'name' => trim($this->o['name']), 'sku' => trim($this->o['sku']) ?: null,
+            'price_cents' => Money::toCents($this->o['price']),
+            'promo_price_cents' => $this->o['promo_price'] === '' ? null : Money::toCents($this->o['promo_price']),
+        ];
+
+        DB::transaction(function () use ($g, $data) {
+            if ($this->optId) {
+                $g->activeVariants()->whereKey($this->optId)->firstOrFail()->update($data);
+            } else {
+                $g->variants()->create($data + ['sort' => ($g->variants()->max('sort') ?? -1) + 1]);
+            }
+            $g->syncProducts();
+        });
+
+        $this->dispatch('toast', message: $this->optId ? __('Pilihan dikemas kini.') : __('Pilihan ditambah.'));
+        // Kekal dalam group yang sama untuk tambah pilihan seterusnya
+        $this->openOption($g->id);
+    }
+
+    public function deleteOption(int $groupId, int $optionId): void
+    {
+        $g = $this->findGroup($groupId);
+        DB::transaction(function () use ($g, $optionId) {
+            $g->activeVariants()->whereKey($optionId)->firstOrFail()->update(['is_active' => false]);
+            $g->syncProducts();
+        });
+        if ($this->optId === $optionId) {
+            $this->openOption($g->id);
+        }
+        $this->dispatch('toast', message: __('Pilihan dipadam.'));
+    }
+
+    public function moveOption(int $groupId, int $optionId, int $dir): void
+    {
+        $g = $this->findGroup($groupId);
+        $ids = $g->activeVariants()->pluck('id')->values();
+        if (! $this->swapIds($ids, $optionId, $dir)) {
+            return;
+        }
+        DB::transaction(function () use ($g, $ids) {
+            foreach ($ids as $i => $vid) {
+                Variant::whereKey($vid)->update(['sort' => $i]);
+            }
+            $g->syncProducts();
+        });
+    }
+
+    // ---- Bantuan ----
+
+    private function swapIds($ids, int $id, int $dir): bool
+    {
+        $pos = $ids->search($id);
+        $to = $pos === false ? -1 : $pos + $dir;
+        if ($pos === false || $to < 0 || $to >= $ids->count()) {
+            return false;
+        }
+        [$ids[$pos], $ids[$to]] = [$ids[$to], $ids[$pos]];
+
+        return true;
+    }
+
+    private function groups()
+    {
+        return VariantGroup::where('user_id', $this->shopOwner()->id)->where('is_active', true)->orderBy('sort')->orderBy('id');
+    }
+
+    private function findGroup(int $id): VariantGroup
+    {
+        return $this->groups()->whereKey($id)->firstOrFail();
     }
 
     public function render()
     {
         return view('livewire.tempahan.variants', [
-            'variants' => $this->query()
-                ->withCount(['productVariants as products_count' => fn ($q) => $q->where('is_active', true)])
-                ->get(),
+            'groups' => $this->groups()->with('activeVariants')->withCount('products')->get(),
         ]);
     }
 }

@@ -7,7 +7,7 @@ use App\Models\Menu;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Variant;
+use App\Models\VariantGroup;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +29,7 @@ class ProductEditor extends Component
 
     public array $p = [];
 
-    public array $variantIds = [];
+    public array $groupIds = [];
 
     public array $unavailable = [];
 
@@ -49,9 +49,9 @@ class ProductEditor extends Component
             'stock' => $m->stock !== null ? (string) $m->stock : '',
             'is_hidden' => (bool) $m->is_hidden,
         ];
-        // Variant yang ditick (id dalam senarai Variant)
-        $this->variantIds = $this->product
-            ? $this->product->variants()->where('is_active', true)->whereNotNull('variant_id')->pluck('variant_id')->map(fn ($i) => (string) $i)->all()
+        // Variant group yang ditick
+        $this->groupIds = $this->product
+            ? $this->product->variantGroups()->where('is_active', true)->pluck('variant_groups.id')->map(fn ($i) => (string) $i)->all()
             : [];
         $this->unavailable = $this->product
             ? DB::table('outlet_product')->where('product_id', $this->product->id)->where('is_available', false)->pluck('outlet_id')->map(fn ($i) => (string) $i)->all()
@@ -87,15 +87,14 @@ class ProductEditor extends Component
             'p.price' => ['nullable', 'numeric', 'min:0'],
             'p.promo_price' => ['nullable', 'numeric', 'min:0'],
             'p.stock' => ['nullable', 'integer', 'min:0'],
-            'variantIds.*' => [Rule::in($this->library()->pluck('id')->map(fn ($i) => (string) $i)->all())],
+            'groupIds.*' => [Rule::in($this->library()->pluck('id')->map(fn ($i) => (string) $i)->all())],
             'unavailable.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
         ], [], ['p.name' => __('nama'), 'p.price' => __('harga')]);
 
-        // Ikut susunan senarai Variant
-        $variants = $this->library()->whereIn('id', array_map('intval', $this->variantIds))->get();
-        $hasVariants = $variants->isNotEmpty();
+        $groupIds = array_values(array_unique(array_map('intval', $this->groupIds)));
+        $hasVariants = $groupIds !== [];
         if (! $hasVariants && $this->p['price'] === '') {
-            return $this->addError('p.price', __('Isi harga, atau tick sekurang-kurangnya satu variant.'));
+            return $this->addError('p.price', __('Isi harga, atau tick sekurang-kurangnya satu variant group.'));
         }
 
         // Gambar dimuat naik menggantikan URL gambar
@@ -105,7 +104,7 @@ class ProductEditor extends Component
             $this->photo = null;
         }
 
-        $product = DB::transaction(function () use ($owner, $variants, $hasVariants) {
+        $product = DB::transaction(function () use ($owner, $groupIds, $hasVariants) {
             $categoryId = $this->p['product_category_id'] ?: null;
             if (trim($this->p['new_category']) !== '') {
                 $categoryId = ProductCategory::firstOrCreate(
@@ -134,18 +133,9 @@ class ProductEditor extends Component
             $product->save();
             $this->logStock($product->id, null, $oldStock, $product->stock);
 
-            // Pautan produk ↔ variant: nama/harga disalin dari senarai Variant; tiada stok variant
-            $keep = [];
-            foreach ($variants as $v) {
-                $link = $product->variants()->firstOrNew(['variant_id' => $v->id]);
-                $link->fill([
-                    'name' => $v->name, 'sku' => $v->sku, 'price_cents' => $v->price_cents, 'promo_price_cents' => $v->promo_price_cents,
-                    'stock' => null, 'max_per_order' => null, 'is_active' => true, 'sort' => $v->sort,
-                ])->save();
-                $keep[] = $link->id;
-            }
-            // Variant yang tidak ditick dinyahaktifkan (bukan dipadam) supaya sejarah pesanan kekal
-            $product->variants()->whereNotIn('id', $keep)->update(['is_active' => false]);
+            // Group ditick → semua pilihan dalam group jadi variant produk (harga dari halaman Variant, tiada stok)
+            $product->variantGroups()->sync($groupIds);
+            $product->syncVariantLinks();
 
             DB::table('outlet_product')->where('product_id', $product->id)->delete();
             foreach ($this->unavailable as $oid) {
@@ -186,13 +176,13 @@ class ProductEditor extends Component
             'categories' => ProductCategory::where('user_id', $owner->id)->orderBy('sort')->get(),
             'outlets' => $owner->outlets()->orderBy('name')->get(),
             'menus' => Menu::whereIn('outlet_id', $owner->outlets()->pluck('id'))->with('outlet')->orderBy('name')->get(),
-            'library' => $this->library()->get(),
+            'library' => $this->library()->with('activeVariants')->get(),
         ]);
     }
 
-    /** Senarai Variant aktif milik kedai ini. */
+    /** Variant group aktif milik kedai ini. */
     private function library()
     {
-        return Variant::where('user_id', $this->shopOwner()->id)->where('is_active', true)->orderBy('sort')->orderBy('id');
+        return VariantGroup::where('user_id', $this->shopOwner()->id)->where('is_active', true)->orderBy('sort')->orderBy('id');
     }
 }

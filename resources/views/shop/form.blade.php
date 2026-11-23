@@ -114,7 +114,9 @@
                             </div>
 
                             <div class="sf-variants" x-show="p.has_variants && isOpen(p.id)" x-transition>
-                                <template x-for="v in p.variants" :key="v.id">
+                                <template x-for="(v, vi) in p.variants" :key="v.id">
+                                    <div>
+                                    <div class="sf-vgroup" x-show="v.group && p.variants.some(x => x.group !== v.group) && (vi === 0 || p.variants[vi - 1].group !== v.group)" x-text="v.group"></div>
                                     <div class="sf-variant">
                                         <div class="sf-grow"><span x-text="v.name"></span><br><span class="sf-price" x-text="rm(v.price)"></span></div>
                                         <span x-show="v.sold_out" class="sf-soldout">Habis</span>
@@ -126,6 +128,7 @@
                                                 <button type="button" class="sf-qbtn" @click="add(p, v)" :aria-label="'Tambah ' + v.name">+</button>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
                                 </template>
                             </div>

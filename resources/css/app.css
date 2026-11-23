@@ -294,6 +294,7 @@ body.sf{display:block;font-size:16px}
 .sf-toggle{background:none;border:0;padding:6px 0;color:var(--accent2);text-decoration:underline;text-underline-offset:4px;font:700 15px var(--font-body);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
 .sf-variants{grid-column:1/-1;border-top:2px dashed var(--line2);padding-top:10px;display:grid;gap:8px}
 .sf-variant{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.sf-vgroup{font-family:var(--font-head);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);margin:6px 2px 4px}
 .sf-cartbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:var(--ink);color:var(--cream);
   box-shadow:0 -12px 30px -16px rgba(0,0,0,.5);--muted:#c9bda5}
 .sf-cartbar::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px;background:var(--checker-tomato)}

@@ -5,78 +5,95 @@ namespace Tests\Feature\Tempahan;
 use App\Livewire\Tempahan\ProductEditor;
 use App\Livewire\Tempahan\Variants;
 use App\Models\User;
-use App\Models\Variant;
+use App\Models\VariantGroup;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
 class VariantLibraryTest extends PmwTestCase
 {
-    public function test_one_variant_can_be_ticked_on_many_products_and_price_syncs(): void
+    private function makeGroup(string $name, array $options): VariantGroup
     {
-        Livewire::actingAs($this->owner)->test(Variants::class)
-            ->set('f.name', 'Extra Cheese')->set('f.price', '2.50')->call('save')->assertHasNoErrors();
-        $cheese = Variant::where('name', 'Extra Cheese')->firstOrFail();
-
-        // Tick pada dua produk
-        foreach ([$this->toast(), $this->talam()] as $product) {
-            Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $product])
-                ->set('variantIds', array_merge(
-                    $product->variants()->where('is_active', true)->pluck('variant_id')->map(fn ($i) => (string) $i)->all(),
-                    [(string) $cheese->id],
-                ))
-                ->call('save')->assertHasNoErrors();
+        $c = Livewire::actingAs($this->owner)->test(Variants::class)->set('groupName', $name)->call('saveGroup')->assertHasNoErrors();
+        $group = VariantGroup::where('name', $name)->firstOrFail();
+        foreach ($options as [$opt, $price]) {
+            $c->set('o.name', $opt)->set('o.price', $price)->call('saveOption')->assertHasNoErrors();
         }
 
-        $this->assertTrue($this->toast()->fresh()->has_variants);
-        $this->assertSame(2, $cheese->productVariants()->where('is_active', true)->count());
-
-        // Tukar harga di senarai Variant: semua produk ikut
-        Livewire::actingAs($this->owner)->test(Variants::class)
-            ->call('edit', $cheese->id)->set('f.price', '3.00')->call('save')->assertHasNoErrors();
-        $this->assertSame([300, 300], $cheese->productVariants()->pluck('price_cents')->all());
-
-        // Pesanan guna harga variant dari pelayan
-        $line = $this->toast()->variants()->where('variant_id', $cheese->id)->first();
-        $order = $this->placeOrder($this->purchasePayload(['items' => [['product_id' => $this->toast()->id, 'variant_id' => $line->id, 'quantity' => 2]]]));
-        $this->assertSame('Extra Cheese', $order->items->first()->variant_name);
-        $this->assertSame(600, $order->items->first()->line_total_cents);
+        return $group;
     }
 
-    public function test_untick_and_delete_variant(): void
+    public function test_product_ticks_groups_and_gets_all_their_options(): void
+    {
+        $chicken = $this->makeGroup('Chicken', [['Chicken 1', '10.00'], ['Chicken 2', '11.00'], ['Chicken 3', '12.00']]);
+        $lamb = $this->makeGroup('Lamb', [['Lamb 1', '20.00'], ['Lamb 2', '21.00']]);
+
+        $toast = $this->toast();
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $toast])
+            ->set('groupIds', [(string) $chicken->id, (string) $lamb->id])->call('save')->assertHasNoErrors();
+
+        $toast->refresh();
+        $this->assertTrue($toast->has_variants);
+        $this->assertSame(['Chicken 1', 'Chicken 2', 'Chicken 3', 'Lamb 1', 'Lamb 2'], $toast->activeVariants()->pluck('name')->all());
+
+        // Group yang sama boleh ditick pada produk lain
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $this->talam()])
+            ->set('groupIds', [(string) $chicken->id])->call('save')->assertHasNoErrors();
+        $this->assertSame(['Chicken 1', 'Chicken 2', 'Chicken 3'], $this->talam()->activeVariants()->pluck('name')->all());
+
+        // Tambah pilihan / tukar harga dalam group: semua produk ikut
+        $c = Livewire::actingAs($this->owner)->test(Variants::class)->call('openOption', $chicken->id)
+            ->set('o.name', 'Chicken 4')->set('o.price', '13.00')->call('saveOption')->assertHasNoErrors();
+        $opt1 = $chicken->activeVariants()->where('name', 'Chicken 1')->first();
+        $c->call('openOption', $chicken->id, $opt1->id)->set('o.price', '9.50')->call('saveOption')->assertHasNoErrors();
+
+        $this->assertSame(6, $toast->activeVariants()->count());
+        $this->assertSame([950, 950], $opt1->productVariants()->pluck('price_cents')->all());
+
+        // Pelanggan: harga dari pelayan, nama group dihantar ke halaman
+        $line = $toast->activeVariants()->where('name', 'Chicken 1')->first();
+        $order = $this->placeOrder($this->purchasePayload(['items' => [['product_id' => $toast->id, 'variant_id' => $line->id, 'quantity' => 2]]]));
+        $this->assertSame(1900, $order->items->first()->line_total_cents);
+        $this->assertStringContainsString('Lamb', $this->get('/p/pak-maon-western')->assertOk()->getContent());
+    }
+
+    public function test_delete_option_and_group(): void
     {
         $talam = $this->talam();
-        $ids = $talam->variants()->where('is_active', true)->pluck('variant_id');
-        $this->assertCount(3, $ids);
+        $group = $talam->variantGroups()->firstOrFail();
+        $this->assertSame(3, $talam->activeVariants()->count());
 
-        // Untick satu
-        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $talam])
-            ->set('variantIds', $ids->slice(1)->map(fn ($i) => (string) $i)->values()->all())
-            ->call('save')->assertHasNoErrors();
+        $first = $group->activeVariants()->first();
+        Livewire::actingAs($this->owner)->test(Variants::class)->call('deleteOption', $group->id, $first->id);
         $this->assertSame(2, $talam->activeVariants()->count());
 
-        // Padam semua variant: produk tanpa variant disembunyikan
-        foreach ($ids as $id) {
-            Livewire::actingAs($this->owner)->test(Variants::class)->call('delete', $id);
-        }
+        // Padam group: produk tanpa variant & tanpa harga disembunyikan
+        Livewire::actingAs($this->owner)->test(Variants::class)->call('deleteGroup', $group->id);
+        $talam->refresh();
         $this->assertSame(0, $talam->activeVariants()->count());
-        $this->assertTrue($talam->fresh()->is_hidden);
-        $this->assertSame(0, Variant::where('user_id', $this->owner->id)->where('is_active', true)->count());
+        $this->assertFalse($talam->has_variants);
+        $this->assertTrue($talam->is_hidden);
     }
 
-    public function test_cannot_tick_another_shops_variant(): void
+    public function test_untick_group_requires_price(): void
     {
-        $other = Variant::create(['user_id' => User::factory()->create()->id, 'name' => 'Asing', 'price_cents' => 100]);
+        Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $this->talam()])
+            ->set('groupIds', [])->set('p.price', '')->call('save')->assertHasErrors('p.price');
+    }
+
+    public function test_cannot_use_another_shops_group(): void
+    {
+        $other = VariantGroup::create(['user_id' => User::factory()->create()->id, 'name' => 'Asing']);
 
         Livewire::actingAs($this->owner)->test(ProductEditor::class, ['product' => $this->toast()])
-            ->set('variantIds', [(string) $other->id])->call('save')->assertHasErrors('variantIds.0');
+            ->set('groupIds', [(string) $other->id])->call('save')->assertHasErrors('groupIds.0');
 
         $this->expectException(ModelNotFoundException::class);
-        Livewire::actingAs($this->owner)->test(Variants::class)->call('edit', $other->id);
+        Livewire::actingAs($this->owner)->test(Variants::class)->call('editGroup', $other->id);
     }
 
-    public function test_variants_page_is_owner_only_and_in_sidebar(): void
+    public function test_variants_page_shows_groups_and_is_in_sidebar(): void
     {
-        $this->actingAs($this->owner)->get(route('tempahan.variants'))->assertOk()->assertSee('Chicken Grill');
+        $this->actingAs($this->owner)->get(route('tempahan.variants'))->assertOk()->assertSee('Pilihan Ayam')->assertSee('Chicken Grill');
         $this->actingAs($this->owner)->get(route('dashboard'))->assertSee(route('tempahan.variants'), false);
     }
 }
