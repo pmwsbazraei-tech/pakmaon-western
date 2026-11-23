@@ -32,6 +32,6 @@ trait InteractsWithShop
 
     protected function authorizeOrder(Order $order): void
     {
-        abort_unless(auth()->user()->canAccessOutlet($order->outlet_id), 403, 'Anda tiada akses ke cawangan ini.');
+        abort_unless(auth()->user()->canAccessOutlet($order->outlet_id), 403, __('Anda tiada akses ke cawangan ini.'));
     }
 }

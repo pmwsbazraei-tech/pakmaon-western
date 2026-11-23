@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Shop;
 use App\Http\Controllers\TempahanExportController;
+use App\Http\Middleware\SetLocale;
 use App\Livewire\Actions\Logout;
 use App\Livewire\CapexBudget;
 use App\Livewire\Dashboard;
@@ -38,6 +39,13 @@ Route::middleware(['auth', 'outlet'])->group(function () {
 
 // Dashboard utama: tempahan online ikut cawangan (pemilik + staf cawangan)
 Route::get('dashboard', Tempahan\BranchDashboard::class)->middleware(['auth', 'outlet:staff'])->name('dashboard');
+
+// Tukar bahasa paparan (BM / EN)
+Route::get('bahasa/{locale}', function (string $locale) {
+    session(['locale' => $locale]);
+
+    return redirect()->back(fallback: route('dashboard'));
+})->whereIn('locale', array_keys(SetLocale::LOCALES))->name('locale.switch');
 
 // Log keluar: semua user log masuk, termasuk staf cawangan
 Route::post('logout', function (Logout $logout) {

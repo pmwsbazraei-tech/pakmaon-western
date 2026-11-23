@@ -43,20 +43,20 @@ class StaffAccounts extends Component
             'role' => ['required', Rule::in(['manager', 'staff'])],
             'outletIds' => ['required', 'array', 'min:1'],
             'outletIds.*' => [Rule::in(array_map('strval', $this->ownerOutletIds()))],
-        ], ['outletIds.required' => 'Pilih sekurang-kurangnya satu outlet.']);
+        ], ['outletIds.required' => __('Pilih sekurang-kurangnya satu outlet.')]);
 
         $user = User::create(['name' => $this->name, 'email' => $this->email, 'password' => Hash::make($this->password)]);
         $user->assignedOutlets()->sync(collect($this->outletIds)->mapWithKeys(fn ($id) => [(int) $id => ['role' => $this->role]])->all());
 
         $this->reset('name', 'email', 'password', 'outletIds');
-        $this->dispatch('toast', message: 'Akaun staf dicipta. Kongsi emel & kata laluan secara peribadi.');
+        $this->dispatch('toast', message: __('Akaun staf dicipta. Kongsi emel & kata laluan secara peribadi.'));
     }
 
     public function revoke(int $userId, int $outletId): void
     {
         abort_unless(in_array($outletId, $this->ownerOutletIds(), true), 403);
         User::findOrFail($userId)->assignedOutlets()->detach($outletId);
-        $this->dispatch('toast', message: 'Akses dibuang.');
+        $this->dispatch('toast', message: __('Akses dibuang.'));
     }
 
     public function render()

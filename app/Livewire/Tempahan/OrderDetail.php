@@ -56,7 +56,7 @@ class OrderDetail extends Component
             return;
         }
         if ($old === 'cancelled') {
-            $this->dispatch('toast', message: 'Rekod yang dibatalkan tidak boleh dibuka semula.');
+            $this->dispatch('toast', message: __('Rekod yang dibatalkan tidak boleh dibuka semula.'));
 
             return;
         }
@@ -88,7 +88,7 @@ class OrderDetail extends Component
         }
 
         $this->order = $order->fresh();
-        $this->dispatch('toast', message: 'Status dikemas kini.');
+        $this->dispatch('toast', message: __('Status dikemas kini.'));
     }
 
     /** Rekod deposit manual (RM). Baki = jumlah - deposit. */
@@ -98,19 +98,19 @@ class OrderDetail extends Component
         $order = $this->order->fresh();
         abort_if($order->isBooking(), 422);
         if ($order->isCancelled()) {
-            $this->dispatch('toast', message: 'Rekod yang dibatalkan tidak boleh dikemas kini.');
+            $this->dispatch('toast', message: __('Rekod yang dibatalkan tidak boleh dikemas kini.'));
 
             return;
         }
 
         $cents = Money::toCents($this->depositAmount);
         if (! $cents || $cents <= 0) {
-            $this->addError('depositAmount', 'Masukkan jumlah deposit.');
+            $this->addError('depositAmount', __('Masukkan jumlah deposit.'));
 
             return;
         }
         if ($cents >= $order->total_cents) {
-            $this->addError('depositAmount', 'Deposit mesti kurang daripada jumlah ('.Money::format($order->total_cents).'). Guna "Fully Paid" jika dibayar penuh.');
+            $this->addError('depositAmount', __('Deposit mesti kurang daripada jumlah (:total). Guna "Fully Paid" jika dibayar penuh.', ['total' => Money::format($order->total_cents)]));
 
             return;
         }
@@ -120,7 +120,7 @@ class OrderDetail extends Component
 
         $this->resetErrorBag('depositAmount');
         $this->order = $order->fresh();
-        $this->dispatch('toast', message: 'Deposit direkodkan.');
+        $this->dispatch('toast', message: __('Deposit direkodkan.'));
     }
 
     public function deleteOrder(OrderService $orders)
@@ -129,12 +129,12 @@ class OrderDetail extends Component
         abort_unless(auth()->user()->canManageShop(), 403);
 
         if (! $orders->delete($this->order->fresh(), auth()->id())) {
-            $this->dispatch('toast', message: 'Pesanan yang sudah dibayar online tidak boleh dipadam. Batalkan dan buat refund.');
+            $this->dispatch('toast', message: __('Pesanan yang sudah dibayar online tidak boleh dipadam. Batalkan dan buat refund.'));
 
             return null;
         }
 
-        session()->flash('toast', 'Pesanan '.$this->order->reference.' dipadam.');
+        session()->flash('toast', __('Pesanan :ref dipadam.', ['ref' => $this->order->reference]));
 
         return $this->redirectRoute('tempahan.orders', navigate: true);
     }
@@ -160,7 +160,7 @@ class OrderDetail extends Component
         $this->order->update(['booking_at' => $at, 'guests' => $this->newGuests]);
         $this->order->log('rescheduled', "{$old} → {$at->format('j/n/Y g:i A')}, {$this->newGuests} tetamu", auth()->id());
         $this->order = $this->order->fresh();
-        $this->dispatch('toast', message: 'Dijadual semula. Maklumkan pelanggan melalui WhatsApp.');
+        $this->dispatch('toast', message: __('Dijadual semula. Maklumkan pelanggan melalui WhatsApp.'));
     }
 
     public function syncPayment(PaymentService $payments): void
@@ -168,7 +168,7 @@ class OrderDetail extends Component
         $this->authorizeOrder($this->order);
         $payments->refresh($this->order);
         $this->order = $this->order->fresh();
-        $this->dispatch('toast', message: 'Status bayaran disemak dengan gateway.');
+        $this->dispatch('toast', message: __('Status bayaran disemak dengan gateway.'));
     }
 
     public function render(WhatsAppService $wa)

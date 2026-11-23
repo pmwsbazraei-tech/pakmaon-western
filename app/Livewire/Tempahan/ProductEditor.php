@@ -84,15 +84,15 @@ class ProductEditor extends Component
             'variants.*.stock' => ['nullable', 'integer', 'min:0'],
             'variants.*.max_per_order' => ['nullable', 'integer', 'min:1'],
             'unavailable.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
-        ], [], ['p.name' => 'nama', 'p.price' => 'harga']);
+        ], [], ['p.name' => __('nama'), 'p.price' => __('harga')]);
 
         $variants = collect($this->variants)->filter(fn ($v) => trim($v['name'] ?? '') !== '')->values();
         $hasVariants = $variants->isNotEmpty();
         if (! $hasVariants && $this->p['price'] === '') {
-            return $this->addError('p.price', 'Isi harga, atau tambah sekurang-kurangnya satu variasi.');
+            return $this->addError('p.price', __('Isi harga, atau tambah sekurang-kurangnya satu variasi.'));
         }
         if ($variants->contains(fn ($v) => ($v['price'] ?? '') === '')) {
-            return $this->addError('variants', 'Setiap variasi perlu ada harga.');
+            return $this->addError('variants', __('Setiap variasi perlu ada harga.'));
         }
 
         $product = DB::transaction(function () use ($owner, $variants, $hasVariants) {
@@ -147,7 +147,7 @@ class ProductEditor extends Component
             return $this->redirectRoute('tempahan.products.edit', $product, navigate: true);
         }
         $this->mount($product->fresh());
-        $this->dispatch('toast', message: 'Produk disimpan.');
+        $this->dispatch('toast', message: __('Produk disimpan.'));
     }
 
     private function logStock(int $productId, ?int $variantId, $old, $new): void

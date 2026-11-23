@@ -39,6 +39,21 @@ class BranchDashboardTest extends PmwTestCase
     {
         $this->actingAs($this->owner)->get(route('dashboard'))->assertOk()
             ->assertSee('Ringkasan Tempahan')->assertSee('Landing Page')
+            ->assertSee('BM')->assertSee('EN')
             ->assertDontSee('Scan Resit')->assertDontSee('Petty Cash')->assertDontSee('ROI &amp; Target', false)->assertSee('Outlet aktif')->assertSee('+ Outlet Baru');
+    }
+
+    public function test_language_switch_between_malay_and_english(): void
+    {
+        $this->actingAs($this->owner)->from(route('dashboard'))
+            ->get(route('locale.switch', 'en'))->assertRedirect(route('dashboard'));
+
+        $this->get(route('dashboard'))->assertOk()
+            ->assertSee('Online Orders')->assertSee('Log Out')->assertSee('Active outlet')->assertDontSee('Log Keluar');
+
+        $this->get(route('locale.switch', 'ms'));
+        $this->get(route('dashboard'))->assertSee('Tempahan Online')->assertSee('Log Keluar');
+
+        $this->get('/bahasa/fr')->assertNotFound();
     }
 }

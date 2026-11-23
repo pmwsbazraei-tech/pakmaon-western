@@ -69,9 +69,9 @@ class Orders extends Component
         }
         $this->selected = [];
 
-        $msg = $deleted.' pesanan dipadam.';
+        $msg = __(':count pesanan dipadam.', ['count' => $deleted]);
         if ($kept) {
-            $msg .= ' '.$kept.' tidak dipadam kerana sudah dibayar online (batalkan & refund sahaja).';
+            $msg .= ' '.__(':count tidak dipadam kerana sudah dibayar online (batalkan & refund sahaja).', ['count' => $kept]);
         }
         $this->dispatch('toast', message: $msg);
     }

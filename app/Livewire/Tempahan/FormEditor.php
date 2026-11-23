@@ -74,16 +74,16 @@ class FormEditor extends Component
             'outletIds' => ['required', 'array', 'min:1'],
             'outletIds.*' => [Rule::in($owner->outlets()->pluck('id')->map(fn ($i) => (string) $i)->all())],
             'productIds.*' => [Rule::in(Product::where('user_id', $owner->id)->pluck('id')->map(fn ($i) => (string) $i)->all())],
-        ], ['outletIds.required' => 'Pilih sekurang-kurangnya satu outlet.'], ['f.title' => 'tajuk', 'f.slug' => 'slug']);
+        ], ['outletIds.required' => __('Pilih sekurang-kurangnya satu outlet.')], ['f.title' => __('tajuk'), 'f.slug' => 'slug']);
 
         if (! $this->f['purpose_booking'] && ! $this->f['purpose_purchase']) {
-            return $this->addError('f.purpose_booking', 'Aktifkan sekurang-kurangnya satu tujuan.');
+            return $this->addError('f.purpose_booking', __('Aktifkan sekurang-kurangnya satu tujuan.'));
         }
         if (! $this->f['action_whatsapp'] && ! $this->f['action_online']) {
-            return $this->addError('f.action_whatsapp', 'Aktifkan sekurang-kurangnya satu tindakan selepas Proceed.');
+            return $this->addError('f.action_whatsapp', __('Aktifkan sekurang-kurangnya satu tindakan selepas Proceed.'));
         }
         if ($this->f['purpose_purchase'] && ! $this->f['simple_form'] && ! $this->f['allow_pickup'] && ! $this->f['allow_delivery']) {
-            return $this->addError('f.allow_pickup', 'Pembelian produk memerlukan pickup atau delivery.');
+            return $this->addError('f.allow_pickup', __('Pembelian produk memerlukan pickup atau delivery.'));
         }
 
         $data = collect($this->f)->except(['notices', 'min_order', 'max_order', 'delivery_fee'])->all();
@@ -104,12 +104,12 @@ class FormEditor extends Component
         $form->products()->sync(collect($this->productIds)->values()->mapWithKeys(fn ($id, $i) => [(int) $id => ['sort' => $i]])->all());
 
         if (! $this->form) {
-            session()->flash('toast', 'Landing page dicipta.');
+            session()->flash('toast', __('Landing page dicipta.'));
 
             return $this->redirectRoute('tempahan.forms.edit', $form, navigate: true);
         }
         $this->form = $form->fresh();
-        $this->dispatch('toast', message: 'Tetapan disimpan.');
+        $this->dispatch('toast', message: __('Tetapan disimpan.'));
     }
 
     public function render()
@@ -119,7 +119,7 @@ class FormEditor extends Component
         return view('livewire.tempahan.form-editor', [
             'outlets' => $owner->outlets()->orderBy('name')->get(),
             'products' => Product::where('user_id', $owner->id)->with('category')->orderBy('product_category_id')->orderBy('sort')->get(),
-            'gateway' => config('services.payment_driver') === 'chip' ? 'CHIP Collect' : 'Simulasi (ujian)',
+            'gateway' => config('services.payment_driver') === 'chip' ? 'CHIP Collect' : __('Simulasi (ujian)'),
         ]);
     }
 }

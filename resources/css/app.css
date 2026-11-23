@@ -396,3 +396,9 @@ body.sf{display:block;font-size:16px}
 .tbl-sortable tr.cat-row td{background:var(--panel2);border-top:2px solid var(--line2);font-family:var(--font-head);text-transform:uppercase;letter-spacing:.02em}
 .tbl-sortable tr.cat-row td .hint{font-family:var(--font-body);text-transform:none;letter-spacing:0}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Suis bahasa BM / EN dalam sidebar */
+.langswitch{display:flex;gap:4px;margin:0 6px 12px;padding:3px;border:1px solid #4a413a;border-radius:var(--radius-sm)}
+.langswitch a{flex:1;text-align:center;padding:5px 0;border-radius:calc(var(--radius-sm) - 2px);font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:.08em;color:#efe6d3;text-decoration:none}
+.langswitch a:hover{color:#fff}
+.langswitch a.on{background:var(--accent);color:var(--on-accent)}

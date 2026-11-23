@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ app()->getLocale() === 'en' ? 'en' : 'ms' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $outlet->name ?? 'Pak Maon Western' }} — Sistem Outlet</title>
+    <title>{{ $outlet->name ?? 'Pak Maon Western' }} — {{ __('Sistem Outlet') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=barlow:400,500,600,700|barlow-condensed:600,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -36,7 +36,7 @@
 
     {{-- Top bar mobile (hamburger) --}}
     <div class="topbar">
-        <div class="burger" @click="sidebarOpen = true" aria-label="Buka menu">☰</div>
+        <div class="burger" @click="sidebarOpen = true" aria-label="{{ __('Buka menu') }}">☰</div>
         <b>{{ $outlet->name ?? 'Pak Maon Western' }}</b>
     </div>
 
@@ -50,6 +50,13 @@
             <div><b>Pak Maon</b><br><span>Western Outlet</span></div>
         </div>
 
+        <div class="langswitch" role="group" aria-label="{{ __('Bahasa') }}">
+            @foreach (\App\Http\Middleware\SetLocale::LOCALES as $code => $short)
+                <a href="{{ route('locale.switch', $code) }}" @class(['on' => app()->getLocale() === $code])
+                   @if (app()->getLocale() === $code) aria-current="true" @endif>{{ $short }}</a>
+            @endforeach
+        </div>
+
         @auth
             @unless ($isBranchStaff)
                 @livewire('outlet-switcher')
@@ -61,23 +68,23 @@
                 <a href="{{ route($route) }}" wire:navigate
                    @click="sidebarOpen = false"
                    @class(['active' => request()->routeIs($route)])>
-                    <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
+                    <span class="ico">{{ $ico }}</span><span class="lbl">{{ __($label) }}</span>
                 </a>
             @endforeach
 
-            <div class="navgroup">Tempahan Online</div>
+            <div class="navgroup">{{ __('Tempahan Online') }}</div>
             @foreach ($bookingNav as [$route, $ico, $label])
                 <a href="{{ route($route) }}" wire:navigate
                    @click="sidebarOpen = false"
                    @class(['active' => request()->routeIs($route.'*')])>
-                    <span class="ico">{{ $ico }}</span><span class="lbl">{{ $label }}</span>
+                    <span class="ico">{{ $ico }}</span><span class="lbl">{{ __($label) }}</span>
                 </a>
             @endforeach
 
             <form method="POST" action="{{ route('logout') }}" style="margin-top:10px">
                 @csrf
                 <a href="#" onclick="event.preventDefault(); this.closest('form').submit();">
-                    <span class="ico">⎋</span><span class="lbl">Log Keluar</span>
+                    <span class="ico">⎋</span><span class="lbl">{{ __('Log Keluar') }}</span>
                 </a>
             </form>
         </nav>

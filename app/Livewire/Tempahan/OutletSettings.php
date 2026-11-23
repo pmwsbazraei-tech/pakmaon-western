@@ -83,12 +83,12 @@ class OutletSettings extends Component
 
         $wa = Phone::normalize($this->o['whatsapp']);
         if ($this->o['whatsapp'] !== '' && ! $wa) {
-            $this->addError('o.whatsapp', 'Nombor WhatsApp tidak sah.');
+            $this->addError('o.whatsapp', __('Nombor WhatsApp tidak sah.'));
 
             return;
         }
         if ($this->o['accepts_orders'] && ! $wa) {
-            $this->addError('o.whatsapp', 'Isi nombor WhatsApp sebelum outlet menerima tempahan.');
+            $this->addError('o.whatsapp', __('Isi nombor WhatsApp sebelum outlet menerima tempahan.'));
 
             return;
         }
@@ -126,7 +126,7 @@ class OutletSettings extends Component
         }
 
         $this->load();
-        $this->dispatch('toast', message: 'Tetapan outlet disimpan.');
+        $this->dispatch('toast', message: __('Tetapan outlet disimpan.'));
     }
 
     public function render()

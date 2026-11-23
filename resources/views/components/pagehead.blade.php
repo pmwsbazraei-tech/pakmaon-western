@@ -9,7 +9,7 @@
     </div>
     @if ($withMonth)
         <div>
-            <label>Bulan laporan</label>
+            <label>{{ __('Bulan laporan') }}</label>
             <input type="month" class="monthsel" wire:model.live="month">
         </div>
     @endif
