@@ -12,6 +12,7 @@ use App\Models\VariantGroup;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -63,8 +64,24 @@ class ProductEditor extends Component
             ->reject(fn ($id) => in_array($id, $unavailable))->map(fn ($i) => (string) $i)->values()->all();
     }
 
+    /** Putaran gambar (darjah ikut jam: 0/90/180/270), dikenakan pada fail bila disimpan. */
+    public int $rotation = 0;
+
+    /** Putar pratonton 90° (1 = ikut jam, -1 = lawan jam). */
+    public function rotate(int $dir): void
+    {
+        $this->rotation = (($this->rotation + ($dir < 0 ? -90 : 90)) % 360 + 360) % 360;
+    }
+
+    /** Hanya gambar yang dimuat naik (bukan URL luar) boleh diputar. */
+    public function canRotate(): bool
+    {
+        return (bool) $this->photo || str_starts_with((string) $this->p['image_url'], Product::UPLOAD_PREFIX);
+    }
+
     public function updatedPhoto(): void
     {
+        $this->rotation = 0;
         $this->validateOnly('photo', ['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']], [], ['photo' => __('gambar')]);
     }
 
@@ -108,6 +125,50 @@ class ProductEditor extends Component
     {
         $this->photo = null;
         $this->p['image_url'] = '';
+        $this->rotation = 0;
+    }
+
+    /**
+     * Putar fail gambar dalam storage dan simpan sebagai fail baharu (nama baharu supaya cache pelayar dikemas kini).
+     * Pulangkan nama fail baharu, atau null jika gagal (gambar asal kekal).
+     */
+    private function rotateStoredImage(string $file, int $degrees): ?string
+    {
+        $disk = Storage::disk('public');
+        $path = 'products/'.$file;
+        if (! $disk->exists($path) || ! function_exists('imagerotate')) {
+            return null;
+        }
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $img = @imagecreatefromstring($disk->get($path));
+        if (! $img) {
+            return null;
+        }
+        // imagerotate memutar lawan jam; nilai negatif = ikut jam
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        $rotated = imagerotate($img, -$degrees, $transparent);
+        imagedestroy($img);
+        if (! $rotated) {
+            return null;
+        }
+        imagealphablending($rotated, false);
+        imagesavealpha($rotated, true);
+
+        ob_start();
+        match ($ext) {
+            'png' => imagepng($rotated),
+            'webp' => function_exists('imagewebp') ? imagewebp($rotated, null, 90) : imagepng($rotated),
+            default => imagejpeg($rotated, null, 90),
+        };
+        $data = ob_get_clean();
+        imagedestroy($rotated);
+
+        $newExt = $ext === 'webp' && ! function_exists('imagewebp') ? 'png' : ($ext === 'jpeg' ? 'jpg' : $ext);
+        $newFile = Str::random(40).'.'.$newExt;
+        $disk->put('products/'.$newFile, $data);
+        $disk->delete($path);
+
+        return $newFile;
     }
 
     public function save()
@@ -143,6 +204,23 @@ class ProductEditor extends Component
         if ($this->photo) {
             $this->p['image_url'] = Product::UPLOAD_PREFIX.basename($this->photo->store('products', 'public'));
             $this->photo = null;
+        }
+        // Putaran: hasilkan fail baharu; fail lama (sebelum putar) dipadam
+        if ($this->rotation && str_starts_with((string) $this->p['image_url'], Product::UPLOAD_PREFIX)) {
+            $current = basename($this->p['image_url']);
+            $isOriginal = $oldImage && basename($oldImage) === $current;
+            if ($isOriginal) {
+                // Salin dahulu supaya fail asal dipadam oleh logik "gambar lama" di bawah
+                $copy = Str::random(40).'.'.pathinfo($current, PATHINFO_EXTENSION);
+                Storage::disk('public')->copy('products/'.$current, 'products/'.$copy);
+                $current = $copy;
+            }
+            if ($new = $this->rotateStoredImage($current, $this->rotation)) {
+                $this->p['image_url'] = Product::UPLOAD_PREFIX.$new;
+            } elseif ($isOriginal) {
+                Storage::disk('public')->delete('products/'.$current); // salinan tidak digunakan
+            }
+            $this->rotation = 0;
         }
 
         $product = DB::transaction(function () use ($owner, $groupIds, $hasVariants) {

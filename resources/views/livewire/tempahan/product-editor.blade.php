@@ -23,11 +23,22 @@
                 <label>{{ __('Gambar produk') }}</label>
                 @php $preview = $photo && method_exists($photo, 'temporaryUrl') && ! $errors->has('photo') ? $photo->temporaryUrl() : ($p['image_url'] ?: null); @endphp
                 <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-                    <div style="width:96px;height:96px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--panel2);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        @if ($preview)
-                            <img src="{{ $preview }}" alt="" style="width:100%;height:100%;object-fit:cover">
-                        @else
-                            <span class="hint" style="margin:0">{{ __('Tiada gambar') }}</span>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+                        <div style="width:110px;height:110px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--panel2);overflow:hidden;display:flex;align-items:center;justify-content:center">
+                            @if ($preview)
+                                <img src="{{ $preview }}" alt="" style="width:100%;height:100%;object-fit:cover;transition:transform .2s ease;transform:rotate({{ $rotation }}deg)">
+                            @else
+                                <span class="hint" style="margin:0">{{ __('Tiada gambar') }}</span>
+                            @endif
+                        </div>
+                        @if ($preview && $this->canRotate())
+                            <div style="display:flex;gap:4px">
+                                <button type="button" class="btn sec sm" wire:click="rotate(-1)" title="{{ __('Putar ke kiri') }}" aria-label="{{ __('Putar ke kiri') }}">⟲</button>
+                                <button type="button" class="btn sec sm" wire:click="rotate(1)" title="{{ __('Putar ke kanan') }}" aria-label="{{ __('Putar ke kanan') }}">⟳</button>
+                            </div>
+                            @if ($rotation)
+                                <span class="hint" style="margin:0;color:var(--accent2)">{{ __('Diputar :deg° — tekan Simpan produk', ['deg' => $rotation]) }}</span>
+                            @endif
                         @endif
                     </div>
                     <div style="flex:1;min-width:220px"
