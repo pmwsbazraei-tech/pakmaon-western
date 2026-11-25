@@ -294,7 +294,7 @@
                                            @change="pick(g, o)">
                                     <span class="sf-grow" x-text="o.name"></span>
                                     <span class="sf-na" x-show="!o.available">{{ __('Tidak tersedia') }}</span>
-                                    <span class="sf-price" x-show="o.available" x-text="o.price > 0 ? '+' + rm(o.price) : @js(__('Percuma'))"></span>
+                                    <span class="sf-price" x-show="o.available" x-text="'+' + rm(o.price)"></span>
                                 </label>
                             </template>
                             <div class="sf-err" x-show="picker.tried && g.required && !(picker.sel[g.id] || []).length" x-text="@js(__('Sila pilih :name.')).replace(':name', g.name)"></div>
