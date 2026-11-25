@@ -113,7 +113,7 @@
                             <span>
                                 <b>{{ $g->name }}</b> <span class="badge {{ $g->is_required ? 'warn' : '' }}" style="font-size:11px">{{ $g->ruleLabel($g->activeVariants->count()) }}</span>
                                 <span class="hint" style="margin:2px 0 0;display:block">
-                                    @forelse ($g->activeVariants as $v){{ $v->name }} (@sen($v->promo_price_cents ?? $v->price_cents))@if (! $loop->last), @endif @empty{{ __('Tiada pilihan lagi') }}@endforelse
+                                    @forelse ($g->activeVariants as $v){{ $v->name }} (+@sen($v->promo_price_cents ?? $v->price_cents))@if (! $loop->last), @endif @empty{{ __('Tiada pilihan lagi') }}@endforelse
                                 </span>
                             </span>
                         </label>

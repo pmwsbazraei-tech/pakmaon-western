@@ -102,9 +102,9 @@
                                 </label>
                                 <div class="sr-price">
                                     @if ($v->promo_price_cents !== null)
-                                        @sen($v->promo_price_cents) <s class="hint" style="margin:0">@sen($v->price_cents)</s>
+                                        +@sen($v->promo_price_cents) <s class="hint" style="margin:0">+@sen($v->price_cents)</s>
                                     @else
-                                        @sen($v->price_cents)
+                                        +@sen($v->price_cents)
                                     @endif
                                 </div>
                                 <div class="sr-actions">
@@ -124,8 +124,8 @@
                                 <div class="row" style="margin-top:8px">
                                     <div style="flex:2"><label>{{ __('Nama') }} *</label><input wire:model="o.name" placeholder="{{ __('Contoh: :name 1', ['name' => $g->name]) }}">@error('o.name')<div class="auth-error">{{ $message }}</div>@enderror</div>
                                     <div><label>SKU</label><input wire:model="o.sku">@error('o.sku')<div class="auth-error">{{ $message }}</div>@enderror</div>
-                                    <div><label>{{ __('Harga (RM)') }} *</label><input type="number" step="0.01" min="0" wire:model="o.price">@error('o.price')<div class="auth-error">{{ $message }}</div>@enderror</div>
-                                    <div><label>{{ __('Harga promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="o.promo_price">@error('o.promo_price')<div class="auth-error">{{ $message }}</div>@enderror</div>
+                                    <div><label>{{ __('Harga tambahan (RM)') }} *</label><input type="number" step="0.01" min="0" wire:model="o.price">@error('o.price')<div class="auth-error">{{ $message }}</div>@enderror</div>
+                                    <div><label>{{ __('Harga tambahan promosi (RM)') }}</label><input type="number" step="0.01" min="0" wire:model="o.promo_price">@error('o.promo_price')<div class="auth-error">{{ $message }}</div>@enderror</div>
                                 </div>
                                 <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
                                     <button class="btn sm" type="submit">{{ $optId ? __('Simpan perubahan') : '+ '.__('Tambah pilihan') }}</button>
