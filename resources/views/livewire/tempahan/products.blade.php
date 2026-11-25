@@ -56,11 +56,11 @@
                                 <a href="{{ route('tempahan.products.edit', $p) }}" wire:navigate>{{ $p->name }}</a>
                                 @if ($p->sku)<span class="hint" style="margin:0"> · {{ $p->sku }}</span>@endif
                                 @if ($p->has_variants)
-                                    <div class="hint" style="margin:2px 0 0">{{ $p->variants->where('is_active', true)->pluck('name')->join(', ') }}</div>
+                                    <div class="hint" style="margin:2px 0 0">{{ __('Variant') }}: {{ $p->variantGroups->where('is_active', true)->pluck('name')->join(', ') }}</div>
                                 @endif
                             </div>
-                            <div class="sr-price">@if ($p->has_variants) {{ __('Ikut variasi') }} @else @sen($p->effectivePrice()) @endif</div>
-                            <div class="sr-stock" title="{{ __('Stok') }}">{{ $p->has_variants ? '–' : ($p->stock ?? '∞') }}</div>
+                            <div class="sr-price">@sen($p->effectivePrice() ?? 0)@if ($p->has_variants)<div class="hint" style="margin:0">{{ __('+ variant') }}</div>@endif</div>
+                            <div class="sr-stock" title="{{ __('Stok') }}">{{ $p->stock ?? '∞' }}</div>
                             <div class="sr-status">@if ($p->is_hidden)<span class="badge">{{ __('Tersembunyi') }}</span>@elseif ($p->isSoldOut())<span class="badge bad">{{ __('Habis stok') }}</span>@else<span class="badge ok">{{ __('Aktif') }}</span>@endif</div>
                         </div>
                     @empty

@@ -1,6 +1,7 @@
 {
     "(pilihan)": "(optional)",
     "(pilihan, untuk resit)": "(optional, for your receipt)",
+    "+ variant": "+ variants",
     "2026-12-25 Cuti umum": "2026-12-25 Public holiday",
     ":count booking · :guests tetamu": ":count bookings · :guests guests",
     ":count dalam cart": ":count in cart",

@@ -61,7 +61,7 @@ class Products extends Component
         $owner = $this->shopOwner();
         $t = trim($this->q);
 
-        $products = Product::where('user_id', $owner->id)->with('variants')
+        $products = Product::where('user_id', $owner->id)->with('variants', 'variantGroups')
             ->when($t !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$t}%")->orWhere('sku', 'like', "%{$t}%")
                 ->orWhereHas('variants', fn ($v) => $v->where('sku', 'like', "%{$t}%")->orWhere('name', 'like', "%{$t}%"))))
             ->orderBy('sort')->orderBy('id')->get()
