@@ -182,6 +182,16 @@ class Variants extends Component
         $this->dispatch('toast', message: __('Pilihan dipadam.'));
     }
 
+    /** Buka/tutup pilihan. Berkuat kuasa di semua produk yang memakai group ini. */
+    public function toggleAvailable(int $groupId, int $optionId): void
+    {
+        $v = $this->findGroup($groupId)->activeVariants()->whereKey($optionId)->firstOrFail();
+        $v->update(['is_available' => ! $v->is_available]);
+        $this->dispatch('toast', message: $v->is_available
+            ? __(':name dibuka semula.', ['name' => $v->name])
+            : __(':name ditutup — dipaparkan sebagai Tidak tersedia.', ['name' => $v->name]));
+    }
+
     /** Susunan pilihan dalam satu group selepas drag. */
     public function sortOptions(int $groupId, array $ids): void
     {

@@ -13,7 +13,7 @@ class Variant extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'is_available' => 'boolean'];
     }
 
     public function group(): BelongsTo

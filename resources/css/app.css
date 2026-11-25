@@ -426,12 +426,19 @@ body.sf{display:block;font-size:16px}
   .sortrow .sr-stock{display:none}
   .sortrow .sr-status{grid-column:2/-1;text-align:left}
 }
-.sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto auto}
+.sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto auto auto}
+/* Suis buka/tutup pilihan variant */
+.avail-toggle{display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap}
+.avail-toggle input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:99px;background:var(--line2);position:relative;cursor:pointer;margin:0;flex:0 0 auto;transition:background .15s}
+.avail-toggle input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.avail-toggle input:checked{background:var(--green,#2e7d32)}
+.avail-toggle input:checked::after{transform:translateX(14px)}
+.avail-toggle input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sortrow .sr-actions{display:flex;gap:6px;justify-content:flex-end}
 @media(max-width:640px){
   .sortgroup-head{flex-wrap:wrap}
   .sortgroup-head .actions{width:100%;justify-content:flex-end}
-  .sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto}
+  .sortrow.opt-row{grid-template-columns:28px minmax(0,1fr) auto auto}
   .sortrow.opt-row .sr-actions{grid-column:2/-1;justify-content:flex-start}
 }
 /* Editor landing page: senarai produk ikut kategori, variant di bawah produk */
@@ -457,6 +464,8 @@ body.sf{display:block;font-size:16px}
 .sf-popt input{width:auto;margin:0;accent-color:var(--accent)}
 .sf-popt.on{border-color:var(--accent);background:var(--panel)}
 .sf-popt.off{opacity:.45;cursor:not-allowed}
+.sf-popt.na .sf-grow{text-decoration:line-through}
+.sf-na{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--red)}
 /* Suis bahasa halaman pelanggan */
 .sf-head .sf-wrap > .sf-headr{display:flex;align-items:center;gap:8px;flex:none}
 .sf-lang{display:flex;border:1.5px solid var(--txt);border-radius:99px;overflow:hidden;flex:none}

@@ -93,7 +93,13 @@
                         @forelse ($g->activeVariants as $v)
                             <div class="sortrow opt-row" wire:key="o-{{ $v->id }}" data-sort-id="{{ $v->id }}" @if ($optId === $v->id) style="background:var(--panel2)" @endif>
                                 <span class="drag-handle" title="{{ __('Seret untuk susun') }}" aria-label="{{ __('Seret :name', ['name' => $v->name]) }}">⠿</span>
-                                <div class="sr-main"><b>{{ $v->name }}</b>@if ($v->sku)<span class="hint" style="margin:0"> · {{ $v->sku }}</span>@endif</div>
+                                <div class="sr-main" @if (! $v->is_available) style="opacity:.55" @endif><b>{{ $v->name }}</b>@if ($v->sku)<span class="hint" style="margin:0"> · {{ $v->sku }}</span>@endif
+                                    @if (! $v->is_available)<span class="badge bad" style="margin-left:6px;font-size:11px">{{ __('Tidak tersedia') }}</span>@endif
+                                </div>
+                                <label class="avail-toggle" title="{{ __('Buka/tutup pilihan ini di semua menu') }}">
+                                    <input type="checkbox" role="switch" @checked($v->is_available) wire:click="toggleAvailable({{ $g->id }}, {{ $v->id }})">
+                                    <span>{{ $v->is_available ? __('Buka') : __('Tutup') }}</span>
+                                </label>
                                 <div class="sr-price">
                                     @if ($v->promo_price_cents !== null)
                                         @sen($v->promo_price_cents) <s class="hint" style="margin:0">@sen($v->price_cents)</s>

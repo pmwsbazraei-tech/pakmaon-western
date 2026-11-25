@@ -542,7 +542,7 @@
     "Tick variant group dari :link. Semua pilihan dalam group itu akan dipaparkan kepada pelanggan.": "Tick variant groups from the :link. Every option in those groups is shown to customers.",
     "Tidak Hadir": "No-show",
     "Tidak hadir": "No-show",
-    "Tidak tersedia": "Not available",
+    "Tidak tersedia": "Unavailable",
     "Tukar Status di Overview kepada Maintenance untuk menutup page sementara.": "Change the Status in Overview to Maintenance to close the page temporarily.",
     "Tunjuk yang dibatalkan": "Show cancelled",
     "Tutup": "Closed",
@@ -581,5 +581,10 @@
     "stok": "stock",
     "tajuk": "title",
     "tersembunyi": "hidden",
-    "← Kembali ke menu": "← Back to menu"
+    "← Kembali ke menu": "← Back to menu",
+    "Buka": "Open",
+    "Buka/tutup pilihan ini di semua menu": "Turn this option on/off for every menu",
+    ":name dibuka semula.": ":name is available again.",
+    ":name ditutup — dipaparkan sebagai Tidak tersedia.": ":name turned off — shown as Unavailable.",
+    ":item tidak tersedia buat masa ini dan telah dibuang.": ":item is currently unavailable and was removed."
 }

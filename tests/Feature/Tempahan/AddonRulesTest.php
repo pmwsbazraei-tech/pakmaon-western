@@ -82,4 +82,32 @@ class AddonRulesTest extends PmwTestCase
         $html = $this->get('/p/pak-maon-western')->assertOk()->getContent();
         $this->assertStringContainsString('sehingga 3', $html);
     }
+
+    public function test_closed_option_is_shown_unavailable_and_cannot_be_ordered(): void
+    {
+        $g = $this->sauceGroup(required: true, max: 1);
+        $cheezy = $g->variants()->where('name', 'Cheezy')->first();
+
+        Livewire::actingAs($this->owner)->test(Variants::class)
+            ->call('toggleAvailable', $g->id, $cheezy->id)
+            ->assertSee('Tidak tersedia');
+        $this->assertFalse($cheezy->fresh()->is_available);
+
+        // Pelanggan masih nampak pilihan itu, ditanda tidak tersedia; pilihan lain boleh dipesan
+        $html = $this->get('/p/pak-maon-western')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/Cheezy.{0,80}available.{0,12}false/s', $html);
+        $this->order([$this->opt('Cheezy')])->assertStatus(422);
+        $this->order([$this->opt('Blackpepper')])->assertSuccessful();
+
+        // Semua pilihan group wajib ditutup → produk tidak boleh dipesan
+        foreach ($g->variants as $v) {
+            $v->update(['is_available' => false]);
+        }
+        $this->order([$this->opt('Blackpepper')])->assertStatus(422);
+
+        // Buka semula
+        Livewire::actingAs($this->owner)->test(Variants::class)->call('toggleAvailable', $g->id, $cheezy->id);
+        $this->assertTrue($cheezy->fresh()->is_available);
+        $this->order([$this->opt('Cheezy')])->assertSuccessful();
+    }
 }

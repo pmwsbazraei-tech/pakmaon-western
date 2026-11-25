@@ -25,6 +25,12 @@ class ProductVariant extends Model
         return $this->belongsTo(Variant::class);
     }
 
+    /** Pilihan ditutup di halaman Variant berkuat kuasa di semua produk yang memakainya. */
+    public function isAvailable(): bool
+    {
+        return $this->variant?->is_available ?? true;
+    }
+
     public function effectivePrice(): int
     {
         return $this->promo_price_cents ?? $this->price_cents;

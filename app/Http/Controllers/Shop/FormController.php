@@ -39,19 +39,7 @@ class FormController extends Controller
             ->sortBy(fn ($p) => sprintf('%09d-%09d-%09d-%09d',
                 $p->category ? $p->category->sort : 999999999, $p->product_category_id ?? 999999999, $p->sort, $p->id))
             ->groupBy(fn ($p) => $p->category?->name ?? __('Lain-lain'))
-            ->map(fn ($items) => $items->map(fn ($p) => [
-                'id' => $p->id,
-                'name' => $p->name,
-                'description' => $p->description,
-                'image' => $p->image_url,
-                'has_variants' => $p->has_variants && $p->activeVariants->isNotEmpty(),
-                // Harga asas produk; harga add-on ditambah di atasnya
-                'price' => $p->effectivePrice() ?? 0,
-                'regular_price' => $p->price_cents ?? 0,
-                'from_price' => ($p->effectivePrice() ?? 0) + $this->addonGroups($p)->where('required', true)->sum(fn ($g) => collect($g['options'])->min('price')),
-                'sold_out' => $p->isSoldOut(),
-                'groups' => $this->addonGroups($p),
-            ])->values());
+            ->map(fn ($items) => $items->map(fn ($p) => $this->catalogItem($p))->values());
 
         return view('shop.form', [
             'form' => $form,
@@ -63,6 +51,28 @@ class FormController extends Controller
             ])->values(),
             'preview' => $this->isPreview($request, $form),
         ]);
+    }
+
+    private function catalogItem(Product $p): array
+    {
+        $groups = $this->addonGroups($p);
+        // Group wajib yang semua pilihannya ditutup: produk tidak boleh dipesan
+        $blocked = $groups->contains(fn ($g) => $g['required'] && ! collect($g['options'])->contains('available', true));
+
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'description' => $p->description,
+            'image' => $p->image_url,
+            'has_variants' => $p->has_variants && $p->activeVariants->isNotEmpty(),
+            // Harga asas produk; harga add-on ditambah di atasnya
+            'price' => $p->effectivePrice() ?? 0,
+            'regular_price' => $p->price_cents ?? 0,
+            'from_price' => ($p->effectivePrice() ?? 0) + $groups->where('required', true)
+                ->sum(fn ($g) => collect($g['options'])->where('available', true)->min('price') ?? 0),
+            'sold_out' => $p->isSoldOut() || $blocked,
+            'groups' => $groups,
+        ];
     }
 
     public function quote(Request $request, string $slug, PricingService $pricing): JsonResponse
@@ -184,7 +194,8 @@ class FormController extends Controller
                     'required' => $group ? $group->is_required : true,
                     'max' => $group ? $group->effectiveMax($options->count()) : 1,
                     'rule' => $group ? $group->ruleLabel($options->count()) : __('Wajib · pilih 1'),
-                    'options' => $options->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice()])->values()->all(),
+                    // Pilihan yang ditutup di halaman Variant kekal dipaparkan sebagai "Tidak tersedia"
+                    'options' => $options->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'price' => $v->effectivePrice(), 'available' => $v->isAvailable()])->values()->all(),
                 ];
             })->values();
     }

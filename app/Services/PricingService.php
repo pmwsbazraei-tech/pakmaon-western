@@ -69,6 +69,13 @@ class PricingService
                 continue;
             }
 
+            // Pilihan yang ditutup di halaman Variant tidak boleh dipesan
+            if ($closed = $chosen->first(fn (ProductVariant $v) => ! $v->isAvailable())) {
+                $errors[] = __(':item tidak tersedia buat masa ini dan telah dibuang.', ['item' => $product->name.' ('.$closed->name.')']);
+
+                continue;
+            }
+
             // Peraturan setiap group: Required (sekurang-kurangnya 1) & maksimum pilihan
             $ruleError = null;
             foreach ($available->groupBy(fn ($v) => $v->variant?->variant_group_id ?? 0) as $groupId => $options) {

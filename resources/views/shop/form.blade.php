@@ -288,12 +288,13 @@
                                 <span class="sf-rule" :class="{ req: g.required }" x-text="g.rule"></span>
                             </legend>
                             <template x-for="o in g.options" :key="o.id">
-                                <label class="sf-popt" :class="{ on: picked(g, o), off: !picked(g, o) && atMax(g) && g.max > 1 }">
+                                <label class="sf-popt" :class="{ on: picked(g, o), off: !o.available || (!picked(g, o) && atMax(g) && g.max > 1), na: !o.available }">
                                     <input :type="g.max === 1 && g.required ? 'radio' : 'checkbox'" :name="'g' + g.id"
-                                           :checked="picked(g, o)" :disabled="!picked(g, o) && atMax(g) && g.max > 1"
+                                           :checked="picked(g, o)" :disabled="!o.available || (!picked(g, o) && atMax(g) && g.max > 1)"
                                            @change="pick(g, o)">
                                     <span class="sf-grow" x-text="o.name"></span>
-                                    <span class="sf-price" x-text="o.price > 0 ? '+' + rm(o.price) : @js(__('Percuma'))"></span>
+                                    <span class="sf-na" x-show="!o.available">{{ __('Tidak tersedia') }}</span>
+                                    <span class="sf-price" x-show="o.available" x-text="o.price > 0 ? '+' + rm(o.price) : @js(__('Percuma'))"></span>
                                 </label>
                             </template>
                             <div class="sf-err" x-show="picker.tried && g.required && !(picker.sel[g.id] || []).length" x-text="@js(__('Sila pilih :name.')).replace(':name', g.name)"></div>
@@ -416,6 +417,7 @@ function pmwShop(cfg) {
         picked(g, o) { return (this.picker.sel[g.id] || []).includes(o.id); },
         atMax(g) { return (this.picker.sel[g.id] || []).length >= g.max; },
         pick(g, o) {
+            if (!o.available) return;
             let s = [...(this.picker.sel[g.id] || [])];
             if (s.includes(o.id)) s = s.filter(id => id !== o.id);
             else if (g.max === 1) s = [o.id];
