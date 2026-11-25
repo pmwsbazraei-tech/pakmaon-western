@@ -32,6 +32,28 @@ class Products extends Component
         $this->applyOrder(ProductCategory::where('user_id', $this->shopOwner()->id), $ids);
     }
 
+    /** Tukar nama kategori (butang pensil). Nama baharu terus dipakai di landing page. */
+    public function renameCategory(int $id, string $name): void
+    {
+        $owner = $this->shopOwner();
+        $cat = ProductCategory::where('user_id', $owner->id)->findOrFail($id);
+        $name = trim($name);
+
+        if ($name === '' || mb_strlen($name) > 100) {
+            $this->dispatch('toast', message: __('Nama kategori perlu 1–100 aksara.'));
+
+            return;
+        }
+        if (ProductCategory::where('user_id', $owner->id)->whereKeyNot($cat->id)->where('name', $name)->exists()) {
+            $this->dispatch('toast', message: __('Kategori ":name" sudah wujud.', ['name' => $name]));
+
+            return;
+        }
+
+        $cat->update(['name' => $name]);
+        $this->dispatch('toast', message: __('Nama kategori dikemas kini.'));
+    }
+
     /** Susunan produk dalam satu kategori selepas drag (0 = tanpa kategori). */
     public function sortProducts(int $categoryId, array $ids): void
     {

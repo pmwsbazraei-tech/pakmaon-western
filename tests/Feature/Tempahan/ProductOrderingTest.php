@@ -6,6 +6,7 @@ use App\Livewire\Tempahan\Products;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
 class ProductOrderingTest extends PmwTestCase
@@ -55,5 +56,30 @@ class ProductOrderingTest extends PmwTestCase
     {
         $this->actingAs($this->owner)->get(route('tempahan.products'))->assertOk()
             ->assertSee('drag-handle', false)->assertSee('Tutup semua')->assertDontSee('▲');
+    }
+
+    public function test_owner_can_rename_category_with_pencil_button(): void
+    {
+        $roti = ProductCategory::where('name', 'Roti & Toast')->first();
+        $set = ProductCategory::where('user_id', $this->owner->id)->whereKeyNot($roti->id)->first();
+
+        $this->actingAs($this->owner)->get(route('tempahan.products'))->assertOk()->assertSee('cat-edit', false);
+
+        Livewire::actingAs($this->owner)->test(Products::class)
+            ->call('renameCategory', $roti->id, '  Roti Bakar  ')->assertSee('Roti Bakar')
+            ->call('renameCategory', $roti->id, '')                 // kosong: diabaikan
+            ->call('renameCategory', $roti->id, $set->name);        // nama sedia ada: ditolak
+
+        $this->assertSame('Roti Bakar', $roti->fresh()->name);
+        $this->assertStringContainsString('Roti Bakar', $this->get('/p/pak-maon-western')->getContent());
+
+        // Kategori pemilik lain tidak boleh ditukar
+        $other = ProductCategory::create(['user_id' => User::factory()->create()->id, 'name' => 'Lain']);
+        try {
+            Livewire::actingAs($this->owner)->test(Products::class)->call('renameCategory', $other->id, 'Curi');
+            $this->fail('Kategori pemilik lain sepatutnya tidak dijumpai.');
+        } catch (ModelNotFoundException) {
+        }
+        $this->assertSame('Lain', $other->fresh()->name);
     }
 }

@@ -406,6 +406,9 @@ body.sf{display:block;font-size:16px}
 .sortgroup-head{display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line)}
 .sortgroup-head .fold{flex:1;display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px 2px;cursor:pointer;text-align:left;color:var(--txt);min-width:0}
 .sortgroup-head .fold b{font-family:var(--font-head);text-transform:uppercase;letter-spacing:.03em;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sortgroup-head .cat-edit{font-size:15px;padding:4px 10px;line-height:1}
+.cat-rename{flex:1;display:flex;gap:6px;align-items:center;min-width:0}
+.cat-rename input{flex:1;min-width:0;padding:6px 10px}
 .sortgroup-head .actions{display:flex;gap:6px;flex-shrink:0}
 .chev{display:inline-block;width:20px;text-align:center;transition:transform .15s ease;color:var(--txt);font-size:18px;line-height:1}
 .chev.shut{transform:rotate(-90deg)}

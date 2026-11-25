@@ -30,17 +30,30 @@
             @php $cat = $g['category']; $key = 'cat-'.($cat?->id ?? 'none'); @endphp
             <section class="sortgroup" wire:key="{{ $key }}" @if ($cat) data-sort-id="{{ $cat->id }}" @endif
                      x-data="collapsible('{{ $key }}')" x-on:pmw-fold-all.window="open = $event.detail">
-                <header class="sortgroup-head">
+                <header class="sortgroup-head" @if ($cat) x-data="{ editing: false, name: @js($cat->name) }" @endif>
                     @if ($canSort && $cat)
                         <span class="drag-handle group-handle" title="{{ __('Seret untuk susun') }}" aria-label="{{ __('Seret :name', ['name' => $cat->name]) }}">⠿</span>
                     @else
                         <span class="drag-handle off" aria-hidden="true"></span>
                     @endif
-                    <button type="button" class="fold" x-on:click="toggle()" x-bind:aria-expanded="open">
+                    <button type="button" class="fold" x-on:click="toggle()" x-bind:aria-expanded="open" @if ($cat) x-show="!editing" @endif>
                         <span class="chev" x-bind:class="{ 'shut': !open }">▾</span>
                         <b>{{ $cat?->name ?? __('Tanpa kategori') }}</b>
                         <span class="hint" style="margin:0">{{ __(':count produk', ['count' => $g['products']->count()]) }}</span>
                     </button>
+                    @if ($cat)
+                        {{-- Tukar nama kategori --}}
+                        <button type="button" class="btn sec sm cat-edit" x-show="!editing"
+                                x-on:click="editing = true; name = @js($cat->name); $nextTick(() => $refs.catName.select())"
+                                title="{{ __('Tukar nama kategori') }}" aria-label="{{ __('Tukar nama :name', ['name' => $cat->name]) }}">✎</button>
+                        <form class="cat-rename" x-show="editing" x-cloak
+                              x-on:submit.prevent="$wire.renameCategory({{ $cat->id }}, name).then(() => editing = false)">
+                            <input x-ref="catName" x-model="name" maxlength="100" required aria-label="{{ __('Nama kategori') }}"
+                                   x-on:keydown.escape="editing = false">
+                            <button type="submit" class="btn sm">{{ __('Simpan') }}</button>
+                            <button type="button" class="btn sec sm" x-on:click="editing = false">{{ __('Batal') }}</button>
+                        </form>
+                    @endif
                 </header>
 
                 <div class="sortrows" x-show="open" x-collapse.duration.150ms

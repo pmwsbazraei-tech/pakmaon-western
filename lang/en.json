@@ -589,5 +589,11 @@
     ":item tidak tersedia buat masa ini dan telah dibuang.": ":item is currently unavailable and was removed.",
     "Bermula dari": "Starting from",
     "Harga tambahan (RM)": "Extra price (RM)",
-    "Harga tambahan promosi (RM)": "Promo extra price (RM)"
+    "Harga tambahan promosi (RM)": "Promo extra price (RM)",
+    "Tukar nama kategori": "Rename category",
+    "Tukar nama :name": "Rename :name",
+    "Nama kategori perlu 1–100 aksara.": "Category name must be 1–100 characters.",
+    "Kategori \":name\" sudah wujud.": "Category \":name\" already exists.",
+    "Nama kategori dikemas kini.": "Category name updated.",
+    "Nama kategori": "Category name"
 }
