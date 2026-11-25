@@ -586,5 +586,6 @@
     "Buka/tutup pilihan ini di semua menu": "Turn this option on/off for every menu",
     ":name dibuka semula.": ":name is available again.",
     ":name ditutup — dipaparkan sebagai Tidak tersedia.": ":name turned off — shown as Unavailable.",
-    ":item tidak tersedia buat masa ini dan telah dibuang.": ":item is currently unavailable and was removed."
+    ":item tidak tersedia buat masa ini dan telah dibuang.": ":item is currently unavailable and was removed.",
+    "Bermula dari": "Starting from"
 }

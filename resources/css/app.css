@@ -285,6 +285,7 @@ body.sf{display:block;font-size:16px}
 .sf-between{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sf-price{font-family:var(--font-head);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums lining-nums}
 .sf-price s{color:var(--muted);font-weight:500;margin-left:6px;font-size:15px}
+.sf-price .sf-from{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--muted)}
 .sf-soldout{color:var(--red);font-weight:700;font-size:14px}
 .sf-qty{display:inline-flex;align-items:center;gap:10px}
 .sf-qty b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;font-size:17px}

@@ -108,7 +108,8 @@
                                 {{-- Produk dengan add-on: buka pemilih --}}
                                 <template x-if="p.has_variants">
                                     <div class="sf-between">
-                                        <span class="sf-price"><span x-show="p.from_price > p.price || p.price === 0">{{ __('dari') }} </span><span x-text="rm(p.from_price)"></span></span>
+                                        {{-- Ada pilihan variant: tunjuk harga terendah sebagai "Bermula dari" --}}
+                                        <span class="sf-price"><span class="sf-from">{{ __('Bermula dari') }}</span> <span x-text="rm(p.from_price)"></span></span>
                                         <span x-show="p.sold_out" class="sf-soldout">{{ __('Habis') }}</span>
                                         <div x-show="!p.sold_out" style="display:flex;align-items:center;gap:8px">
                                             <span x-show="qtyOfProduct(p.id) > 0" class="chip" x-text="@js(__(':count dalam cart')).replace(':count', qtyOfProduct(p.id))"></span>
