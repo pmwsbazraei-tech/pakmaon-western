@@ -5,7 +5,6 @@ namespace App\Livewire\Tempahan;
 use App\Livewire\Concerns\InteractsWithShop;
 use App\Models\OrderForm;
 use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Support\Money;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -25,9 +24,6 @@ class FormEditor extends Component
     public array $outletIds = [];
 
     public array $productIds = [];
-
-    /** Id product_variants yang ditick untuk dipaparkan pada landing page ini. */
-    public array $shownVariantIds = [];
 
     /** Tajuk landing page asal bila editor dibuka melalui butang Salin. */
     public ?string $copiedFrom = null;
@@ -70,11 +66,6 @@ class FormEditor extends Component
             : $this->visibleOutlets()->pluck('id')->map(fn ($i) => (string) $i)->all();
         $this->productIds = $base ? $base->products()->pluck('products.id')->map(fn ($i) => (string) $i)->all() : [];
 
-        // Variant yang ditick (dipaparkan). Lalai: semua, kecuali yang disorok pada landing page asal/semasa.
-        $hidden = $base ? $base->hiddenVariantIds() : [];
-        $this->shownVariantIds = $this->ownerVariantIds()->reject(fn ($i) => in_array($i, $hidden, true))
-            ->map(fn ($i) => (string) $i)->values()->all();
-
         if ($source) {
             $this->f['title'] = '';
             $this->f['slug'] = '';
@@ -113,16 +104,6 @@ class FormEditor extends Component
             return $this->addError('f.allow_pickup', __('Pembelian produk memerlukan pickup atau delivery.'));
         }
 
-        // Produk bervariasi yang ditick perlu sekurang-kurangnya satu variant ditick
-        $shown = array_map('intval', $this->shownVariantIds);
-        $ticked = Product::where('user_id', $owner->id)->whereIn('id', array_map('intval', $this->productIds))
-            ->where('has_variants', true)->with('activeVariants')->get();
-        $noVariant = $ticked->filter(fn ($p) => $p->activeVariants->pluck('id')->intersect($shown)->isEmpty());
-        if ($noVariant->isNotEmpty()) {
-            return $this->addError('productIds', __('Tick sekurang-kurangnya satu variant untuk: :names', ['names' => $noVariant->pluck('name')->join(', ')]));
-        }
-        $hiddenVariantIds = $ticked->flatMap(fn ($p) => $p->activeVariants->pluck('id'))->diff($shown)->values()->all();
-
         $data = collect($this->f)->except(['notices', 'min_order', 'max_order', 'delivery_fee'])->all();
         $data['notices'] = collect(preg_split('/\R/', $this->f['notices']))->map(fn ($l) => trim($l))->filter()->values()->all();
         $data['min_order_cents'] = Money::toCents($this->f['min_order']);
@@ -139,7 +120,6 @@ class FormEditor extends Component
         $form->fill($data)->save();
         $form->outlets()->sync(array_map('intval', $this->outletIds));
         $form->products()->sync(collect($this->productIds)->values()->mapWithKeys(fn ($id, $i) => [(int) $id => ['sort' => $i]])->all());
-        $form->hiddenVariants()->sync($hiddenVariantIds);
 
         if (! $this->form) {
             session()->flash('toast', __('Landing page dicipta.'));
@@ -148,14 +128,6 @@ class FormEditor extends Component
         }
         $this->form = $form->fresh();
         $this->dispatch('toast', message: __('Tetapan disimpan.'));
-    }
-
-    /** Semua id variant aktif bagi produk milik kedai ini. */
-    private function ownerVariantIds()
-    {
-        return ProductVariant::where('is_active', true)
-            ->whereIn('product_id', Product::where('user_id', $this->shopOwner()->id)->select('id'))
-            ->pluck('id')->map(fn ($i) => (int) $i);
     }
 
     public function render()

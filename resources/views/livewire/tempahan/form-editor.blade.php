@@ -48,21 +48,40 @@
         <div class="card" id="products">
             <h2 class="sec" style="margin-top:0">Products</h2>
             <div class="hint" style="margin-top:0;margin-bottom:10px">{!! __('Tanda produk yang dipaparkan. Urus harga, variasi dan stok di :link.', ['link' => '<a href="'.e(route('tempahan.products')).'" wire:navigate style="text-decoration:underline">'.e(__('Produk & Stok')).'</a>']) !!}</div>
+            <div class="sortbar" style="margin-bottom:6px">
+                <p class="hint" style="margin:0">{!! __('Variant di sini untuk rujukan sahaja. Buka/tutup pilihan variant di :link.', ['link' => '<a href="'.e(route('tempahan.variants')).'" wire:navigate style="text-decoration:underline">'.e(__('halaman Variant')).'</a>']) !!}</p>
+                <div class="foldall">
+                    <button type="button" class="btn sec sm" x-on:click="$dispatch('fe-variants-all', true)">{{ __('Buka semua variant') }}</button>
+                    <button type="button" class="btn sec sm" x-on:click="$dispatch('fe-variants-all', false)">{{ __('Tutup semua variant') }}</button>
+                </div>
+            </div>
             @error('productIds')<div class="auth-error" style="margin-bottom:8px">{{ $message }}</div>@enderror
             @forelse ($productGroups as $catName => $items)
                 <div class="fe-cat">{{ $catName }}</div>
                 @foreach ($items as $p)
-                    <div class="fe-prod" wire:key="fp-{{ $p->id }}">
-                        <label class="chk"><input type="checkbox" value="{{ $p->id }}" wire:model="productIds"> {{ $p->name }}@if ($p->is_hidden) <span class="hint" style="margin:0">· {{ __('tersembunyi') }}</span>@endif</label>
-                        @if ($p->has_variants && $p->activeVariants->isNotEmpty())
-                            {{-- Variant: hanya bila produk ditick --}}
-                            <div class="fe-variants" x-show="$wire.productIds.includes('{{ $p->id }}')" x-cloak>
+                    @php $hasVariants = $p->has_variants && $p->activeVariants->isNotEmpty(); @endphp
+                    <div class="fe-prod" wire:key="fp-{{ $p->id }}" x-data="{ vopen: false }" x-on:fe-variants-all.window="vopen = $event.detail">
+                        <div class="fe-prod-row">
+                            <label class="chk"><input type="checkbox" value="{{ $p->id }}" wire:model="productIds"> {{ $p->name }}@if ($p->is_hidden) <span class="hint" style="margin:0">· {{ __('tersembunyi') }}</span>@endif</label>
+                            @if ($hasVariants)
+                                <button type="button" class="fe-vtoggle" x-on:click="vopen = !vopen" x-bind:aria-expanded="vopen">
+                                    <span class="chev" x-bind:class="{ 'shut': !vopen }">▾</span>
+                                    {{ __(':count variant', ['count' => $p->activeVariants->count()]) }}
+                                </button>
+                            @endif
+                        </div>
+                        @if ($hasVariants)
+                            {{-- Paparan sahaja: buka/tutup pilihan dikawal di halaman Variant --}}
+                            <div class="fe-variants" x-show="vopen" x-collapse.duration.150ms x-cloak>
                                 @foreach ($p->activeVariants->groupBy(fn ($v) => $v->variant?->group?->name ?? '') as $groupName => $vs)
-                                    @if ($groupName !== '' && $p->activeVariants->pluck('variant.group.name')->unique()->count() > 1)
+                                    @if ($groupName !== '')
                                         <div class="hint" style="margin:4px 0 2px;font-weight:700">{{ $groupName }}</div>
                                     @endif
                                     @foreach ($vs as $v)
-                                        <label class="chk"><input type="checkbox" value="{{ $v->id }}" wire:model="shownVariantIds"> {{ $v->name }} <span class="hint" style="margin:0">· @sen($v->effectivePrice())</span></label>
+                                        <div class="fe-vopt @if (! $v->isAvailable()) na @endif">
+                                            {{ $v->name }} <span class="hint" style="margin:0">· +@sen($v->effectivePrice())</span>
+                                            @if (! $v->isAvailable())<span class="badge bad" style="font-size:11px">{{ __('Tidak tersedia') }}</span>@endif
+                                        </div>
                                     @endforeach
                                 @endforeach
                             </div>

@@ -27,12 +27,7 @@ class FormController extends Controller
 
         $form->load(['outlets' => fn ($q) => $q->where('accepts_orders', true), 'products' => fn ($q) => $q->where('is_hidden', false)->with('activeVariants.variant.group', 'category')]);
 
-        // Variant yang tidak ditick pada landing page ini disorok; produk tanpa variant yang tinggal tidak dipaparkan
-        $hidden = $form->hiddenVariantIds();
-        foreach ($form->products as $p) {
-            $p->setRelation('activeVariants', $p->activeVariants->reject(fn ($v) => in_array($v->id, $hidden, true))->values());
-        }
-
+        // Buka/tutup pilihan variant dikawal di halaman Variant sahaja (bukan per landing page)
         // Susunan ikut Produk & Stok: kategori (sort), kemudian produk (sort); tanpa kategori di hujung
         $catalog = $form->products
             ->reject(fn ($p) => $p->has_variants && $p->activeVariants->isEmpty())

@@ -29,7 +29,6 @@ class PricingService
         $priced = [];
 
         $allowedIds = $form->products()->pluck('products.id')->all();
-        $hiddenVariants = $form->exists ? $form->hiddenVariantIds() : [];
         $outletUnavailable = $outlet ? $outlet->unavailableProductIds() : [];
 
         // Gabungkan baris yang sama (produk + set add-on yang sama)
@@ -60,8 +59,8 @@ class PricingService
                 continue;
             }
 
-            // Add-on: setiap pilihan mesti milik produk ini dan tidak disorok pada landing page
-            $available = $product->activeVariants->reject(fn ($v) => in_array($v->id, $hiddenVariants, true))->keyBy('id');
+            // Add-on: setiap pilihan mesti milik produk ini
+            $available = $product->activeVariants->keyBy('id');
             $chosen = collect($line['options'])->map(fn ($id) => $available->get($id));
             if ($chosen->contains(null)) {
                 $errors[] = __('Satu item dalam cart tidak lagi tersedia dan telah dibuang.');

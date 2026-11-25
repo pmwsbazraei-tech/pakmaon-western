@@ -538,7 +538,6 @@
     "Tiada staf.": "No staff.",
     "Tiada wang sebenar.": "No real money is charged.",
     "Tick outlet yang menjual produk ini. Bila outlet baru ditick, produk ini terus ditick di landing page outlet tersebut (boleh di-untick di editor landing page, cth. bila habis stok).": "Tick the outlets that sell this product. When an outlet is newly ticked, this product is automatically ticked on that outlet’s landing pages (you can untick it in the landing page editor, e.g. when out of stock).",
-    "Tick sekurang-kurangnya satu variant untuk: :names": "Tick at least one variant for: :names",
     "Tick variant group dari :link. Semua pilihan dalam group itu akan dipaparkan kepada pelanggan.": "Tick variant groups from the :link. Every option in those groups is shown to customers.",
     "Tidak Hadir": "No-show",
     "Tidak hadir": "No-show",
@@ -595,5 +594,9 @@
     "Nama kategori perlu 1–100 aksara.": "Category name must be 1–100 characters.",
     "Kategori \":name\" sudah wujud.": "Category \":name\" already exists.",
     "Nama kategori dikemas kini.": "Category name updated.",
-    "Nama kategori": "Category name"
+    "Nama kategori": "Category name",
+    ":count variant": ":count variants",
+    "Variant di sini untuk rujukan sahaja. Buka/tutup pilihan variant di :link.": "Variants here are for reference only. Turn variant options on/off on the :link.",
+    "Buka semua variant": "Expand all variants",
+    "Tutup semua variant": "Collapse all variants"
 }
