@@ -328,6 +328,8 @@ body.sf{display:block;font-size:16px}
 .sf-step{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
 .sf-step .n{width:34px;height:34px;border-radius:999px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--font-head);font-weight:700;font-size:18px;flex:none}
 .sf-step h2{font-size:26px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
+.sf-step .sf-clear{margin-left:auto;font-size:14px}
+.sf-line .sf-calc{font-variant-numeric:tabular-nums;margin-top:2px}
 .sf-stack>*+*{margin-top:12px}
 .sf-field label{font-size:15px;color:var(--txt);font-weight:600}
 .sf-field input,.sf-field select,.sf-field textarea{min-height:48px;font-size:16px}

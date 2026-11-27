@@ -603,5 +603,8 @@
     "Cari menu…": "Search menu…",
     "Kosongkan carian": "Clear search",
     "Tiada menu ditemui untuk \":q\".": "No menu items found for \":q\".",
-    "Tunjuk semua menu": "Show all menu"
+    "Tunjuk semua menu": "Show all menu",
+    "Kosongkan cart": "Clear cart",
+    "Kosongkan semua item dalam cart? Tindakan ini tidak boleh dibatalkan.": "Remove all items from your cart? This cannot be undone.",
+    "Cart dikosongkan.": "Cart cleared."
 }

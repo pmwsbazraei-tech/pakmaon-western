@@ -155,14 +155,20 @@
     <main class="sf-wrap" x-show="step === 'checkout'" style="padding-top:12px">
         <button type="button" class="btn sec sm" @click="step = 'menu'; window.scrollTo(0, 0)">{{ __('← Kembali ke menu') }}</button>
 
-        <div class="sf-step"><span class="n">1</span><h2 x-text="purpose === 'booking' ? @js(__('Pre-order anda')) : @js(__('Cart anda'))"></h2></div>
+        <div class="sf-step"><span class="n">1</span><h2 x-text="purpose === 'booking' ? @js(__('Pre-order anda')) : @js(__('Cart anda'))"></h2>
+            <button type="button" class="sf-linkdel sf-clear" x-show="cart.length" @click="clearCart()">{{ __('Kosongkan cart') }}</button>
+        </div>
         <div class="card">
             <template x-if="cart.length === 0">
                 <p style="color:var(--muted)">{{ __('Tiada menu dipilih.') }} <span x-show="canProceedEmpty">{{ __('Anda boleh teruskan dengan booking meja sahaja.') }}</span></p>
             </template>
             <template x-for="l in cart" :key="l.key">
                 <div class="sf-line">
-                    <div><div class="nm" x-text="l.name"></div><div class="mt" x-show="l.variant" x-text="l.variant"></div></div>
+                    <div>
+                        <div class="nm" x-text="l.name"></div><div class="mt" x-show="l.variant" x-text="l.variant"></div>
+                        {{-- Harga seunit × kuantiti --}}
+                        <div class="mt sf-calc" x-text="rm(l.price) + ' × ' + l.qty"></div>
+                    </div>
                     <div class="sf-price" style="text-align:right" x-text="rm(l.price * l.qty)"></div>
                     <div class="act">
                         <div class="sf-qty">
@@ -469,6 +475,12 @@ function pmwShop(cfg) {
             this.picker = null;
         },
         remove(k) { this.cart = this.cart.filter(x => x.key !== k); this.requote(); },
+        clearCart() {
+            if (!confirm(@js(__('Kosongkan semua item dalam cart? Tindakan ini tidak boleh dibatalkan.')))) return;
+            this.cart = [];
+            this.requote();
+            this.flash(@js(__('Cart dikosongkan.')));
+        },
 
         goCheckout() {
             if (this.count === 0 && !this.canProceedEmpty) return;
