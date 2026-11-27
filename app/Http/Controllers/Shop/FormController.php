@@ -116,7 +116,7 @@ class FormController extends Controller
             'phone' => ['required', 'string'],
             'phone_normalized' => ['required'],
             'email' => ['nullable', 'email', 'max:150'],
-            'order_no' => ['required', 'string', 'max:50'],
+            'order_no' => ['required', 'string', 'max:50', 'regex:/^[0-9]+$/'],
             'outlet_id' => ['required', 'integer', Rule::in($form->outlets()->where('accepts_orders', true)->pluck('outlets.id'))],
             'booking_date' => ['exclude_unless:type,booking', 'required', 'date_format:Y-m-d'],
             'booking_time' => ['exclude_unless:type,booking', 'required', 'date_format:H:i'],
@@ -133,6 +133,7 @@ class FormController extends Controller
         ], [
             'phone_normalized.required' => __('Nombor telefon tidak sah. Contoh: 012-345 6789.'),
             'order_no.required' => __('Sila isi nombor order.'),
+            'order_no.regex' => __('Nombor order hanya boleh mengandungi nombor.'),
             'outlet_id.required' => __('Sila pilih cawangan.'),
             'outlet_id.in' => __('Cawangan tidak sah untuk page ini.'),
         ]);

@@ -18,7 +18,7 @@ class SimpleFormTest extends PmwTestCase
             'idempotency_key' => (string) Str::uuid(),
             'name' => 'Siti Test',
             'phone' => '012-345 6789',
-            'order_no' => 'SMB-01',
+            'order_no' => '1',
             'outlet_id' => $this->outlet()->id,
             'email' => 'siti@example.test',
             'items' => [['product_id' => $this->toast()->id, 'variant_id' => null, 'quantity' => 2]],
@@ -28,10 +28,10 @@ class SimpleFormTest extends PmwTestCase
         $this->assertSame('purchase', $order->type);
         $this->assertSame('pickup', $order->fulfillment);
         $this->assertNull($order->booking_at);
-        $this->assertSame('SMB-01', $order->customer_order_no);
+        $this->assertSame('1', $order->customer_order_no);
 
         $msg = app(WhatsAppService::class)->message($order);
-        foreach (['Nama: Siti Test', 'Nombor order: SMB-01', 'Cawangan: '.$this->outlet()->name, 'Emel: siti@example.test', 'Telefon: '] as $line) {
+        foreach (['Nama: Siti Test', 'Nombor order: 1', 'Cawangan: '.$this->outlet()->name, 'Emel: siti@example.test', 'Telefon: '] as $line) {
             $this->assertStringContainsString($line, $msg);
         }
         $this->assertStringNotContainsString('Tarikh:', $msg);
@@ -40,7 +40,7 @@ class SimpleFormTest extends PmwTestCase
     public function test_fulfillment_is_hidden_for_simple_form_orders(): void
     {
         $this->form()->update(['simple_form' => true]);
-        $simple = $this->placeOrder($this->purchasePayload(['order_no' => 'SMB-RINGKAS']));
+        $simple = $this->placeOrder($this->purchasePayload(['order_no' => '101']));
         $this->assertFalse($simple->fresh()->showsFulfillment());
 
         $this->actingAs($this->owner)->get(route('tempahan.orders.show', $simple))->assertOk()->assertDontSee('Cara terima');
@@ -48,7 +48,7 @@ class SimpleFormTest extends PmwTestCase
 
         // Borang penuh: pelanggan memilih, jadi cara terima dipaparkan
         $this->form()->update(['simple_form' => false]);
-        $full = $this->placeOrder($this->purchasePayload(['order_no' => 'SMB-PENUH']));
+        $full = $this->placeOrder($this->purchasePayload(['order_no' => '102']));
         $this->assertTrue($full->fresh()->showsFulfillment());
         $this->actingAs($this->owner)->get(route('tempahan.orders.show', $full))->assertOk()->assertSee('Cara terima');
     }

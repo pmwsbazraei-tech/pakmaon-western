@@ -195,7 +195,9 @@
                 <input id="sf-phone" x-model.trim="d.phone" @blur="formatPhone()" inputmode="tel" autocomplete="tel" placeholder="012-345 6789">
                 <div class="sf-err" x-text="err.phone || err.phone_normalized"></div></div>
             <div class="sf-field"><label for="sf-orderno">{{ __('Nombor order') }} <span class="req">*</span></label>
-                <input id="sf-orderno" x-model.trim="d.order_no" maxlength="50" autocomplete="off">
+                {{-- Nombor sahaja: huruf/simbol dibuang semasa menaip --}}
+                <input id="sf-orderno" x-model="d.order_no" @input="d.order_no = $event.target.value = $event.target.value.replace(/\D/g, '')"
+                       maxlength="50" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
                 <div class="sf-err" x-text="err.order_no"></div></div>
             <template x-if="simpleForm">
                 <div class="sf-field"><label for="sf-outlet-s">{{ __('Cawangan') }} <span class="req">*</span></label>
@@ -375,6 +377,7 @@ function pmwShop(cfg) {
             });
             const saved = store.get('pmw_details');
             if (saved) Object.assign(this.d, saved, { remember: true });
+            this.d.order_no = String(this.d.order_no || '').replace(/\D/g, '');
             this.purpose = this.purposes.length === 1 ? this.purposes[0] : store.get('pmw_purpose_' + this.slug);
             if (!this.allowPickup && this.allowDelivery) this.d.fulfillment = 'delivery';
             if (this.allowPickup && !this.allowDelivery) this.d.fulfillment = 'pickup';
@@ -538,6 +541,7 @@ function pmwShop(cfg) {
             const e = {};
             if (!this.d.name) e.name = @js(__('Sila isi nama.'));
             if (!this.d.order_no) e.order_no = @js(__('Sila isi nombor order.'));
+            else if (!/^[0-9]+$/.test(this.d.order_no)) e.order_no = @js(__('Nombor order hanya boleh mengandungi nombor.'));
             if (!this.d.phone) e.phone = @js(__('Sila isi nombor telefon.'));
             if (!this.d.outlet_id) e.outlet_id = @js(__('Sila pilih cawangan.'));
             if (this.purpose === 'booking') {

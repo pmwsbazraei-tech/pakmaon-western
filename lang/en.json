@@ -606,5 +606,6 @@
     "Tunjuk semua menu": "Show all menu",
     "Kosongkan cart": "Clear cart",
     "Kosongkan semua item dalam cart? Tindakan ini tidak boleh dibatalkan.": "Remove all items from your cart? This cannot be undone.",
-    "Cart dikosongkan.": "Cart cleared."
+    "Cart dikosongkan.": "Cart cleared.",
+    "Nombor order hanya boleh mengandungi nombor.": "Order number can only contain digits."
 }

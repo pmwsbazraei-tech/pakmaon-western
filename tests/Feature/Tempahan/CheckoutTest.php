@@ -120,14 +120,19 @@ class CheckoutTest extends PmwTestCase
     {
         $this->postJson(route('form.store', 'pak-maon-western'), $this->bookingPayload(['order_no' => '']))
             ->assertStatus(422)->assertJsonValidationErrors('order_no');
+        // Nombor sahaja: huruf dan simbol ditolak
+        foreach (['INV-778', '12A', '12 34'] as $bad) {
+            $this->postJson(route('form.store', 'pak-maon-western'), $this->bookingPayload(['order_no' => $bad]))
+                ->assertStatus(422)->assertJsonFragment(['order_no' => ['Nombor order hanya boleh mengandungi nombor.']]);
+        }
 
-        $order = $this->placeOrder($this->bookingPayload(['order_no' => '  INV-778  ']));
-        $this->assertSame('INV-778', $order->customer_order_no);
+        $order = $this->placeOrder($this->bookingPayload(['order_no' => '  778  ']));
+        $this->assertSame('778', $order->customer_order_no);
 
         $order->form->update(['whatsapp_template' => 'Nombor Order : {OrderNo}
 No: {order_no}']);
         $msg = app(WhatsAppService::class)->message($order->fresh());
-        $this->assertStringContainsString('Nombor Order : INV-778', $msg);
-        $this->assertStringContainsString('No: INV-778', $msg);
+        $this->assertStringContainsString('Nombor Order : 778', $msg);
+        $this->assertStringContainsString('No: 778', $msg);
     }
 }
