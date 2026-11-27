@@ -598,5 +598,10 @@
     ":count variant": ":count variants",
     "Variant di sini untuk rujukan sahaja. Buka/tutup pilihan variant di :link.": "Variants here are for reference only. Turn variant options on/off on the :link.",
     "Buka semua variant": "Expand all variants",
-    "Tutup semua variant": "Collapse all variants"
+    "Tutup semua variant": "Collapse all variants",
+    "Cari menu": "Search menu",
+    "Cari menu…": "Search menu…",
+    "Kosongkan carian": "Clear search",
+    "Tiada menu ditemui untuk \":q\".": "No menu items found for \":q\".",
+    "Tunjuk semua menu": "Show all menu"
 }

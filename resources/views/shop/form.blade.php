@@ -72,12 +72,26 @@
 
         <div x-show="purpose">
             <nav class="sf-tabs" aria-label="{{ __('Kategori menu') }}">
-                <template x-for="(items, cat) in catalog" :key="cat">
+                {{-- Carian menu --}}
+                <button type="button" class="sf-tab sf-searchbtn" :class="{ on: searchOpen || q }" @click="toggleSearch()"
+                        :aria-expanded="searchOpen" aria-controls="sf-search" aria-label="{{ __('Cari menu') }}" title="{{ __('Cari menu') }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                </button>
+                <template x-for="(items, cat) in shownCatalog" :key="cat">
                     <a class="sf-tab" :href="'#cat-' + slugify(cat)" x-text="cat"></a>
                 </template>
             </nav>
+            <div class="sf-search" id="sf-search" x-show="searchOpen" x-transition.opacity x-cloak>
+                <input type="search" x-ref="search" x-model.debounce.150ms="q" placeholder="{{ __('Cari menu…') }}" aria-label="{{ __('Cari menu') }}"
+                       @keydown.escape="closeSearch()" enterkeyhint="search" autocomplete="off">
+                <button type="button" class="sf-linkdel" x-show="q" @click="q = ''; $refs.search.focus()" aria-label="{{ __('Kosongkan carian') }}">✕</button>
+            </div>
+            <div class="card sf-noresult" x-show="q.trim() && !Object.keys(shownCatalog).length" x-cloak>
+                <span x-text="@js(__('Tiada menu ditemui untuk ":q".')).replace(':q', q.trim())"></span>
+                <button type="button" class="btn sec sm" @click="closeSearch()">{{ __('Tunjuk semua menu') }}</button>
+            </div>
 
-            <template x-for="(items, cat) in catalog" :key="cat">
+            <template x-for="(items, cat) in shownCatalog" :key="cat">
                 <section>
                     <h2 class="sf-cat" :id="'cat-' + slugify(cat)" x-text="cat"></h2>
                     <template x-for="p in items" :key="p.id">
@@ -345,7 +359,7 @@ function pmwShop(cfg) {
         step: 'menu', purpose: null, cart: [], open: {},
         d: { name: '', order_no: '', phone: '', email: '', remember: false, outlet_id: '', date: '', time: '', guests: 2, fulfillment: '', address: '', notes: '' },
         err: {}, quote: null, slots: [], slotsReason: '', slotsLoading: false,
-        submitting: false, showWelcome: false, toast: '', outletNote: '', _qTimer: null, picker: null,
+        submitting: false, showWelcome: false, toast: '', outletNote: '', _qTimer: null, picker: null, q: '', searchOpen: false,
 
         init() {
             // Cart lama (satu variant_id) ditukar ke format add-on (senarai pilihan)
@@ -385,6 +399,23 @@ function pmwShop(cfg) {
         rm(c) { return window.RM ? window.RM((c || 0) / 100) : 'RM' + ((c || 0) / 100).toFixed(2); },
         initials(n) { return n.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); },
         slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-'); },
+        // Carian menu: padan nama, penerangan atau kategori
+        toggleSearch() {
+            if (this.searchOpen) return this.closeSearch();
+            this.searchOpen = true;
+            this.$nextTick(() => this.$refs.search.focus());
+        },
+        closeSearch() { this.searchOpen = false; this.q = ''; },
+        get shownCatalog() {
+            const t = this.q.trim().toLowerCase();
+            if (!t) return this.catalog;
+            const out = {};
+            for (const [cat, items] of Object.entries(this.catalog)) {
+                const hit = items.filter(p => [p.name, p.description || '', cat].join(' ').toLowerCase().includes(t));
+                if (hit.length) out[cat] = hit;
+            }
+            return out;
+        },
         // Satu baris cart = produk + set add-on yang sama
         key(pid, opts) { return pid + ':' + [...(opts || [])].map(Number).sort((a, b) => a - b).join(','); },
         qtyOf(pid, opts) { const l = this.cart.find(l => l.key === this.key(pid, opts)); return l ? l.qty : 0; },
