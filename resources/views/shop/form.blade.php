@@ -195,9 +195,10 @@
                 <input id="sf-phone" x-model.trim="d.phone" @blur="formatPhone()" inputmode="tel" autocomplete="tel" placeholder="012-345 6789">
                 <div class="sf-err" x-text="err.phone || err.phone_normalized"></div></div>
             <div class="sf-field"><label for="sf-orderno">{{ __('Nombor order') }} <span class="req">*</span></label>
-                {{-- Nombor sahaja: huruf/simbol dibuang semasa menaip --}}
-                <input id="sf-orderno" x-model="d.order_no" @input="d.order_no = $event.target.value = $event.target.value.replace(/\D/g, '')"
-                       maxlength="50" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+                {{-- Nombor sahaja: type=tel buka pad nombor telefon (tiada huruf, tiada teks ramalan); huruf/simbol tidak dimasukkan --}}
+                <input id="sf-orderno" type="tel" x-model="d.order_no" @beforeinput="digitsOnly($event)"
+                       @input="d.order_no = $event.target.value = $event.target.value.replace(/\D/g, '')"
+                       maxlength="50" autocomplete="off" autocorrect="off" spellcheck="false" pattern="[0-9]*">
                 <div class="sf-err" x-text="err.order_no"></div></div>
             <template x-if="simpleForm">
                 <div class="sf-field"><label for="sf-outlet-s">{{ __('Cawangan') }} <span class="req">*</span></label>
@@ -408,6 +409,15 @@ function pmwShop(cfg) {
         rm(c) { return window.RM ? window.RM((c || 0) / 100) : 'RM' + ((c || 0) / 100).toFixed(2); },
         initials(n) { return n.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); },
         slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-'); },
+        // Hanya digit dimasukkan; huruf/simbol dalam teks yang ditaip/ditampal diabaikan, digit lain kekal
+        digitsOnly(e) {
+            if (!e.data || !/\D/.test(e.data) || !e.cancelable) return;
+            e.preventDefault();
+            const el = e.target, digits = e.data.replace(/\D/g, '');
+            if (!digits) return;
+            el.setRangeText(digits, el.selectionStart, el.selectionEnd, 'end');
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        },
         // Carian menu: padan nama, penerangan atau kategori
         toggleSearch() {
             if (this.searchOpen) return this.closeSearch();
