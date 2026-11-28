@@ -137,6 +137,25 @@ class Order extends Model
     }
 
     /** Tapis ikut penapis admin: outlet, form, jenis, status, tarikh, carian. */
+    /**
+     * Status ringkas seperti di Dashboard (sama dengan BranchDashboard::bucket):
+     * dibatalkan mengatasi bayaran; paid; deposit (bayaran separa); selainnya baharu.
+     */
+    public function scopeDashboardStatus(Builder $q, string $status): Builder
+    {
+        $notCancelled = fn ($w) => $w
+            ->where(fn ($x) => $x->whereNull('booking_status')->orWhere('booking_status', '!=', 'cancelled'))
+            ->where(fn ($x) => $x->whereNull('fulfillment_status')->orWhere('fulfillment_status', '!=', 'cancelled'));
+
+        return match ($status) {
+            'cancelled' => $q->where(fn ($w) => $w->where('booking_status', 'cancelled')->orWhere('fulfillment_status', 'cancelled')),
+            'paid' => $q->where($notCancelled)->where('payment_status', 'paid'),
+            'deposit' => $q->where($notCancelled)->where('payment_status', 'partial'),
+            'new' => $q->where($notCancelled)->where(fn ($x) => $x->whereNull('payment_status')->orWhereNotIn('payment_status', ['paid', 'partial'])),
+            default => $q,
+        };
+    }
+
     public function scopeFiltered(Builder $q, array $f): Builder
     {
         $tz = config('app.timezone');
@@ -147,6 +166,7 @@ class Order extends Model
             ->when($f['type'] ?? null, fn ($q, $v) => $q->where('type', $v))
             ->when($f['booking_status'] ?? null, fn ($q, $v) => $q->where('booking_status', $v))
             ->when($f['payment_status'] ?? null, fn ($q, $v) => $q->where('payment_status', $v))
+            ->when($f['status'] ?? null, fn ($q, $v) => $q->dashboardStatus($v))
             ->when($f['from'] ?? null, fn ($q, $v) => $q->where('created_at', '>=', CarbonImmutable::parse($v, $tz)->startOfDay()))
             ->when($f['to'] ?? null, fn ($q, $v) => $q->where('created_at', '<=', CarbonImmutable::parse($v, $tz)->endOfDay()))
             ->when(trim((string) ($f['q'] ?? '')) !== '', function ($q) use ($f) {

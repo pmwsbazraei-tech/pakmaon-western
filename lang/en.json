@@ -607,5 +607,7 @@
     "Kosongkan cart": "Clear cart",
     "Kosongkan semua item dalam cart? Tindakan ini tidak boleh dibatalkan.": "Remove all items from your cart? This cannot be undone.",
     "Cart dikosongkan.": "Cart cleared.",
-    "Nombor order hanya boleh mengandungi nombor.": "Order number can only contain digits."
+    "Nombor order hanya boleh mengandungi nombor.": "Order number can only contain digits.",
+    "Status (dashboard)": "Status (dashboard)",
+    "Klik nombor untuk lihat senarai pesanan dengan status tersebut.": "Click a number to see the orders with that status."
 }

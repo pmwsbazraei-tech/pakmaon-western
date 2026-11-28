@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tempahan;
 
 use App\Livewire\Tempahan\BranchDashboard;
+use App\Livewire\Tempahan\Orders;
 use Livewire\Livewire;
 
 class BranchDashboardTest extends PmwTestCase
@@ -29,6 +30,18 @@ class BranchDashboardTest extends PmwTestCase
         $this->assertSame(1, $branches['Pak Maon Western Melaka']['stats']['new']);
         $this->assertSame(6, $c->viewData('totals')['total']);
         $c->assertSee('Pak Maon Western Tangkak')->assertSee('Dibatalkan');
+
+        // Nombor dashboard ialah pautan ke senarai pesanan (bulan, status & cawangan sama)
+        $c->assertSeeHtml('status=deposit')->assertSeeHtml('outlet='.$tangkak->id);
+        $from = now()->startOfMonth()->toDateString();
+        $to = now()->endOfMonth()->toDateString();
+        foreach (['new' => 2, 'deposit' => 1, 'paid' => 1, 'cancelled' => 1] as $status => $count) {
+            $list = Livewire::actingAs($this->owner)->withQueryParams(['status' => $status, 'outlet' => (string) $tangkak->id, 'from' => $from, 'to' => $to])
+                ->test(Orders::class);
+            $this->assertSame($count, $list->viewData('orders')->total(), "status {$status}");
+        }
+        $all = Livewire::actingAs($this->owner)->withQueryParams(['status' => 'new', 'from' => $from, 'to' => $to])->test(Orders::class);
+        $this->assertSame(3, $all->viewData('orders')->total()); // semua cawangan
 
         // Bulan lain: tiada pesanan
         $c->set('month', '2026-10');

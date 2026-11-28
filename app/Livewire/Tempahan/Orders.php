@@ -33,6 +33,10 @@ class Orders extends Component
     #[Url]
     public string $payment_status = '';
 
+    /** Status ringkas seperti di Dashboard: new / deposit / paid / cancelled. */
+    #[Url]
+    public string $status = '';
+
     #[Url]
     public string $from = '';
 
@@ -78,13 +82,13 @@ class Orders extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('q', 'type', 'outlet', 'form', 'booking_status', 'payment_status', 'from', 'to');
+        $this->reset('q', 'type', 'outlet', 'form', 'booking_status', 'payment_status', 'status', 'from', 'to');
         $this->resetPage();
     }
 
     public function filters(): array
     {
-        return array_filter($this->only(['q', 'type', 'outlet', 'form', 'booking_status', 'payment_status', 'from', 'to']));
+        return array_filter($this->only(['q', 'type', 'outlet', 'form', 'booking_status', 'payment_status', 'status', 'from', 'to']));
     }
 
     public function render()

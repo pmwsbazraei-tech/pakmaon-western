@@ -76,6 +76,11 @@ class BranchDashboard extends Component
             'totals' => $totals,
             'buckets' => self::BUCKETS,
             'monthLabel' => $start->translatedFormat('F Y'),
+            // Pautan ke senarai pesanan bulan ini, ikut status dan (pilihan) cawangan
+            'link' => fn (?string $status = null, ?int $outlet = null) => route('tempahan.orders', array_filter([
+                'status' => $status, 'outlet' => $outlet,
+                'from' => $start->toDateString(), 'to' => $start->copy()->endOfMonth()->toDateString(),
+            ])),
         ]);
     }
 }

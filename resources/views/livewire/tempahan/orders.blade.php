@@ -14,6 +14,7 @@
         </div>
         <div class="row" style="margin-top:10px">
             <div><label>{{ __('Status booking') }}</label><select wire:model.live="booking_status"><option value="">{{ __('Semua') }}</option>@foreach (Order::BOOKING_STATUSES as $k => $v)<option value="{{ $k }}">{{ __($v) }}</option>@endforeach</select></div>
+            <div><label>{{ __('Status (dashboard)') }}</label><select wire:model.live="status"><option value="">{{ __('Semua') }}</option>@foreach (\App\Livewire\Tempahan\BranchDashboard::BUCKETS as $k => $v)<option value="{{ $k }}">{{ __($v) }}</option>@endforeach</select></div>
             <div><label>{{ __('Status bayaran') }}</label><select wire:model.live="payment_status"><option value="">{{ __('Semua') }}</option>@foreach (Order::PAYMENT_STATUSES as $k => $v)<option value="{{ $k }}">{{ __($v) }}</option>@endforeach</select></div>
             <div><label>{{ __('Dari') }}</label><input type="date" wire:model.live="from"></div>
             <div><label>{{ __('Hingga') }}</label><input type="date" wire:model.live="to"></div>
